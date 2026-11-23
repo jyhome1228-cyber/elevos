@@ -909,7 +909,7 @@ function playRound(){
  let totalXP=0;
  for(const p of myPlayers()){
   const isStarter=starterSet.has(p.id);
-  const xp=isStarter?rand(18,36):rand(0,4);
+  const xp=isStarter?rand(18,36):rand(8,14);
   p.xp+=xp;if(isStarter){totalXP+=xp;lineupOut.push({id:p.id,rating:matchRating(p,rand(-6,8)/10),xp})}
   while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}
  }
@@ -1132,16 +1132,18 @@ function save(){
 function rewardChoices(){
  const options=[
   ['coins','추가 파운드','£100','구단 이적 자금 +£100'],
-  ['growth','선수 경험치','80 XP','우리 팀 주요 선수 성장'],
+  ['growth','전 선수 경험치','80 XP','보유 선수 전원에게 +80 XP'],
   ['recruit','유망주 영입','NEW PLAYER','신규 가상 선수 1명 영입']
  ];
  return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice"><div class="reward-symbol">'+gameSvgIcon(r[0],28)+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
 }
 function awardTrainingXP(){
- const p=myPlayers().slice().sort((a,b)=>overall(b)-overall(a))[0];if(!p)return '보유 선수가 없습니다';
- p.xp+=80;
- while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}
- return p.name+' 훈련 경험치 +80';
+ const squad=myPlayers();if(!squad.length)return '보유 선수가 없습니다';
+ for(const p of squad){
+  p.xp+=80;
+  while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}
+ }
+ return '보유 선수 '+squad.length+'명 전원 경험치 +80 XP';
 }
 function recruitYouthPlayer(){
  if(myPlayers().length>=30){walletGBP+=100;return '선수단 정원 초과로 £100을 대신 지급'}
@@ -1510,8 +1512,8 @@ function viewMatchSimulationWrapper(){
  if(!simState||simState.club!==manager)return viewMatch();
  const m=simState,home=clubs[m.home],away=clubs[m.away],mins=m.minute;
  const myHome=m.home===manager,slots=FORMATIONS[m.formation||formation],lineup=simPlayerIds();
- const homeDots=slots.map((slot,i)=>{let p=players.find(q=>q.id===lineup[i]),x=myHome?slot.y:100-slot.y,y=slot.x;return '<div class="sim-pawn" style="left:'+x+'%;top:'+y+'%">'+(p?i+1:'?')+'</div>'}).join('');
- const awayDots=slots.map((slot,i)=>'<div class="sim-pawn away" style="left:'+(myHome?100-slot.y:slot.y)+'%;top:'+slot.x+'%">'+(i+1)+'</div>').join('');
+ const homeDots=slots.map((slot,i)=>{const p=players.find(q=>q.id===lineup[i]),baseX=myHome?100-slot.y:slot.y,wave=i===0?0:Math.sin((mins+i*9)/6)*2.4,x=Math.max(5,Math.min(95,baseX+wave)),y=Math.max(8,Math.min(92,slot.x+Math.cos((mins+i*3)/7)*1.7));return '<div class="sim-pawn" style="left:'+x+'%;top:'+y+'%">'+(p?i+1:'?')+'</div>'}).join('');
+ const awayDots=slots.map((slot,i)=>{const baseX=myHome?slot.y:100-slot.y,wave=i===0?0:Math.sin((mins+i*7)/5)*2.5,x=Math.max(5,Math.min(95,baseX+wave)),y=Math.max(8,Math.min(92,slot.x+Math.cos((mins+i*5)/8)*1.8));return '<div class="sim-pawn away" style="left:'+x+'%;top:'+y+'%">'+(i+1)+'</div>'}).join('');
  const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
  const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'계속 진행')+'</button><button class="btn sub" onclick="stepSimulation()">+1분 진행</button>';
  return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/simTotalMinutes()*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%">⚽</div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 전후 추가시간과 후반 90분 이후 추가시간이 적용됩니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
