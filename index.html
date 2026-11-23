@@ -13,6 +13,7 @@
 .setup-field input[type=color]{height:44px;padding:5px;cursor:pointer}
 .welcome{background:#22382b}
 @media(max-width:650px){.career-options,.setup-grid{grid-template-columns:1fr}}
+.face-tile{position:relative;display:inline-block;flex:none;overflow:hidden;border-radius:8px;background:#23382e;vertical-align:middle}.face-fallback{position:absolute;inset:0}.face-fallback svg{display:block}.face-tile img{z-index:1}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -206,6 +207,24 @@ window.startNewCareer=startNewCareer;
 
 window.setSlot=setSlot;window.resetLineup=resetLineup;
 if(saved&&saved.version===1){for(const p of players)detailed(p);save()}
+
+/* Player portraits: 19 provided 4x3 atlases, 228 fixed face slots.
+   Each player ID deterministically selects the same slot across transfers and sessions.
+   Keep the SVG avatar as the fallback when a CDN image cannot load. */
+const FACE_SHEETS=["https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092017-0b6524c6-87f2-4dfe-b7bb-605ca4216f8a-8e3c351f.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092018-0d3f523a-dda2-4c24-9af7-bef45cabf12e-1f482c36.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092018-1de59ef1-9e7b-4361-8f1c-7c11bc9c23d4-66b1eb12.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092019-1ff76d67-689f-4e0e-8758-f238db964142-40b25f2c.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092019-7ab75318-e5b9-4e7e-9bec-ba34168ee7cf-05f3f299.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092021-7b450c83-9d62-436d-8496-0b8c77930ed0-c0364e36.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092021-7bfd4e7b-269d-4796-801b-9c3c59fcd2ca-26df9078.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092022-53b40e05-19c3-4e65-a5f9-74350fe619e9-bacfe0d3.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092022-5608e139-5663-433d-b290-ae2e5b0b352e-691c1596.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092023-7901ae68-0e90-4cd1-8b46-f9101246a848-01b256d4.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092024-57504cbc-176e-4837-8c53-81169d3c6bbe-aa0e6d74.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092024-672000a3-8b4f-49df-823b-ac5bfa91c929-b06e2f65.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092025-a323e7a1-8b29-48f5-83df-186520e4175b-1-a99e4761.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092025-a323e7a1-8b29-48f5-83df-186520e4175b-0ad7a25a.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092026-d63d9012-aedc-46d7-a701-a4b2ca469a56-eba019c9.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092026-d75c95aa-ecd8-42cc-978d-6cef89225320-0ae44493.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092027-d448541d-23d6-4942-976a-d5abdecff603-220975d7.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092027-dc20a5af-a6f5-4835-8bc5-9833dfc088d0-aa878aaa.webp","https://nineworksdatabase.planus253.workers.dev/cdn/uncategorized/20261123-092028-e4b6687e-e52e-4326-8090-16aee1ef07d4-72d7552e.webp"];
+const svgAvatarFallback=avatar;
+function avatar(p,size=42){
+ const h=(Math.imul(p.id+1,2654435761)>>>0);
+ const tile=h%(FACE_SHEETS.length*12);
+ const sheet=Math.floor(tile/12);
+ const position=tile%12;
+ const col=position%4,row=Math.floor(position/4);
+ return '<span class="face-tile" style="width:'+size+'px;height:'+size+'px" title="가상 선수 얼굴">'
+ +'<span class="face-fallback">'+svgAvatarFallback(p,size)+'</span>'
+ +'<img loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
+ +'</span>';
+}
+
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
 </script></body></html>
