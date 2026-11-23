@@ -470,6 +470,25 @@ a{color:#202020}
 .reward-selected{border:1px solid #d6d6d6;background:#f5f5f5;border-radius:9px;padding:22px;text-align:center;margin-top:15px;font-size:17px;font-weight:700}
 .match-continue{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 @media(max-width:700px){.match-result-grid{grid-template-columns:1fr}.match-complete .match-full-score{font-size:42px}.match-complete .fulltime-clubs{grid-template-columns:1fr 60px 1fr}.match-complete .fulltime-club{font-size:12px}.sim-tactics-choices{grid-template-columns:repeat(3,1fr)}}
+
+.match-result-page{max-width:1240px;margin:0 auto}
+.match-bonus-caption{margin:12px 0;color:#777;font-size:13px}
+.reward-choice-grid.game-reward{margin:0;gap:13px}
+.game-reward .reward-choice{position:relative;min-height:226px;padding:23px 12px;border:1px solid #ddd;border-radius:12px;background:linear-gradient(150deg,#fff,#f4f4f4)}
+.game-reward .reward-choice:hover{border-color:#333}
+.game-reward .reward-choice strong{font-size:19px}
+.game-reward .reward-choice .reward-symbol{width:66px;height:66px;border-radius:13px;background:#222;color:#fff;font-size:27px;border:0}
+.game-reward .reward-choice button{width:90%;margin-top:11px}
+.result-events{display:flex;flex-direction:column;gap:0}
+.result-event{display:grid;grid-template-columns:50px 100px 1fr;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eee;font-size:13px}
+.result-event .event-type{font-weight:800;font-size:11px;color:#555}
+.result-event .event-time{font-weight:700;color:#333}
+.result-mvp{display:flex;align-items:center;gap:13px}
+.result-mvp .face-tile{width:68px!important;height:68px!important}
+.result-mvp .face-fallback svg{width:68px;height:68px}
+.result-mvp strong{font-size:16px;display:block;margin-bottom:6px}
+.result-mvp span{font-size:12px;color:#777}
+@media(max-width:700px){.result-event{grid-template-columns:37px 75px 1fr;font-size:12px}.game-reward .reward-choice{min-height:205px}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1029,12 +1048,14 @@ function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward}))}
  catch(e){console.warn('저장 실패',e)}
 }
+
 function rewardChoices(){
- return '<section class="card"><div class="row"><h2 style="margin:0">경기 후 추가 보상 선택</h2><span class="tag">3장 중 1장</span></div><p class="muted small">기본 경기머니와 경험치는 이미 지급됐습니다. 아래에서 추가 보상 한 가지를 받을 수 있습니다.</p><div class="reward-choice-grid">'+[
-  ['£','추가 게임머니','£100','보유 금액 +£100'],
-  ['XP','훈련 경험치','80 XP','가장 높은 능력치의 보유 선수에게 +80 XP'],
-  ['P','유망주 영입','새 선수 1명','가상의 신인 선수 1명 영입']
- ].map((x,i)=>'<div class="reward-choice"><span class="reward-symbol">'+x[0]+'</span><strong>'+x[1]+'</strong><small>'+x[3]+'</small><button class="btn" onclick="claimReward('+i+')">선택하기</button></div>').join('')+'</div></section>';
+ const options=[
+  ['£','추가 파운드','£100','구단 이적 자금 +£100'],
+  ['↗','선수 경험치','80 XP','우리 팀 주요 선수 성장'],
+  ['＋','유망주 영입','NEW PLAYER','신규 가상 선수 1명 영입']
+ ];
+ return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice"><div class="reward-symbol">'+r[0]+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
 }
 function awardTrainingXP(){
  const p=myPlayers().slice().sort((a,b)=>overall(b)-overall(a))[0];if(!p)return '보유 선수가 없습니다';
@@ -1059,7 +1080,7 @@ function claimReward(option){
  latestReward={club:manager,season:pendingReward.season,round:pendingReward.round,description};
  pendingReward=null;matchTab='rewards';save();render();
 }
-function viewMatch(){
+function viewMatchOriginal(){
  let html=viewMatchCore();
  if(manager===null)return html;
  if(matchTab==='result'&&pendingReward?.club===manager)
@@ -1388,6 +1409,41 @@ function simCoachingPanel(){
  (subs.length?'<div class="sim-subrecent">'+subs.slice(-2).map(x=>x.minute+"' 교체 "+txt(players.find(p=>p.id===x.in)?.name||'선수')).join(' · ')+'</div>':'')+'</div>';
 }
 window.updateSimTactic=updateSimTactic;window.substituteSimPlayer=substituteSimPlayer;
+
+
+/* One finished-match record drives score, statistics, events, MVP and rewards. */
+function resultEventList(events){
+ const relevant=(events||[]).filter(e=>['goal','yellow','red','shot'].includes(e.type));
+ return relevant.length?relevant.map(e=>'<div class="result-event"><span class="event-time">'+e.minute+"'</span>"+'<span class="event-type">'+({goal:'⚽ GOAL',yellow:'🟨 경고',red:'🟥 퇴장',shot:'슈팅'}[e.type]||'경기')+'</span><span>'+txt(e.text||'')+'</span></div>').join(''):'<p class="muted small">기록된 주요 경기 이벤트가 없습니다.</p>';
+}
+function viewMatchFinished(){
+ const result=lastMatch?.club===manager?lastMatch:null;
+ if(!result)return viewMatchCore();
+ const home=clubs[result.home],away=clubs[result.away];
+ const events=result.events||[],ourEvents=events.filter(e=>e.team===manager);
+ const goalEvents=events.filter(e=>e.type==='goal');
+ const cardEvents=events.filter(e=>e.type==='yellow'||e.type==='red');
+ const best=(result.lineup||[]).slice().sort((a,b)=>b.rating-a.rating)[0];
+ const mvp=best?players.find(p=>p.id===best.id):null;
+ const summary='<section class="card"><div class="match-complete"><div class="fulltime">FULL TIME · '+(result.round+1)+'라운드</div><div class="fulltime-clubs"><div class="fulltime-club">'+shield(home)+txt(home.name)+'</div><div class="match-full-score">'+result.homeGoals+' : '+result.awayGoals+'</div><div class="fulltime-club">'+shield(away)+txt(away.name)+'</div></div><span class="result-badge">'+result.outcome+' · 승점 +'+result.leaguePts+'</span></div>'+
+ '<div class="match-result-grid"><div class="match-result-box"><h3>경기 기록</h3><div class="result-statline"><span>득점</span><strong>'+result.homeGoals+' : '+result.awayGoals+'</strong></div>'+
+ '<div class="result-statline"><span>주요 슈팅 이벤트</span><strong>'+events.filter(e=>e.type==='shot'||e.type==='goal').length+'회</strong></div>'+
+ '<div class="result-statline"><span>경고·퇴장</span><strong>'+cardEvents.length+'회</strong></div>'+
+ '<div class="result-statline"><span>선수 교체</span><strong>'+(result.substitutions||[]).length+'명</strong></div></div>'+
+ '<div class="match-result-box"><h3>경기 기본 보상</h3><div class="result-statline"><span>파운드 획득</span><strong>'+formatGBP(result.money)+'</strong></div>'+
+ '<div class="result-statline"><span>선수 경험치</span><strong>+'+result.totalXP+' XP</strong></div>'+
+ (mvp?'<div class="result-mvp" style="margin-top:17px">'+avatar(mvp,68)+'<div><strong>MVP · '+txt(mvp.name)+'</strong><span>경기 평점 '+best.rating.toFixed(1)+'</span></div></div>':'')+
+ '</div></div></section>';
+ const eventsPanel='<section class="card"><div class="row"><h2 style="margin:0">주요 경기 상황</h2><span class="tag">실제 시뮬레이션 기록</span></div><div class="result-events">'+resultEventList(events)+'</div></section>';
+ const outstanding=pendingReward?.club===manager;
+ const rewardPanel=outstanding?rewardChoices():'<section class="card"><div class="reward-selected">✓ '+txt(latestReward?.club===manager?latestReward.description:'경기 보상 수령 완료')+'</div><div class="match-continue"><button class="btn sub" onclick="go(\'squad\')">선수단 확인</button><button class="btn" onclick="go(\'dashboard\')">다음 경기 준비</button></div></section>';
+ return '<div class="match-result-page">'+summary+eventsPanel+rewardPanel+'</div>';
+}
+function viewMatch(){
+ if(manager===null)return viewStart();
+ if(matchTab==='result'||matchTab==='rewards')return viewMatchFinished();
+ return viewMatchCore();
+}
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
