@@ -2233,8 +2233,10 @@ function liveMatchTotals(m){
  const events=m.events||[],count=(team,types)=>events.filter(e=>e.team===team&&types.includes(e.type)).length;
  const h=clubs[m.home],a=clubs[m.away];
  const rows=[['슈팅',['shot','goal']],['득점',['goal']],['파울',['foul']],['경고',['yellow']],['퇴장',['red']],['교체',['sub']]];
+ const log=m.log||[],passTypes=['pass','attack'],countLog=(id)=>log.filter(x=>x.team===id&&passTypes.includes(x.type)).length;
+ const left=countLog(m.home),right=countLog(m.away),total=Math.max(1,left+right),homeShare=Math.round(left/total*100),awayShare=100-homeShare;
  return '<section class="live-totals"><h3>경기 종합 기록</h3><div class="live-total-head">'+shield(h)+'<span>'+txt(h.name)+'</span><b>VS</b><span>'+txt(a.name)+'</span>'+shield(a)+'</div>'+
- rows.map(([label,types])=>'<div class="live-total-row"><strong>'+count(m.home,types)+'</strong><span>'+label+'</span><strong>'+count(m.away,types)+'</strong></div>').join('')+'</section>';
+ rows.map(([label,types])=>'<div class="live-total-row"><strong>'+count(m.home,types)+'</strong><span>'+label+'</span><strong>'+count(m.away,types)+'</strong></div>').join('')+'<div class="live-total-row"><strong>'+left+'</strong><span>패스·공격 전개</span><strong>'+right+'</strong></div><div class="live-total-row"><strong>'+homeShare+'%</strong><span>공격 전개 비중</span><strong>'+awayShare+'%</strong></div><p class="muted small">경기 중계 이벤트 기준의 가상 통계입니다.</p></section>';
 }
 function lastFiveLeagueResults(){
  if(manager===null)return '';
