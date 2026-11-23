@@ -1901,10 +1901,10 @@ function substituteSimPlayer(){
  simState.substitutions.push({minute:simMinuteLabel(simState.minute),out:outId,in:inId});
  simState.manualCoaching=true;
  const subMessage=(outbound?.name||'선수')+' OUT  →  '+(inbound?.name||'선수')+' IN';
- simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:simMinuteLabel(simState.minute),type:'sub',title:'SUBSTITUTION',detail:subMessage};
+ simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:simMinuteLabel(simState.minute),type:'sub',title:'SUBSTITUTION',detail:subMessage,team:manager};
  if(!simBatchMode&&page==='match')displaySimEventOnce(simState.majorEvent);
  simState.lastSubNotice={minute:simState.minute,text:subMessage};
- simState.log.unshift({minute:simState.minute,type:'sub',text:'선수 교체: '+subMessage});
+ simState.log.unshift({minute:simMinuteLabel(simState.minute),type:'sub',team:manager,playerId:inId,text:'선수 교체: '+subMessage});
  save();render();
 }
 function simTeamPower(){
