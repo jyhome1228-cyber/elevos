@@ -1410,7 +1410,7 @@ function simEvent(team,actor,type,text,majorTitle){
  }
  if(majorTitle){
   simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:e.minute,type,title:majorTitle,detail:text};
-  if(!simBatchMode)displaySimEventOnce(simState.majorEvent);
+  if(!simBatchMode&&page==='match')displaySimEventOnce(simState.majorEvent);
  }
 }
 let simEventTimeout=null;
@@ -1622,7 +1622,7 @@ function substituteSimPlayer(){
  simState.substitutions.push({minute:simState.minute,out:outId,in:inId});
  const subMessage=(outbound?.name||'선수')+' OUT  →  '+(inbound?.name||'선수')+' IN';
  simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:simMinuteLabel(simState.minute),type:'sub',title:'SUBSTITUTION',detail:subMessage};
- if(!simBatchMode)displaySimEventOnce(simState.majorEvent);
+ if(!simBatchMode&&page==='match')displaySimEventOnce(simState.majorEvent);
  simState.lastSubNotice={minute:simState.minute,text:subMessage};
  simState.log.unshift({minute:simState.minute,type:'sub',text:'선수 교체: '+subMessage});
  save();render();
@@ -1644,7 +1644,6 @@ function simCoachingPanel(){
  ].map(([v,label])=>'<button class="'+(instruction===v?'selected':'')+'" onclick="updateSimTactic(\''+v+'\')">'+label+'</button>').join('')+'</div><h3>선수 교체 <span style="color:#888;font-size:12px">('+subs.length+'/5)</span></h3>'+
  '<div class="coach-action"><select onpointerdown="pauseSimulation()" onfocus="pauseSimulation()" id="sim-sub-out" aria-label="교체 아웃">'+outs.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select><span>⇄</span><select onpointerdown="pauseSimulation()" onfocus="pauseSimulation()" id="sim-sub-in" aria-label="교체 인">'+available.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select></div>'+
  '<button class="btn" style="width:100%" '+(subs.length>=5||!available.length?'disabled':'')+' onclick="substituteSimPlayer()">선수 교체 확정</button><p class="coaching-note">교체 선수를 고르면 경기가 자동으로 일시정지됩니다. 교체 또는 전술 변경 후 ‘계속 진행’을 눌러주세요. 최대 5명 교체할 수 있습니다.</p>'+
- (simState.lastSubNotice&&simState.minute-simState.lastSubNotice.minute<=3?'<div class="sim-sub-notice"><strong>↔ 교체 완료</strong><span>'+txt(simState.lastSubNotice.text)+'</span></div>':'')+
  (subs.length?'<div class="sim-subrecent">'+subs.slice(-2).map(x=>x.minute+"' 교체 "+txt(players.find(p=>p.id===x.in)?.name||'선수')).join(' · ')+'</div>':'')+'</div>';
 }
 window.updateSimTactic=updateSimTactic;window.substituteSimPlayer=substituteSimPlayer;
@@ -1820,7 +1819,7 @@ function pregameHTML(){
  const awayIDs=ownHome?computerLineup(pair[1]):currentLineup();
  const homeForm=ownHome?formation:'433',awayForm=ownHome?'433':formation;
  const weather=fixtureWeather(pair[0],pair[1],round,season);
- return '<div class="pregame-info"><span>경기장: '+txt(clubs[pair[0]].name)+' 홈</span><span>날씨: '+weather[0]+' · '+weather[1]+'</span><span>리그 '+(round+1)+'라운드</span></div>'+
+ return '<div class="pregame-info"><span>경기장: '+txt(clubs[pair[0]].name)+' 홈</span><span>가상 날씨: '+weather[0]+' · '+weather[1]+'</span><span>리그 '+(round+1)+'라운드</span></div>'+
  '<div class="pregame-lineups">'+pregameLineupHTML(pair[0],'HOME',homeIDs,homeForm)+pregameLineupHTML(pair[1],'AWAY',awayIDs,awayForm)+'</div>';
 }
 window.changeJerseyNumber=changeJerseyNumber;
