@@ -541,6 +541,34 @@ a{color:#202020}
 .squad-chemistry{padding:13px;border:1px solid #ddd;border-radius:8px;background:#fafafa;margin:12px 0 16px;font-size:13px}
 .squad-chemistry strong{font-size:16px}.squad-chemistry p{margin:7px 0 0;color:#777;font-size:12px}
 .team-composition-note{padding:12px;border:1px solid #ddd;border-radius:7px;background:#fafafa;font-size:12px;line-height:1.6;margin:10px 0}
+
+/* ELEVOS 2.1 score and ability-tier styling */
+.ovr-tier{display:inline-flex;align-items:center;justify-content:center;min-width:36px;border-radius:6px;padding:3px 6px;font-weight:800;color:#222}
+.ovr-tier.tier-80{background:#fff0bc;color:#75521d}
+.ovr-tier.tier-90{background:#eee2ff;color:#6844a0}
+.ovr-tier.tier-100{background:#d7e8ff;color:#245ba0}
+.home-standings{margin-top:14px}
+.home-standing-table{width:100%;border-collapse:collapse}
+.home-standing-table td,.home-standing-table th{padding:8px 5px;font-size:12px;text-align:left;border-bottom:1px solid #ededed}
+.home-standing-table th{color:#777}
+.home-standing-table tr.mine{background:#f0f0f0;font-weight:800}
+.home-standing-table .crest{width:24px!important;height:28px!important}
+.home-standing-table td:last-child,.home-standing-table th:last-child{text-align:right}
+.sim-goal{position:absolute;z-index:3;top:50%;height:32%;width:13px;transform:translateY(-50%);border:2px solid #f7f7f7;border-radius:2px;background:repeating-linear-gradient(90deg,transparent,transparent 3px,#ffffff44 4px)}
+.sim-goal.left{left:0}.sim-goal.right{right:0}
+.sim-pawn{transition:left .3s ease,top .3s ease}
+.sim-ball{width:15px!important;height:15px!important;display:grid;place-items:center;border:0!important;background:none!important;font-size:15px;line-height:1}
+.sim-event-overlay-fixed{position:fixed;z-index:200;top:38%;left:50%;transform:translate(-50%,-50%);width:min(520px,85vw);background:#ffffffed;border:2px solid #242424;border-radius:12px;padding:30px 20px;text-align:center;box-shadow:0 15px 65px #0004;animation:event-once 2s ease-out forwards;pointer-events:none}
+.sim-event-overlay-fixed .event-title{font-weight:900;font-size:36px}
+.sim-event-overlay-fixed .event-detail{font-size:16px;margin-top:9px;font-weight:650}
+.sim-event-overlay-fixed.yellow{border-color:#efc02a}.sim-event-overlay-fixed.red,.sim-event-overlay-fixed.cancel{border-color:#b32d2d}.sim-event-overlay-fixed.var{border-color:#2b5084}.sim-event-overlay-fixed.goal{border-color:#222}
+@keyframes event-once{0%{opacity:0;transform:translate(-50%,-44%) scale(.92)}12%,83%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+.sim-line.var{border-left:4px solid #3d6eb2;background:#eef4ff;padding-left:10px}
+.sim-line.offside,.sim-line.foul{border-left:3px solid #aaa;padding-left:9px}
+.sim-line.cancel{border-left:4px solid #ba3f3f;background:#fff1f1;padding-left:10px}
+.home-quick-market{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 0 0;padding:12px;border:1px solid #e6e6e6;border-radius:8px;background:#fafafa}
+.home-quick-market strong{display:block;font-size:13px}
+.home-quick-market small{display:block;font-size:12px;color:#777;margin-top:4px}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1204,12 +1232,12 @@ function viewDashboard(){
  if(round===0&&!tutorialDismissed){intro='<div class="home-getting-started"><div><strong>첫 경기부터 시작해 볼까요?</strong><p>선발 선수를 확인한 다음 경기를 진행하면 경험치와 보상을 받을 수 있어요.</p></div><button class="btn sub mini" onclick="hideTutorial()">확인했어요</button></div>'}
  const main='<div class="home-main"><section class="card home-match"><div><div class="home-heading"><div><div class="eyebrow">NEXT MATCH</div><h2>'+txt(LEAGUES[club.league][1])+' · '+Math.min(round+1,22)+'라운드</h2></div><span class="tag">'+season+' 시즌</span></div>'+matchUp+'</div><div class="home-match-actions"><button class="btn" onclick="'+nextAction+'">'+nextText+'</button><button class="btn sub" onclick="go(\'tactics\')">선발·전술 설정</button></div></section>'+
  '<div class="home-actions"><button class="home-action" onclick="go(\'squad\')"><span class="action-ic">♟</span><strong>선수단 육성</strong><span>선수 능력치 · 레벨업</span></button><button class="home-action" onclick="go(\'market\')"><span class="action-ic">⇄</span><strong>이적시장</strong><span>선수 검색 · 영입</span></button><button class="home-action" onclick="go(\'league\')"><span class="action-ic">▦</span><strong>리그 일정</strong><span>순위 · 경기 기록</span></button></div>'+
- '<section class="card" style="margin-top:14px"><div class="home-heading"><h2>우리 팀 핵심 선수</h2><button class="btn sub mini" onclick="go(\'squad\')">전체 선수단</button></div><div class="home-featured-players">'+squad.slice(0,4).map(p=>'<div class="home-player">'+avatar(p,100)+'<strong>'+txt(p.name)+'</strong><small>'+p.pos+' · 능력 '+overall(p)+'</small></div>').join('')+'</div></section></div>';
+ '<div class="home-quick-market"><div><strong>이적시장</strong><small>선수 영입과 보유 금액 관리</small></div><button class="btn sub mini" onclick="go(\'market\')">이적시장 열기</button></div><section class="card" style="margin-top:14px"><div class="home-heading"><h2>우리 팀 핵심 선수</h2><button class="btn sub mini" onclick="go(\'squad\')">전체 선수단</button></div><div class="home-featured-players">'+squad.slice(0,4).map(p=>'<div class="home-player">'+avatar(p,100)+'<strong>'+txt(p.name)+'</strong><small>'+p.pos+' · 능력 '+overall(p)+'</small></div>').join('')+'</div></section></div>';
  const side='<aside class="home-right"><section class="card"><div class="eyebrow">MY CLUB</div><div class="home-club-identity">'+shield(club)+'<div><strong>'+txt(club.name)+'</strong><small>'+txt(LEAGUES[club.league][1])+'</small></div></div>'+
  '<div class="home-datum"><span>소속 리그</span><strong>'+txt(LEAGUES[club.league][1])+'</strong></div><div class="home-datum"><span>리그 순위</span><strong>'+rank+'위</strong></div><div class="home-datum"><span>현재 전적</span><strong>'+stats.w+'승 '+stats.d+'무 '+stats.l+'패</strong></div><div class="home-datum"><span>보유 선수</span><strong>'+squad.length+'명</strong></div><div class="home-datum"><span>구단 예산</span><strong>'+formatGBP(walletGBP)+'</strong></div>'+
  '<div class="home-progress"><div class="row"><strong style="font-size:12px">시즌 진행</strong><span class="muted small">'+round+' / 22</span></div><div class="home-progress-meter"><span style="width:'+Math.min(100,round/22*100)+'%"></span></div></div></section>'+
  '<section class="card"><div class="home-heading"><h2>구단 소식</h2><span class="tag">NEWS</span></div><div class="home-news"><strong>다음 경기 준비</strong><p>'+(next?'전술을 확인하고 '+txt(away.id===manager?home.name:away.name)+'과(와) 경기를 진행하세요.':'다음 시즌을 준비하세요.')+'</p></div><div class="home-news"><strong>선수 육성</strong><p>경기 경험치를 모아 세부 능력치를 최대 120까지 성장시킬 수 있어요.</p></div><div class="home-news"><strong>경기 후 보상</strong><p>'+(pendingReward?.club===manager?'선택하지 않은 추가 보상이 남아 있어요.':'경기를 끝내면 3가지 추가 보상 중 하나를 고를 수 있어요.')+'</p></div></section></aside>';
- return intro+'<div class="elevos-home">'+main+side+'</div><div class="home-bottom">'+classicDock()+'</div>';
+ return intro+'<div class="elevos-home">'+main+'<div>'+side+homeLeagueStandings()+'</div></div><div class="home-bottom">'+classicDock()+'</div>';
 }
 
 
@@ -1588,6 +1616,15 @@ function teamPower(clubId){
 function simTeamPower(){
  const t=lineupComposition(simPlayerIds(),FORMATIONS[simState.formation||formation]);
  return own().rating*.2+t.mean*.8+t.bonus;
+}
+
+
+function abilityTier(value){return value>=100?'tier-100':value>=90?'tier-90':value>=80?'tier-80':''}
+function abilityLabel(value){return '<span class="ovr-tier '+abilityTier(value)+'">'+value+'</span>'}
+function homeLeagueStandings(){
+ if(manager===null)return '';
+ const entries=standing(own().league);
+ return '<section class="card home-standings"><div class="home-heading"><h2>리그 전체 순위</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><table class="home-standing-table"><thead><tr><th>순위</th><th>구단</th><th>경기</th><th>득실</th><th>승점</th></tr></thead><tbody>'+entries.map((c,i)=>{const p=points[c.id];return '<tr class="'+(c.id===manager?'mine':'')+'"><td>'+(i+1)+'</td><td>'+shield(c)+' '+txt(c.name)+'</td><td>'+p.p+'</td><td>'+((p.gf-p.ga)>0?'+':'')+(p.gf-p.ga)+'</td><td>'+(p.w*3+p.d)+'</td></tr>'}).join('')+'</tbody></table></section>';
 }
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
