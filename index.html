@@ -1564,11 +1564,12 @@ const ROLE_COLORS={FW:'#d84040',MF:'#3185dc',DF:'#a3db61',GK:'#edc53f'};
 const ROLE_TITLES={FW:'공격수',MF:'미드필더',DF:'수비수',GK:'골키퍼'};
 function playerRole(p){return ROLE_FAMILY[p.pos]||'MF'}
 function positionBadge(p){const r=playerRole(p);return '<span class="squad-role-name"><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+p.pos+' · '+ROLE_TITLES[r]+'</span>'}
+function preciseOverall(p){const d=detailed(p),keys=OVR_KEYS[p.pos]||OVR_KEYS.CM;return keys.reduce((sum,k)=>sum+d[k],0)/keys.length}
 function lineupComposition(ids,slots){
  const groups={FW:[],MF:[],DF:[],GK:[]};let total=0,fitTotal=0,filled=0;
  slots.forEach((slot,i)=>{
   const p=players.find(x=>x.id===ids[i]);if(!p)return;
-  const fit=positionFit(p,slot.r),role=ROLE_FAMILY[slot.r]||'MF',score=overall(p)*fit;
+  const fit=positionFit(p,slot.r),role=ROLE_FAMILY[slot.r]||'MF',score=preciseOverall(p)*fit;
   groups[role].push(score);total+=score;fitTotal+=fit;filled++;
  });
  const averages=Object.fromEntries(Object.entries(groups).map(([k,list])=>[k,list.reduce((a,b)=>a+b,0)/Math.max(1,list.length)]));
@@ -1582,7 +1583,7 @@ function teamPower(clubId){
  const c=clubs.find(x=>x.id===clubId);if(!c)return 30;
  if(clubId===manager){const t=playerTeamComposition();return c.rating*.2+t.mean*.8+t.bonus}
  const top=players.filter(p=>p.club===clubId).sort((a,b)=>overall(b)-overall(a)).slice(0,11);
- return c.rating*.2+(top.reduce((n,p)=>n+overall(p),0)/Math.max(1,top.length))*.8;
+ return c.rating*.2+(top.reduce((n,p)=>n+preciseOverall(p),0)/Math.max(1,top.length))*.8;
 }
 function simTeamPower(){
  const t=lineupComposition(simPlayerIds(),FORMATIONS[simState.formation||formation]);
