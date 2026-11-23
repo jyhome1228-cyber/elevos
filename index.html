@@ -234,7 +234,7 @@ a{color:#202020}
 .classic-dock button{flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 7px;border-radius:6px;border:1px solid transparent;background:transparent;color:#383838;cursor:pointer;font-size:12px;font-weight:650;white-space:nowrap}
 .classic-dock button:hover{background:#fff;border-color:#d7d7d7}
 .classic-dock button.active{background:#1c1c1c;color:#fff}
-.classic-dock .dock-icon{font-size:20px;line-height:1}
+.classic-dock .dock-icon{display:flex;align-items:center;justify-content:center;min-height:22px}
 .classic-lobby .sidebar{display:none}
 @media(max-width:1100px){.classic-lobby{grid-template-columns:210px minmax(0,1fr)}.classic-right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}.classic-right .card{margin:0}}
 @media(max-width:700px){.classic-lobby{grid-template-columns:1fr}.classic-right{display:block;grid-column:auto}.classic-right .card{margin-bottom:12px}.classic-lobby .club-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.classic-lobby .featured-side{font-size:12px}.classic-dock button{min-width:85px}}
@@ -887,8 +887,8 @@ window.showNews=showNews;
 
 /* One-screen football game lobby, based on classic three-panel structure. */
 function classicDock(){
- const items=[['dashboard','⌂','대시보드'],['squad','♟','선수단'],['tactics','▦','전술'],['match','▶','경기진행'],['league','▤','리그일정'],['market','⇄','이적시장']];
- return '<nav class="classic-dock" aria-label="게임 바로가기">'+items.map(([id,icon,label])=>'<button class="'+(page===id?'active':'')+'" onclick="go(\''+id+'\')"><span class="dock-icon" aria-hidden="true">'+icon+'</span>'+label+'</button>').join('')+'</nav>'
+ const items=[['dashboard','home','대시보드'],['squad','users','선수단'],['tactics','tactics','전술'],['match','play','경기진행'],['league','calendar','리그일정'],['market','transfer','이적시장']];
+ return '<nav class="classic-dock" aria-label="게임 바로가기">'+items.map(([id,icon,label])=>'<button class="'+(page===id?'active':'')+'" onclick="go(\''+id+'\')"><span class="dock-icon" aria-hidden="true">'+gameSvgIcon(icon,21)+'</span>'+label+'</button>').join('')+'</nav>'
 }
 function viewDashboardClassic(){
  if(manager===null)return viewStart();
@@ -1051,11 +1051,11 @@ function save(){
 
 function rewardChoices(){
  const options=[
-  ['£','추가 파운드','£100','구단 이적 자금 +£100'],
-  ['↗','선수 경험치','80 XP','우리 팀 주요 선수 성장'],
-  ['＋','유망주 영입','NEW PLAYER','신규 가상 선수 1명 영입']
+  ['coins','추가 파운드','£100','구단 이적 자금 +£100'],
+  ['growth','선수 경험치','80 XP','우리 팀 주요 선수 성장'],
+  ['recruit','유망주 영입','NEW PLAYER','신규 가상 선수 1명 영입']
  ];
- return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice"><div class="reward-symbol">'+r[0]+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
+ return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice"><div class="reward-symbol">'+gameSvgIcon(r[0],28)+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
 }
 function awardTrainingXP(){
  const p=myPlayers().slice().sort((a,b)=>overall(b)-overall(a))[0];if(!p)return '보유 선수가 없습니다';
@@ -1404,8 +1404,8 @@ function simCoachingPanel(){
  return '<div class="sim-coach-panel"><h3>경기 중 전술 지시</h3><div class="sim-tactics-choices">'+[
  ['defend','수비 강화'],['balanced','균형 유지'],['attack','공격 강화']
  ].map(([v,label])=>'<button class="'+(instruction===v?'selected':'')+'" onclick="updateSimTactic(\''+v+'\')">'+label+'</button>').join('')+'</div><h3>선수 교체 <span style="color:#888;font-size:12px">('+subs.length+'/5)</span></h3>'+
- '<div class="coach-action"><select id="sim-sub-out" aria-label="교체 아웃">'+outs.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select><span>⇄</span><select id="sim-sub-in" aria-label="교체 인">'+available.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select></div>'+
- '<button class="btn" style="width:100%" '+(subs.length>=5||!available.length?'disabled':'')+' onclick="substituteSimPlayer()">선수 교체 확정</button><p class="coaching-note">선수 교체와 전술 지시는 이후 경기 이벤트 확률에 반영됩니다. 최대 5명 교체할 수 있습니다.</p>'+
+ '<div class="coach-action"><select onpointerdown="pauseSimulation()" onfocus="pauseSimulation()" id="sim-sub-out" aria-label="교체 아웃">'+outs.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select><span>⇄</span><select onpointerdown="pauseSimulation()" onfocus="pauseSimulation()" id="sim-sub-in" aria-label="교체 인">'+available.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select></div>'+
+ '<button class="btn" style="width:100%" '+(subs.length>=5||!available.length?'disabled':'')+' onclick="substituteSimPlayer()">선수 교체 확정</button><p class="coaching-note">교체 선수를 고르면 경기가 자동으로 일시정지됩니다. 교체 또는 전술 변경 후 ‘계속 진행’을 눌러주세요. 최대 5명 교체할 수 있습니다.</p>'+
  (subs.length?'<div class="sim-subrecent">'+subs.slice(-2).map(x=>x.minute+"' 교체 "+txt(players.find(p=>p.id===x.in)?.name||'선수')).join(' · ')+'</div>':'')+'</div>';
 }
 window.updateSimTactic=updateSimTactic;window.substituteSimPlayer=substituteSimPlayer;
@@ -1443,6 +1443,24 @@ function viewMatch(){
  if(manager===null)return viewStart();
  if(matchTab==='result'||matchTab==='rewards')return viewMatchFinished();
  return viewMatchCore();
+}
+
+
+function gameSvgIcon(name,size=22){
+ const common='fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+ const paths={
+ home:'<path d="M3 10 12 3l9 7v11H4V10"/><path d="M9 21v-7h6v7"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+ tactics:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="3"/>',
+ play:'<circle cx="12" cy="12" r="10"/><path d="m9 7 8 5-8 5Z"/>',
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h3"/>',
+ transfer:'<path d="m7 7-4 4 4 4M3 11h14M17 17l4-4-4-4M7 13h14"/>',
+ coins:'<circle cx="12" cy="12" r="9"/><path d="M15 8h-5a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H9M12 5v14"/>',
+ growth:'<path d="M4 19V5M4 19h16M7 15l5-6 4 3 5-7M17 5h4v4"/>',
+ recruit:'<circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M19 8v8M15 12h8"/>',
+ check:'<path d="M4 12l5 5L20 6"/>'
+ };
+ return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" '+common+' aria-hidden="true">'+(paths[name]||paths.play)+'</svg>';
 }
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
