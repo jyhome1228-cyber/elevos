@@ -1095,7 +1095,7 @@ function recruitYouthPlayer(){
  const id=Math.max(...players.map(p=>p.id))+1;
  const base=Math.max(45,Math.min(75,Math.round(own().rating-9+rand(-6,6))));
  const p={id,club:manager,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(17,21),level:1,xp:0,pts:0,potential:Math.min(120,base+rand(15,32)),stats:{pace:Math.min(95,base+rand(-5,6)),shoot:Math.min(95,base+rand(-5,6)),pass:Math.min(95,base+rand(-5,6)),defend:Math.min(95,base+rand(-5,6)),physical:Math.min(95,base+rand(-5,6))}};
- playerBio(p);p.nameEn=p.name;if(displayLanguage==='ko')p.name=playerKorean(p.nameEn);players.push(p);return p.name+' ('+p.pos+') 영입 완료';
+ playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);players.push(p);return p.name+' ('+p.pos+') 영입 완료';
 }
 function claimReward(option){
  if(!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
@@ -1151,7 +1151,8 @@ function updateDisplayLanguage(lang){
  }
  for(const p of players){
   if(!p.nameEn)p.nameEn=p.name;
-  p.name=displayLanguage==='ko'?playerKorean(p.nameEn):p.nameEn;
+  applyCuratedAsianName(p);
+  p.name=localizedPlayerName(p);
  }
 }
 function nameLanguageSettings(){
@@ -1496,6 +1497,23 @@ function gameSvgIcon(name,size=22){
  };
  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" '+common+' aria-hidden="true">'+(paths[name]||paths.play)+'</svg>';
 }
+
+
+const EAST_ASIAN_ART_SETS=new Set([7,15]); // creator-designated fictional Asian portrait sheets
+const ASIAN_PLAYER_NAMES=[
+ {nation:'대한민국',s:['김','박','이','최','정','강','윤','조','장','임','한','오'],g:['민준','지훈','도윤','현우','준호','민재','태민','승우','우진','현준','건우','서준'],es:['Kim','Park','Lee','Choi','Jung','Kang','Yoon','Cho','Jang','Lim','Han','Oh'],eg:['Minjun','Jihun','Doyun','Hyunwoo','Junho','Minjae','Taemin','Seungwoo','Woojin','Hyunjun','Geonwoo','Seojun']},
+ {nation:'일본',s:['사토','스즈키','다카하시','다나카','와타나베','이토','나카무라','고바야시','가토','야마모토','마츠모토','이노우에'],g:['렌','하루토','유토','다이키','쇼타','료타','타쿠미','케이타','소타','아키라','나오키','히로토'],es:['Sato','Suzuki','Takahashi','Tanaka','Watanabe','Ito','Nakamura','Kobayashi','Kato','Yamamoto','Matsumoto','Inoue'],eg:['Ren','Haruto','Yuto','Daiki','Shota','Ryota','Takumi','Keita','Sota','Akira','Naoki','Hiroto']},
+ {nation:'중국',s:['왕','리','장','류','천','양','황','자오','우','저우','쉬','쑨'],g:['웨이','하오','준제','즈하오','위안','룽','위첸','밍','즈위안','톈위','이판','하오란'],es:['Wang','Li','Zhang','Liu','Chen','Yang','Huang','Zhao','Wu','Zhou','Xu','Sun'],eg:['Wei','Hao','Junjie','Zihao','Yuan','Long','Yuchen','Ming','Zhiyuan','Tianyu','Yifan','Haoran']}
+];
+function applyCuratedAsianName(p){
+ const tile=(Math.imul(p.id+1,2654435761)>>>0)%(FACE_SHEETS.length*12),sheet=Math.floor(tile/12);
+ if(!EAST_ASIAN_ART_SETS.has(sheet))return;
+ const pack=ASIAN_PLAYER_NAMES[(p.id+tile%12)%3],a=(p.id*7+tile)%12,b=(p.id*11+Math.floor(p.id/3))%12;
+ p.nameEn=pack.es[a]+' '+pack.eg[b];
+ p.nameKo=pack.nation==='대한민국'?pack.s[a]+pack.g[b]:pack.s[a]+' '+pack.g[b];
+ p.nationality=pack.nation;p.portraitPreset=pack.nation;
+}
+function localizedPlayerName(p){return displayLanguage==='en'?(p.nameEn||p.name):(p.nameKo||playerKorean(p.nameEn||p.name))}
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
