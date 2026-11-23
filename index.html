@@ -876,8 +876,10 @@ function clubBrand(c){
   else if(/mont|berg|mount|fell|hill/.test(title))symbol='mountain';
   else if(/castle|tower|torre/.test(title))symbol='tower';
  }
- const words=(c.nameEn||c.name).replace(/[^\p{L}\p{N} ]/gu,'').split(' ').filter(Boolean);
- const initials=(words.length>1?words[0][0]+words[1][0]:(words[0]||'FC').slice(0,2)).toUpperCase();
+ // Always derive crest lettering from the immutable English seed, never the localized display name.
+ const seedName=LEAGUES[Math.floor(id/12)]?.[3]?.[id%12]||c.nameEn||c.name;
+ const asciiWords=String(seedName).match(/[A-Za-z]+/g)||[];
+ const initials=(asciiWords.length>1?asciiWords[0][0]+asciiWords[1][0]:(asciiWords[0]||'FC').slice(0,2)).toUpperCase().replace(/[^A-Z]/g,'').slice(0,2)||'FC';
  return {primary:colors[0],secondary:colors[1],shape:CLUB_SHAPES[(id+countryIndex*2)%5],symbol,initials};
 }
 function emblemSymbol(symbol){
