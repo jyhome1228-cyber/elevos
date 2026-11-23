@@ -1426,7 +1426,7 @@ function viewTactics(){
   return '<div class="drag-spot" data-role="'+ROLE_FAMILY[slot.r]+'" draggable="true" ondragstart="tacticsDragStart(event,\'slot\','+i+')" ondragover="tacticsDragOver(event)" ondrop="tacticsDrop(event,'+i+')" style="left:'+slot.x+'%;top:'+slot.y+'%" title="클릭: 선수 정보 / 드래그: 교체" onclick="inspectTacticsPlayer('+(p?p.id:-1)+')"><span class="drag-position">'+slot.r+'</span><div>'+(p?avatar(p,62):'<span class="playerdot">?</span>')+'</div><div class="drag-label">'+(p?txt(p.name.split(' ').slice(-1)[0]):'빈 자리')+'</div><div class="drag-score">'+contribution+'</div></div>'
  }).join('');
  const reserves=squad.filter(p=>!used.has(p.id)&&!playerUnavailable(p)).sort((a,b)=>overall(b)-overall(a));
- return '<div class="grid two"><section class="card"><div class="row"><h2>선수 포메이션</h2><button class="btn sub mini" onclick="resetLineup()">자동 선발</button></div><p class="drop-note">선수를 마우스로 드래그해 다른 선수와 위치를 교체하세요. 오른쪽 후보 선수도 경기장 위로 드래그할 수 있어요.</p><div class="chips">'+Object.keys(FORMATIONS).map(k=>'<button class="chip '+(formation===k?'on':'')+'" onclick="setFormation(\''+k+'\')">'+({433:'4-3-3',4231:'4-2-3-1',442:'4-4-2',352:'3-5-2',343:'3-4-3'}[k])+'</button>').join('')+'</div><div class="pitch drag-pitch"><div class="half"></div>'+pitch+'</div>'+(lastTacticsChange?'<div class="tactics-change-feedback">⇄ '+txt(lastTacticsChange)+'</div>':'')+'<div class="lineup-stats"><span>선발 '+lineup.filter(Boolean).length+' / 11명</span><span>팀 전력 '+Math.round(teamPower(manager))+'</span><span>조직력 '+playerTeamComposition().chemistry+' / 100</span></div><div class="team-composition-note">선수의 능력치, 주포지션 적합도, 공격·미드필더·수비 조합이 팀 경기력에 함께 반영됩니다.</div></section>'+
+ return '<div class="grid two"><section class="card"><div class="row"><h2>선수 포메이션</h2><button class="btn sub mini" onclick="resetLineup()">자동 선발</button></div><p class="drop-note">선수를 마우스로 드래그해 다른 선수와 위치를 교체하세요. 오른쪽 후보 선수도 경기장 위로 드래그할 수 있어요.</p><div class="chips">'+Object.keys(FORMATIONS).map(k=>'<button class="chip '+(formation===k?'on':'')+'" onclick="setFormation(\''+k+'\')">'+({433:'4-3-3',4231:'4-2-3-1',442:'4-4-2',352:'3-5-2',343:'3-4-3'}[k])+'</button>').join('')+'</div><div class="pitch drag-pitch"><div class="half"></div>'+pitch+'</div>'+(lastTacticsChange?'<div class="tactics-change-feedback">⇄ '+txt(lastTacticsChange)+'</div>':'')+'<div class="lineup-stats"><span>선발 '+lineup.filter(id=>id!==null&&id!==undefined).length+' / 11명</span><span>팀 전력 '+Math.round(teamPower(manager))+'</span><span>조직력 '+playerTeamComposition().chemistry+' / 100</span></div><div class="team-composition-note">선수의 능력치, 주포지션 적합도, 공격·미드필더·수비 조합이 팀 경기력에 함께 반영됩니다.</div></section>'+
  '<section class="card"><h2>선발·후보 선수</h2><p class="muted small">얼굴을 클릭해 상세 정보 확인 · 드래그로 선발 교체</p>'+(selectedPlayer!==null&&squad.some(p=>p.id===selectedPlayer)?tacticsDossier(squad.find(p=>p.id===selectedPlayer)):'<div class="notice">선수 얼굴을 클릭하면 국적·나이·주발·육각형 스탯을 볼 수 있어요.</div>')+'<div class="tactics-group"><span>선발 11명</span><span>경기장 선수</span></div><div style="max-height:445px;overflow:auto">'+slots.map((slot,i)=>'<div class="slotpick"><span class="tag">'+slot.r+'</span><select aria-label="'+slot.r+' 선발 선수" onchange="setSlot('+i+',this.value)">'+squad.filter(p=>!playerUnavailable(p)).slice().sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r)).map(p=>'<option value="'+p.id+'" '+(p.id===lineup[i]?'selected':'')+'>'+txt(p.name)+' · '+p.pos+' '+overall(p)+'</option>').join('')+'</select></div>').join('')+'</div><div class="tactics-group"><span>후보 선수</span><span>'+reserves.length+'명 · 드래그해서 교체</span></div><div class="bench-grid">'+reserves.map(p=>'<div class="bench-person" data-role="'+ROLE_FAMILY[p.pos]+'" draggable="true" ondragstart="tacticsDragStart(event,\'player\','+p.id+')" title="클릭: 선수 정보 / 드래그: 선발 투입" onclick="inspectTacticsPlayer('+p.id+')">'+avatar(p,36)+'<span>'+txt(p.name)+' · '+p.pos+'</span></div>').join('')+'</div><h2 style="margin-top:20px">팀 전술</h2><div class="setting"><label>경기 운영</label><select onchange="setTactic(this.value)"><option value="balanced" '+(tactic==='balanced'?'selected':'')+'>균형</option><option value="attack" '+(tactic==='attack'?'selected':'')+'>공격적</option><option value="defend" '+(tactic==='defend'?'selected':'')+'>수비적</option></select></div><div class="setting"><label>압박 <span id="pressnum">'+pressure+'</span></label><input type="range" min="10" max="90" step="5" value="'+pressure+'" oninput="setPressure(this.value)"></div><button class="btn" style="width:100%;margin-top:14px" onclick="go(\'match\')">경기 준비 완료</button></section></div>';
 }
 /* Match simulation: each tick represents exactly one simulated minute.
@@ -1441,7 +1441,7 @@ function startSimulation(){
  if(manager===null||round>=22||pendingReward?.club===manager)return;
  const pair=matchPair(),s=currentLineup();
  fixInjuredLineup();
- const healthy=currentLineup();if(!pair||healthy.filter(Boolean).length!==11)return;
+ const healthy=currentLineup();if(!pair||healthy.filter(id=>id!==null&&id!==undefined).length!==11)return;
  pauseSimulation();
  simState={paused:false,lastTickAt:Date.now(),activeLineup:healthy.slice(),participants:healthy.slice(),substitutions:[],aiSubstitutions:[],manualCoaching:false,formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?healthy.slice():computerLineup(pair[0]),awayLineup:pair[1]===manager?healthy.slice():computerLineup(pair[1]),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),positions:{home:[],away:[]},possession:pair[0],phase:'kickoff',homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
  matchTab='live';page='match';save();render();runSimulation();
@@ -2152,6 +2152,7 @@ ensureJerseyNumbers();
 createdClub=false;
 render();
 if(window.addEventListener){
+ window.addEventListener('pageshow',()=>{if(simState&&!simState.paused&&!simState.finishPending){if(simTicker!==null){clearInterval(simTicker);simTicker=null}catchUpSavedSimulation()}});
  window.addEventListener('focus',()=>{
   if(simState&&!simState.paused&&!simState.finishPending){
    if(simTicker!==null){clearInterval(simTicker);simTicker=null}
@@ -2159,6 +2160,12 @@ if(window.addEventListener){
   }
  });
 }
+if(typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible'&&simState&&!simState.paused&&!simState.finishPending){
+  if(simTicker!==null){clearInterval(simTicker);simTicker=null}
+  catchUpSavedSimulation();
+ }
+});
 if(simState&&manager!==null){
  if(simState.finishPending){
   const remaining=Math.max(0,(simState.finishAt||0)-Date.now());
