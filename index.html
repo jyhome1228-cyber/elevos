@@ -1834,15 +1834,18 @@ function homeLeagueStandings(){
 function ensureJerseyNumbers(){
  const byClub=new Map();
  for(const p of players){if(!byClub.has(p.club))byClub.set(p.club,[]);byClub.get(p.club).push(p)}
+ const choices={GK:[1,12,13,22,30],ST:[9,11,19,20,21],LW:[11,7,17,21],RW:[7,11,17,19],CAM:[10,8,18,20],CM:[8,6,14,10,16,18],CDM:[6,14,5,16,18],LM:[14,11,17,20],RM:[17,14,7,19],CB:[4,5,15,6,24],RB:[2,22,12,16],LB:[3,13,23,15]};
  for(const roster of byClub.values()){
   const used=new Set();
-  for(const p of roster){const n=Number(p.jerseyNumber);if(Number.isInteger(n)&&n>=1&&n<=99&&!used.has(n))used.add(n);else p.jerseyNumber=null}
-  let gk=0;
   for(const p of roster){
-   if(p.jerseyNumber!==null)continue;
-   const preferred=p.pos==='GK'?[1,12,22][gk++%3]:({ST:9,CAM:10,CM:8,CDM:6,CB:4,RB:2,LB:3,LW:11,RW:7,LM:14,RM:17}[p.pos]||18);
-   let n=preferred;
-   if(used.has(n)){for(n=1;n<=99&&used.has(n);n++);if(n>99)n=99}
+   const n=Number(p.jerseyNumber);
+   if(Number.isInteger(n)&&n>=1&&n<=99&&!used.has(n)){p.jerseyNumber=n;used.add(n)}
+   else p.jerseyNumber=null;
+  }
+  const missing=roster.filter(p=>p.jerseyNumber===null).sort((a,b)=>(a.pos==='GK'?-1:0)-(b.pos==='GK'?-1:0)||preciseOverall(b)-preciseOverall(a));
+  for(const p of missing){
+   let n=(choices[p.pos]||[18,23,24,25]).find(n=>!used.has(n));
+   if(!n){for(n=1;n<=99&&used.has(n);n++);if(n>99)n=99}
    p.jerseyNumber=n;used.add(n);
   }
  }
