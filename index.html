@@ -238,6 +238,29 @@ a{color:#202020}
 .classic-lobby .sidebar{display:none}
 @media(max-width:1100px){.classic-lobby{grid-template-columns:210px minmax(0,1fr)}.classic-right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}.classic-right .card{margin:0}}
 @media(max-width:700px){.classic-lobby{grid-template-columns:1fr}.classic-right{display:block;grid-column:auto}.classic-right .card{margin-bottom:12px}.classic-lobby .club-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.classic-lobby .featured-side{font-size:12px}.classic-dock button{min-width:85px}}
+
+/* Simple first-time play guidance */
+.sidebar:empty{display:none}
+.firstplay{border:1px solid #dedede;background:#fafafa;border-radius:8px;padding:17px 19px;margin-bottom:15px}
+.firstplay-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.firstplay-top h2{margin:0;font-size:17px}
+.firstplay-progress{font-size:12px;color:#666}
+.firstplay-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.firstplay-step{border:1px solid #e3e3e3;border-radius:7px;background:#fff;padding:12px 10px;min-width:0}
+.firstplay-step.done{background:#f0f0f0;border-color:#cfcfcf}
+.firstplay-step.current{border-color:#222;background:#fff}
+.firstplay-step .num{display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;background:#eeeeee;color:#333;font-size:12px;font-weight:700}
+.firstplay-step.current .num{background:#202020;color:white}
+.firstplay-step strong{display:block;font-size:13px;margin:9px 0 4px}
+.firstplay-step small{display:block;color:#717171;font-size:12px;line-height:1.5}
+.firstplay-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px}
+.firstplay-actions .btn{font-size:13px}
+.firstplay-hide{border:0;background:transparent;color:#777;padding:8px;font-size:12px;cursor:pointer}
+.firstplay-context{border:1px solid #ddd;background:#fafafa;border-radius:7px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.firstplay-context strong{display:block;font-size:14px;margin-bottom:4px}
+.firstplay-context span{color:#656565}
+@media(max-width:800px){.firstplay-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.firstplay-top{align-items:start}}
+@media(max-width:500px){.firstplay-actions,.firstplay-context{flex-direction:column;align-items:stretch}.firstplay-actions .btn{width:100%}}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -263,7 +286,7 @@ function go(p){if(!manager&&p!=='start'&&p!=='league')return;page=p;render()}
 function chooseLeague(li){selectedLeague=li;render()}
 function chooseClub(id){manager=id;page='dashboard';save();render()}
 function txt(t){return String(t).replaceAll('&','&amp;').replaceAll('<','&lt;')}
-function render(){nav();document.getElementById('season').textContent='시즌 '+season+'–'+String((season+1)%100).padStart(2,'0')+' · '+(round+1)+'라운드';const titles={start:'감독 커리어 시작',dashboard:'구단 대시보드',squad:'선수단 · 선수 육성',tactics:'전술 설정',match:'경기 센터',league:'리그 순위',market:'이적시장'};document.getElementById('heading').textContent=titles[page];document.getElementById('subtitle').textContent=manager?'내 구단 · '+own().name+' · '+LEAGUES[own().league][1]:'8개국 12개 리그 · 144개 구단 · 3,312명 가상 선수';const el=document.getElementById('main');el.innerHTML=({start:viewStart,dashboard:viewDashboard,squad:viewSquad,tactics:viewTactics,match:viewMatch,league:viewLeague,market:viewMarket}[page])()}
+function render(){nav();document.getElementById('season').textContent='시즌 '+season+'–'+String((season+1)%100).padStart(2,'0')+' · '+(round+1)+'라운드';const titles={start:'감독 커리어 시작',dashboard:'구단 대시보드',squad:'선수단 · 선수 육성',tactics:'전술 설정',match:'경기 센터',league:'리그 순위',market:'이적시장'};document.getElementById('heading').textContent=titles[page];document.getElementById('subtitle').textContent=manager?'내 구단 · '+own().name+' · '+LEAGUES[own().league][1]:'8개국 12개 리그 · 144개 구단 · 3,312명 가상 선수';const el=document.getElementById('main');el.innerHTML=({start:viewStart,dashboard:viewDashboard,squad:viewSquad,tactics:viewTactics,match:viewMatch,league:viewLeague,market:viewMarket}[page])();if(page!=='dashboard'&&manager!==null)el.innerHTML=contextualGuide()+el.innerHTML}
 function leaguesChips(){return '<div class="chips">'+LEAGUES.map((l,i)=>'<button class="chip '+(selectedLeague===i?'on':'')+'" onclick="chooseLeague('+i+')">'+COUNTRY_FLAGS[l[0]]+' '+l[0]+' '+l[2]+'부</button>').join('')+'</div>'}
 function viewStart(){return '<section class="card"><h2>리그와 구단 선택</h2><div class="muted small">리그와 구단은 고정된 가상 세계이며 선수 이름과 능력치는 최초 생성 시 무작위로 설정됩니다.</div>'+leaguesChips()+'<div class="row" style="margin:17px 0"><h3>'+LEAGUES[selectedLeague][1]+'</h3><span class="muted small">12개 구단 · '+(LEAGUES[selectedLeague][2]===2?'승격 가능':'강등 가능')+'</span></div><div class="clubs">'+clubs.filter(c=>c.league===selectedLeague).map(c=>'<button class="club" onclick="chooseClub('+c.id+')">'+shield(c)+'<span><span class="clubname">'+txt(c.name)+'</span><small>팀 전력 '+c.rating+' · 예산 '+Math.round(c.cash/1000000)+'M</small></span></button>').join('')+'</div></section>'+(manager?'<button class="btn sub" onclick="go(\'dashboard\')">현재 커리어 계속하기</button>':'')}
 function viewDashboard(){if(!manager)return viewStart();const c=own(),p=points[manager];return '<div class="grid"><section class="card"><div class="eyebrow">MY CLUB</div><div class="row" style="margin:12px 0">'+shield(c)+'<h3>'+c.name+'</h3></div><div class="muted small">'+LEAGUES[c.league][1]+'</div></section><section class="card"><div class="eyebrow">SEASON POINTS</div><div class="value">'+(p.w*3+p.d)+'</div><div class="muted small">'+p.w+'승 · '+p.d+'무 · '+p.l+'패</div></section><section class="card"><div class="eyebrow">TRANSFER BUDGET</div><div class="value">'+Math.round(c.cash/1000000)+'M</div><div class="muted small">게임 내 가상 자금</div></section></div><section class="card"><div class="row"><div><h2>다음 경기</h2><div class="muted small">'+(round+1)+'라운드 · '+LEAGUES[c.league][1]+'</div></div><button class="btn" onclick="go(\'match\')">경기 센터</button></div><div style="margin-top:25px;font-size:22px;text-align:center">'+nextOpponent()+'</div></section><div class="grid two"><section class="card"><h2>선수단 현황</h2><div class="value">23명</div><p class="muted small">가상 선수 육성, 경험치·레벨·스탯 포인트 배분</p><button class="btn sub" onclick="go(\'squad\')">선수단 관리</button></section><section class="card"><h2>리그 진행</h2><div class="value">'+round+' / 22</div><p class="muted small">홈·원정 2회전, 시즌 종료 시 승격·강등</p><button class="btn sub" onclick="go(\'league\')">리그 순위</button></section></div>'}
@@ -654,6 +677,64 @@ function viewDashboard(){
 }
 function showTeamInLobby(id){const c=clubs.find(x=>x.id===id);if(!c)return;const panel=document.getElementById('elevos-team-dialog');if(panel)panel.remove();const modal=document.createElement('div');modal.className='news-modal-overlay';modal.id='elevos-team-dialog';let starters=players.filter(p=>p.club===c.id).sort((a,b)=>overall(b)-overall(a)).slice(0,5);modal.innerHTML='<section class="news-modal" role="dialog" aria-modal="true"><div class="row"><div class="club-info-head">'+shield(c)+'<div><h2>'+txt(c.name)+'</h2><p class="muted small">'+txt(LEAGUES[c.league][1])+'</p></div></div><button class="btn sub mini" id="team-close">닫기</button></div><div class="lobby-list"><span>구단 전력</span><strong>'+c.rating+'</strong></div><h3 style="margin-top:14px">주요 선수</h3>'+starters.map(p=>'<div class="lobby-list"><span>'+txt(p.name)+' · '+p.pos+'</span><strong>'+overall(p)+'</strong></div>').join('')+'</section>';document.body.appendChild(modal);document.getElementById('team-close').onclick=()=>modal.remove();modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()})}
 window.showTeamInLobby=showTeamInLobby;
+
+
+/* Guided first session: no blocking tutorial, no extra account setup. */
+const GUIDE_KEY='elevos-guide-v1';
+let tutorialDismissed=localStorage.getItem(GUIDE_KEY)==='hidden';
+let tutorialViewedTactics=localStorage.getItem(GUIDE_KEY+'-tactics')==='1';
+let tutorialViewedSquad=localStorage.getItem(GUIDE_KEY+'-squad')==='1';
+function guideStep(){
+ if(!manager)return 0;
+ if(!tutorialViewedTactics)return 0;
+ if(round===0)return 1;
+ if(!tutorialViewedSquad)return 2;
+ return 3;
+}
+function go(p){
+ if(!manager&&p!=='start'&&p!=='league')return;
+ page=p;
+ if(manager&&p==='tactics'){tutorialViewedTactics=true;localStorage.setItem(GUIDE_KEY+'-tactics','1')}
+ if(manager&&p==='squad'){tutorialViewedSquad=true;localStorage.setItem(GUIDE_KEY+'-squad','1')}
+ render()
+}
+function nav(){
+ const host=document.getElementById('nav');
+ if(page==='dashboard'&&manager!==null){host.innerHTML='';return}
+ const entries=manager===null?[['start','커리어 시작']]:[['dashboard','홈'],['squad','선수단 · 육성'],['tactics','전술 설정'],['match','경기 진행'],['league','리그 일정'],['market','이적시장']];
+ host.innerHTML=entries.map(([id,label])=>'<button class="nav '+(page===id?'active':'')+'" onclick="go(\''+id+'\')">'+label+'</button>').join('')
+}
+function hideTutorial(){tutorialDismissed=true;localStorage.setItem(GUIDE_KEY,'hidden');render()}
+function showTutorial(){tutorialDismissed=false;localStorage.removeItem(GUIDE_KEY);render()}
+function guideCard(){
+ if(!manager||tutorialDismissed)return '';
+ const steps=[
+  ['팀 확인','선택한 구단의 선수 23명 확인','squad'],
+  ['전술 준비','포메이션과 선발 11명 확인','tactics'],
+  ['첫 경기','리그 첫 경기 진행','match'],
+  ['선수 성장','경기 보상으로 스탯 육성','squad']
+ ];
+ const completed=[true,tutorialViewedTactics,round>0,round>0&&tutorialViewedSquad],index=guideStep();
+ return '<section class="firstplay"><div class="firstplay-top"><div><div class="eyebrow">GETTING STARTED</div><h2>처음 시작하는 감독을 위한 4단계</h2></div><div class="firstplay-progress">'+completed.filter(Boolean).length+' / 4 완료</div></div>'+
+ '<div class="firstplay-steps">'+steps.map((s,i)=>'<div class="firstplay-step '+(completed[i]?'done':i===index?'current':'')+'"><span class="num">'+(completed[i]?'✓':i+1)+'</span><strong>'+s[0]+'</strong><small>'+s[1]+'</small></div>').join('')+'</div>'+
+ '<div class="firstplay-actions"><button class="firstplay-hide" onclick="hideTutorial()">안내 숨기기</button><button class="btn" onclick="go(\''+steps[index][2]+'\')">'+(completed.every(Boolean)?'선수단 확인':'다음 단계: '+steps[index][0])+'</button></div></section>'
+}
+function contextualGuide(){
+ if(!manager||tutorialDismissed)return '';
+ const pageHelp={
+ tactics:['전술 설정','처음에는 기본 포메이션을 그대로 사용해도 괜찮아요. 선발 11명만 확인하고 첫 경기로 이동하세요.','match','첫 경기 진행'],
+ match:['경기 진행','경기를 끝내면 결과, 선수 평점, 보상을 순서대로 볼 수 있어요.','dashboard','홈으로 돌아가기'],
+ squad:['선수 육성','선수 얼굴을 클릭해 세부 능력치를 확인하세요. 경기 후 획득한 포인트로 +1씩 올릴 수 있어요.','dashboard','홈으로 돌아가기'],
+ market:['이적시장','처음에는 이적을 하지 않아도 됩니다. 기본 선수단 23명으로 리그를 진행할 수 있어요.','dashboard','홈으로 돌아가기'],
+ league:['리그 일정','라운드별 경기와 순위를 볼 수 있어요. 경기는 경기 진행 메뉴에서 시작합니다.','dashboard','홈으로 돌아가기']
+ };
+ const h=pageHelp[page];if(!h)return '';
+ return '<div class="firstplay-context"><div><strong>'+h[0]+'</strong><span>'+h[1]+'</span></div><button class="btn sub mini" onclick="go(\''+h[2]+'\')">'+h[3]+'</button></div>'
+}
+const classicLobbyView=viewDashboard;
+function viewDashboard(){return guideCard()+classicLobbyView()+(tutorialDismissed?'<div style="text-align:right;margin-top:9px"><button class="firstplay-hide" onclick="showTutorial()">처음 시작 안내 다시 보기</button></div>':'')}
+window.hideTutorial=hideTutorial;
+window.showTutorial=showTutorial;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
