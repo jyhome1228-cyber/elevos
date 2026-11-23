@@ -595,7 +595,7 @@ a{color:#202020}
 
 .sim-pause-alert{font-size:12px;padding:10px 13px;background:#fff7dd;border:1px solid #e9cf82;border-radius:7px;margin:11px 0}
 .sim-pending-result{padding:12px;background:#f2f2f2;border-radius:7px;font-size:13px;font-weight:650;margin-top:9px}
-.sim-pawn{width:32px!important;height:32px!important;font-size:10px!important}.sim-field{background:repeating-linear-gradient(0deg,#32854a 0,#32854a 58px,#44965b 58px,#44965b 116px)!important}.field-home-away{margin-top:8px;margin-bottom:10px;font-size:11px}</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
+.sim-pawn{width:32px!important;height:32px!important;font-size:10px!important}.sim-field{background:repeating-linear-gradient(0deg,#32854a 0,#32854a 58px,#44965b 58px,#44965b 116px)!important}.field-home-away{margin-top:8px;margin-bottom:10px;font-size:11px}.injury-badge{display:inline-flex;align-items:center;gap:5px;color:var(--injury-color);background:#fff;border:1px solid var(--injury-color);padding:3px 6px;border-radius:5px;font-size:10px;font-weight:750;margin-top:3px}.injury-badge span{font-size:15px;line-height:1}.injury-badge.major{color:#c93131}.player-card:has(.injury-badge){background:#fffafa}.injury-card-banner{padding:10px;background:#fff8ed;border:1px solid #edddbd;border-radius:6px;margin:10px 0}</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
 const LEAGUES=[["잉글랜드","Crown Division",1,["Northbridge Athletic","Westford Union","Kingsport Borough","Eastmere City","Redmont Rovers","Ashbourne Vale","Southvale Athletic","Whitestone FC","Marshfield Albion","Harbourgate Town","Oakminster FC","Greyhaven Athletic"]],["잉글랜드","Crown Championship",2,["Brackenfield United","Larkspur Town","Moorcastle FC","Riverstone Athletic","Thornwick Rovers","Copperhill City","Wellsbury FC","Eastcliff Union","Stanford Vale","Bellhaven Town","Cedarbridge FC","Highmoor Athletic"]],["이탈리아","Prima Divisione",1,["Valdoro Calcio","Portovento AC","Monteverde 1924","Bellacosta FC","Rivaforte Calcio","San Lucente","Castelnero AS","Citta Aurelia","Pietramare FC","Rosalba Calcio","Lagoferro 1912","Novacielo AC"]],["이탈리아","Seconda Divisione",2,["Verdemare Calcio","Borgo Alto FC","Torregrande AC","Castelbianco","Lunaforte Calcio","Portosole FC","San Verano","Arcomonte AC","Valnera 1910","Bellafonte","Rivagrigia FC","Montelago Calcio"]],["프랑스","Élite Division",1,["Montelac Sporting","Valcerne Olympique","Rivemont FC","Belcour Athletic","Saint Veraine","Azurienne SC","Lavernay Union","Grandelle FC","Port Celeste","Aubrecourt","Merival Sporting","Fontelune FC"]],["프랑스","Division Nationale",2,["Bellemont FC","Saint Calais","Rocheclair SC","Marivelle Union","Valdorne Athletic","Boisfleur FC","Lacour Olympique","Montprel FC","Azurville SC","Champbrune","Vernet Sporting","Portelle FC"]],["독일","Adler Liga",1,["Eisenwald SV","Nordfels 04","Grunhafen SC","Blauheim 09","Rosenbruck FC","Silberstadt 07","Waldkirch Union","Westtal 08","Kronfeld Athletic","Ostgarten SV","Falkenau FC","Hohenried 06"]],["독일","Adler Liga Zwei",2,["Bergfeld 05","Kaltenbruck SV","Hinterwald FC","Grunfels 11","Stahlgarten SC","Westerhof 03","Birkstadt Union","Rheindorf 08","Oberthal SV","Sonnenbruck 04","Adlersee FC","Neustadt Blau"]],["스페인","División Sol",1,["Costa Brava Norte","Monteluz CF","Puerto Dorado","Valle Claro FC","Real Solviera","Atletico Verdena","Roca Blanca","Marazul Union","Rio Fuerte CF","Costa Serena","Villadoro FC","San Estrella"]],["포르투갈","Liga Atlântica",1,["Porto Claro","Estrela do Vale","Marinha Verde","Atlético Moura","Costa Nova FC","Braga Alta","Vila Serena","Rio Dourado","Montesul SC","Alvorada FC","Santo Lago","Uniao do Norte"]],["네덜란드","Oranje Divisie",1,["Noorderdam FC","Rijnhaven Athletic","Zuidmeer SC","Veldstad United","Havenburg 04","Oostveen FC","Westermeer","Tulpenhof SV","De Groene Stad","Dijkdam FC","Bergveen Union","Kustwijk 09"]],["벨기에","Royal Division",1,["Royal Bravelle","Antwerp Vale","Noordhaven FC","Sainte Marenne","Brugge Heights","Wallonne Athletic","Royal Evermont","Belfort City","Rivelle Sporting","East Flanders FC","Montbel Union","Zilverbeek"]]];
@@ -942,6 +942,8 @@ function playRound(){
  const money=(isWin?80:isDraw?45:25),pts=isWin?3:isDraw?1:0;
  walletGBP+=money;
  lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts,events:simFinalOverride?.events||[],substitutions:simFinalOverride?.substitutions||[],instruction:simFinalOverride?.instruction||tactic};
+ advanceInjuryRecovery(round);
+ fixInjuredLineup();
  round++;scheduleRound=Math.min(round,21);matchTab='result';pendingReward={club:manager,season:y,round:week};simFinalOverride=null;simState=null;
  if(round>=22){finishSeason();scheduleRound=0}
  save();render()
@@ -1274,13 +1276,13 @@ function viewDashboard(){
 let marketPosition='ALL',marketSearch='';
 function viewSquad(){
  if(manager===null)return viewStart();
- const squad=myPlayers().slice().sort((a,b)=>overall(b)-overall(a));
+ const squad=myPlayers().slice().sort((a,b)=>(playerUnavailable(a)?1:0)-(playerUnavailable(b)?1:0)||overall(b)-overall(a));
  if(!squad.length)return '<div class="card">소속 선수가 없습니다.</div>';
  if(selectedPlayer===null||!squad.some(p=>p.id===selectedPlayer))selectedPlayer=squad[0].id;
  const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
- const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong>'+positionBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
+ const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
- playerRadar(p)+'<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
+ playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
  '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
  return '<div class="player-screen">'+roster+profile+'</div>';
 }
@@ -1361,9 +1363,9 @@ function viewTactics(){
   const contribution=p?Math.round(overall(p)*positionFit(p,slot.r)):0;power+=contribution;
   return '<div class="drag-spot" data-role="'+ROLE_FAMILY[slot.r]+'" draggable="true" ondragstart="tacticsDragStart(event,\'slot\','+i+')" ondragover="tacticsDragOver(event)" ondrop="tacticsDrop(event,'+i+')" style="left:'+slot.x+'%;top:'+slot.y+'%" title="클릭: 선수 정보 / 드래그: 교체" onclick="inspectTacticsPlayer('+(p?p.id:-1)+')"><span class="drag-position">'+slot.r+'</span><div>'+(p?avatar(p,62):'<span class="playerdot">?</span>')+'</div><div class="drag-label">'+(p?txt(p.name.split(' ').slice(-1)[0]):'빈 자리')+'</div><div class="drag-score">'+contribution+'</div></div>'
  }).join('');
- const reserves=squad.filter(p=>!used.has(p.id)).sort((a,b)=>overall(b)-overall(a));
+ const reserves=squad.filter(p=>!used.has(p.id)&&!playerUnavailable(p)).sort((a,b)=>overall(b)-overall(a));
  return '<div class="grid two"><section class="card"><div class="row"><h2>선수 포메이션</h2><button class="btn sub mini" onclick="resetLineup()">자동 선발</button></div><p class="drop-note">선수를 마우스로 드래그해 다른 선수와 위치를 교체하세요. 오른쪽 후보 선수도 경기장 위로 드래그할 수 있어요.</p><div class="chips">'+Object.keys(FORMATIONS).map(k=>'<button class="chip '+(formation===k?'on':'')+'" onclick="setFormation(\''+k+'\')">'+({433:'4-3-3',4231:'4-2-3-1',442:'4-4-2',352:'3-5-2',343:'3-4-3'}[k])+'</button>').join('')+'</div><div class="pitch drag-pitch"><div class="half"></div>'+pitch+'</div>'+(lastTacticsChange?'<div class="tactics-change-feedback">⇄ '+txt(lastTacticsChange)+'</div>':'')+'<div class="lineup-stats"><span>선발 '+lineup.filter(Boolean).length+' / 11명</span><span>팀 전력 '+Math.round(teamPower(manager))+'</span><span>조직력 '+playerTeamComposition().chemistry+' / 100</span></div><div class="team-composition-note">선수의 능력치, 주포지션 적합도, 공격·미드필더·수비 조합이 팀 경기력에 함께 반영됩니다.</div></section>'+
- '<section class="card"><h2>선발·후보 선수</h2><p class="muted small">얼굴을 클릭해 상세 정보 확인 · 드래그로 선발 교체</p>'+(selectedPlayer!==null&&squad.some(p=>p.id===selectedPlayer)?tacticsDossier(squad.find(p=>p.id===selectedPlayer)):'<div class="notice">선수 얼굴을 클릭하면 국적·나이·주발·육각형 스탯을 볼 수 있어요.</div>')+'<div class="tactics-group"><span>선발 11명</span><span>경기장 선수</span></div><div style="max-height:445px;overflow:auto">'+slots.map((slot,i)=>'<div class="slotpick"><span class="tag">'+slot.r+'</span><select aria-label="'+slot.r+' 선발 선수" onchange="setSlot('+i+',this.value)">'+squad.slice().sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r)).map(p=>'<option value="'+p.id+'" '+(p.id===lineup[i]?'selected':'')+'>'+txt(p.name)+' · '+p.pos+' '+overall(p)+'</option>').join('')+'</select></div>').join('')+'</div><div class="tactics-group"><span>후보 선수</span><span>'+reserves.length+'명 · 드래그해서 교체</span></div><div class="bench-grid">'+reserves.map(p=>'<div class="bench-person" data-role="'+ROLE_FAMILY[p.pos]+'" draggable="true" ondragstart="tacticsDragStart(event,\'player\','+p.id+')" title="클릭: 선수 정보 / 드래그: 선발 투입" onclick="inspectTacticsPlayer('+p.id+')">'+avatar(p,36)+'<span>'+txt(p.name)+' · '+p.pos+'</span></div>').join('')+'</div><h2 style="margin-top:20px">팀 전술</h2><div class="setting"><label>경기 운영</label><select onchange="setTactic(this.value)"><option value="balanced" '+(tactic==='balanced'?'selected':'')+'>균형</option><option value="attack" '+(tactic==='attack'?'selected':'')+'>공격적</option><option value="defend" '+(tactic==='defend'?'selected':'')+'>수비적</option></select></div><div class="setting"><label>압박 <span id="pressnum">'+pressure+'</span></label><input type="range" min="10" max="90" step="5" value="'+pressure+'" oninput="setPressure(this.value)"></div><button class="btn" style="width:100%;margin-top:14px" onclick="go(\'match\')">경기 준비 완료</button></section></div>';
+ '<section class="card"><h2>선발·후보 선수</h2><p class="muted small">얼굴을 클릭해 상세 정보 확인 · 드래그로 선발 교체</p>'+(selectedPlayer!==null&&squad.some(p=>p.id===selectedPlayer)?tacticsDossier(squad.find(p=>p.id===selectedPlayer)):'<div class="notice">선수 얼굴을 클릭하면 국적·나이·주발·육각형 스탯을 볼 수 있어요.</div>')+'<div class="tactics-group"><span>선발 11명</span><span>경기장 선수</span></div><div style="max-height:445px;overflow:auto">'+slots.map((slot,i)=>'<div class="slotpick"><span class="tag">'+slot.r+'</span><select aria-label="'+slot.r+' 선발 선수" onchange="setSlot('+i+',this.value)">'+squad.filter(p=>!playerUnavailable(p)).slice().sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r)).map(p=>'<option value="'+p.id+'" '+(p.id===lineup[i]?'selected':'')+'>'+txt(p.name)+' · '+p.pos+' '+overall(p)+'</option>').join('')+'</select></div>').join('')+'</div><div class="tactics-group"><span>후보 선수</span><span>'+reserves.length+'명 · 드래그해서 교체</span></div><div class="bench-grid">'+reserves.map(p=>'<div class="bench-person" data-role="'+ROLE_FAMILY[p.pos]+'" draggable="true" ondragstart="tacticsDragStart(event,\'player\','+p.id+')" title="클릭: 선수 정보 / 드래그: 선발 투입" onclick="inspectTacticsPlayer('+p.id+')">'+avatar(p,36)+'<span>'+txt(p.name)+' · '+p.pos+'</span></div>').join('')+'</div><h2 style="margin-top:20px">팀 전술</h2><div class="setting"><label>경기 운영</label><select onchange="setTactic(this.value)"><option value="balanced" '+(tactic==='balanced'?'selected':'')+'>균형</option><option value="attack" '+(tactic==='attack'?'selected':'')+'>공격적</option><option value="defend" '+(tactic==='defend'?'selected':'')+'>수비적</option></select></div><div class="setting"><label>압박 <span id="pressnum">'+pressure+'</span></label><input type="range" min="10" max="90" step="5" value="'+pressure+'" oninput="setPressure(this.value)"></div><button class="btn" style="width:100%;margin-top:14px" onclick="go(\'match\')">경기 준비 완료</button></section></div>';
 }
 /* Match simulation: each tick represents exactly one simulated minute.
    Player abilities and tactics affect attack and scoring chance; final score is committed once at 90'. */
@@ -1376,9 +1378,10 @@ function pauseSimulation(){
 function startSimulation(){
  if(manager===null||round>=22||pendingReward?.club===manager)return;
  const pair=matchPair(),s=currentLineup();
- if(!pair||s.filter(Boolean).length!==11)return;
+ fixInjuredLineup();
+ const healthy=currentLineup();if(!pair||healthy.filter(Boolean).length!==11)return;
  pauseSimulation();
- simState={paused:false,lastTickAt:Date.now(),activeLineup:s.slice(),participants:s.slice(),substitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?s.slice():computerLineup(pair[0]),awayLineup:pair[1]===manager?s.slice():computerLineup(pair[1]),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
+ simState={paused:false,lastTickAt:Date.now(),activeLineup:healthy.slice(),participants:healthy.slice(),substitutions:[],aiSubstitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?healthy.slice():computerLineup(pair[0]),awayLineup:pair[1]===manager?healthy.slice():computerLineup(pair[1]),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
  matchTab='live';page='match';save();render();runSimulation();
 }
 
@@ -1609,7 +1612,7 @@ function substituteSimPlayer(){
  if(!simState||simState.club!==manager||simState.minute>=simTotalMinutes())return;
  const inId=Number(document.getElementById('sim-sub-in')?.value??simSubIn);
  const outId=Number(document.getElementById('sim-sub-out')?.value??simSubOut);
- const lineup=simPlayerIds(),outIndex=lineup.indexOf(outId),squad=myPlayers();
+ const lineup=simPlayerIds(),outIndex=lineup.indexOf(outId),squad=healthyClubRoster(manager);
  if((simState.substitutions||[]).length>=5)return;
  if(outIndex<0||inId===outId||lineup.includes(inId)||!squad.some(p=>p.id===inId))return;
  lineup[outIndex]=inId;
@@ -1802,7 +1805,7 @@ function fixtureWeather(clubA,clubB,r,year){
  return list[hash%list.length];
 }
 function computerLineup(clubId){
- const candidates=players.filter(p=>p.club===clubId).slice().sort((a,b)=>overall(b)-overall(a));
+ const candidates=healthyClubRoster(clubId).slice().sort((a,b)=>overall(b)-overall(a));
  const slots=FORMATIONS['433'],used=new Set(),chosen=[];
  for(const pos of slots){const best=candidates.filter(p=>!used.has(p.id)).sort((a,b)=>overall(b)*positionFit(b,pos.r)-overall(a)*positionFit(a,pos.r))[0];chosen.push(best?.id??null);if(best)used.add(best.id)}
  return chosen;
@@ -1823,6 +1826,51 @@ function pregameHTML(){
  '<div class="pregame-lineups">'+pregameLineupHTML(pair[0],'HOME',homeIDs,homeForm)+pregameLineupHTML(pair[1],'AWAY',awayIDs,awayForm)+'</div>';
 }
 window.changeJerseyNumber=changeJerseyNumber;
+
+
+/* Player availability and match injuries */
+const INJURY_TYPES=[
+ {name:'가벼운 타박상',min:1,max:2,severity:'minor'},
+ {name:'발목 염좌',min:2,max:4,severity:'minor'},
+ {name:'햄스트링 부상',min:5,max:10,severity:'major'},
+ {name:'무릎 인대 부상',min:8,max:15,severity:'major'},
+ {name:'시즌 아웃',min:22,max:22,severity:'major'}
+];
+function playerUnavailable(p){return !!p&&Number(p.injuryMatches||0)>0}
+function injuryBadge(p){
+ if(!playerUnavailable(p))return '';
+ const major=p.injurySeverity==='major',color=major?'#c93131':'#e3ab17';
+ return '<span class="injury-badge '+(major?'major':'minor')+'" title="'+txt(p.injuryType||'부상')+' · '+p.injuryMatches+'경기 결장" style="--injury-color:'+color+'"><span aria-hidden="true">✚</span> '+(major?'장기 부상':'경미한 부상')+'</span>';
+}
+function injuryFor(p,forceKind){
+ if(!p||playerUnavailable(p))return null;
+ const roll=Math.random();
+ const spec=forceKind!=null?INJURY_TYPES[forceKind]:INJURY_TYPES[roll<.64?0:roll<.85?1:roll<.95?2:roll<.992?3:4];
+ const duration=spec.name==='시즌 아웃'?Math.max(1,22-round):spec.min+Math.floor(Math.random()*(spec.max-spec.min+1));
+ p.injuryType=spec.name;p.injurySeverity=spec.severity;p.injuryMatches=duration;p.injuryStartRound=round;
+ return {type:spec.name,remaining:duration,severity:spec.severity};
+}
+function healthyClubRoster(clubId){return players.filter(p=>p.club===clubId&&!playerUnavailable(p))}
+function fixInjuredLineup(){
+ if(manager===null)return;
+ const current=currentLineup(),slots=FORMATIONS[formation],used=new Set(current.filter(id=>players.some(p=>p.id===id&&!playerUnavailable(p))));
+ for(let i=0;i<current.length;i++){
+  const p=players.find(p=>p.id===current[i]);
+  if(p&&!playerUnavailable(p))continue;
+  const available=healthyClubRoster(manager).filter(p=>!used.has(p.id)).sort((a,b)=>preciseOverall(b)*positionFit(b,slots[i].r)-preciseOverall(a)*positionFit(a,slots[i].r));
+  const replacement=available[0];
+  current[i]=replacement?replacement.id:null;
+  if(replacement)used.add(replacement.id);
+ }
+}
+function advanceInjuryRecovery(completedRound){
+ for(const p of players){
+  if(!playerUnavailable(p))continue;
+  if(p.injuryStartRound===completedRound)continue;
+  p.injuryMatches=Math.max(0,p.injuryMatches-1);
+  if(!p.injuryMatches){p.injuryType=null;p.injurySeverity=null;p.injuryStartRound=null}
+ }
+}
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
