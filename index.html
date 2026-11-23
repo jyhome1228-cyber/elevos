@@ -622,7 +622,7 @@ function avatar(p,size=42){
  const col=position%4,row=Math.floor(position/4);
  return '<span class="face-tile" style="width:'+size+'px;height:'+size+'px" title="가상 선수 얼굴">'
  +'<span class="face-fallback">'+svgAvatarFallback(p,size)+'</span>'
- +'<img loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
+ +'<img draggable="false" loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
  +'</span>';
 }
 
@@ -668,7 +668,7 @@ function avatar(p,size=42){
  const h=Math.imul(p.id+1,2654435761)>>>0,tile=h%(FACE_SHEETS.length*12),sheet=Math.floor(tile/12),slot=tile%12,col=slot%4,row=Math.floor(slot/4);
  return '<span class="face-tile" style="width:'+size+'px;height:'+size+'px" title="가상 선수 얼굴">'
   +'<span class="face-fallback">'+svgAvatarFallback(p,size)+'</span>'
-  +'<img loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
+  +'<img draggable="false" loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
   +'</span>'
 }
 window.setupChooseLeague=setupChooseLeague;window.setupChooseClub=setupChooseClub;window.updateNickname=updateNickname;window.startWithClub=startWithClub;
@@ -1204,7 +1204,7 @@ function minuteEvent(){
  else if(roll<.19*quality){type='attack';text=attacker.name+'이(가) 좋은 공격 기회를 만들었습니다.'}
  else if(roll<.26){type='defense';text=attacker.name+'의 패스가 상대 수비에 차단됐습니다.'}
  else if(roll<.31){type='pass';text=attacker.name+'이(가) 중원에서 패스를 이어갑니다.'}
- else return;
+ else {type='pass';text=attacker.name+'이(가) 침착하게 공을 소유하며 공격을 전개합니다.'}
  simState.log.unshift({minute:m,type,text});simState.log=simState.log.slice(0,80);
 }
 function advanceMinute(){
