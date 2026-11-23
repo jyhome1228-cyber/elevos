@@ -628,6 +628,14 @@ a{color:#202020}
 .enhancement-glow{position:absolute;top:0;left:0;right:0;height:10px;background:#926e4a}.enhancement-glow.success{background:#d6b251}.enhancement-glow.fail{background:#777}
 .enhancement-result{font-size:30px;font-weight:900;animation:enhancePulse .9s ease}.enhancement-sub{color:#666}
 @keyframes enhancePulse{0%{transform:scale(.85);opacity:0}55%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+
+.youth-vault{margin-top:17px}
+.youth-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.youth-card{border:1px solid #ddd;background:#fafafa;padding:12px;display:grid;grid-template-columns:66px 1fr;gap:11px;align-items:center}
+.youth-card .face-tile,.youth-card .face-fallback svg{width:66px!important;height:66px!important}
+.youth-info strong{font-size:14px;display:block}.youth-info small{display:block;margin-top:4px;color:#777;font-size:12px}
+.youth-actions{grid-column:1/-1;display:flex;gap:6px}.youth-actions button{flex:1}
+@media(max-width:800px){.youth-grid{grid-template-columns:1fr}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1203,7 +1211,7 @@ function rewardChoices(){
  const options=[
   ['coins','추가 파운드','£100','구단 이적 자금 +£100'],
   ['growth','전 선수 경험치','80 XP','보유 선수 전원에게 +80 XP'],
-  ['recruit','유망주 영입','NEW PLAYER','신규 가상 선수 1명 영입']
+  ['recruit','유망주 보관함','NEW PLAYER','보관함 입고 (최대 20명)']
  ];
  return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice"><div class="reward-symbol">'+gameSvgIcon(r[0],28)+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
 }
@@ -1216,15 +1224,16 @@ function awardTrainingXP(){
  return '보유 선수 '+squad.length+'명 전원 경험치 +80 XP';
 }
 function recruitYouthPlayer(){
- if(myPlayers().length>=30){walletGBP+=100;return '선수단 정원 초과로 £100을 대신 지급'}
+ if(youthVault.length>=20)return '유망주 보관함이 가득 찼습니다. 다른 보상을 선택하세요.';
  const pos=['ST','CM','CB','LW','RB','GK'][rand(0,5)];
- const id=Math.max(...players.map(p=>p.id))+1;
+ const id=Math.max(0,...players.map(p=>p.id),...youthVault.map(p=>p.id))+1;
  const base=Math.max(45,Math.min(75,Math.round(own().rating-9+rand(-6,6))));
  const p={id,club:manager,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(17,21),level:1,xp:0,pts:0,potential:Math.min(120,base+rand(15,32)),stats:{pace:Math.min(95,base+rand(-5,6)),shoot:Math.min(95,base+rand(-5,6)),pass:Math.min(95,base+rand(-5,6)),defend:Math.min(95,base+rand(-5,6)),physical:Math.min(95,base+rand(-5,6))}};
- playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);players.push(p);ensureJerseyNumbers();return p.name+' ('+p.pos+') 영입 완료';
+ playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);p.club=null;p.enhancementLevel=1;youthVault.push(p);return p.name+' ('+p.pos+') 유망주 보관함 입고 완료';
 }
 function claimReward(option){
  if(!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
+ if(option===2&&youthVault.length>=20){if(typeof alert==='function')alert('유망주 보관함이 20명으로 가득 찼습니다. 다른 보상을 선택하세요.');return}
  let description;
  if(option===0){walletGBP+=100;description='추가 게임머니 £100 지급'}
  else if(option===1)description=awardTrainingXP();
@@ -1325,7 +1334,7 @@ function viewSquad(){
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
  playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>컨디션<b>'+playerFitness(p)+'/100</b></span><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
  '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p>'+enhancementPanel(p)+'<div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup" data-cat="'+group+'">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
- return '<div class="player-screen">'+roster+profile+'</div>';
+ return '<div class="player-screen">'+roster+profile+'</div>'+youthVaultHTML();
 }
 function setMarketPosition(v){marketPosition=v;render()}
 function applyMarketSearch(){marketSearch=(document.getElementById('market-query')?.value||'').trim().toLowerCase();render()}
@@ -1659,7 +1668,7 @@ function viewMatchSimulationWrapper(){
  return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+Math.min(100,(mins<=45?mins:mins<=45+simAddedFirst()?45:mins<=90+simAddedFirst()?mins-simAddedFirst():90)/90*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+ballPath+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
- try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState}))}
+ try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState,youthVault}))}
  catch(e){console.warn('저장 실패',e)}
 }
 window.tacticsDragStart=tacticsDragStart;window.tacticsDragOver=tacticsDragOver;window.tacticsDrop=tacticsDrop;
@@ -2070,6 +2079,36 @@ function enhancementPanel(p){
  '<small>확률은 ELEVOS 자체 밸런스 값입니다. 실패 시 +5부터 1단계 하락할 수 있으며 비용은 차감됩니다.</small></section>';
 }
 window.enhancePlayer=enhancePlayer;
+
+
+/* Academy vault: up to 20 fictional youth players separate from the 30-person senior roster. */
+let youthVault=(saved&&Array.isArray(saved.youthVault))?saved.youthVault:[];
+let vaultExpanded=false;
+function youthMarketValue(p){return Math.max(20,Math.round((preciseOverall(p)-40)*3))}
+function youthVaultHTML(){
+ return '<section class="card youth-vault" id="youth-vault"><div class="row"><div><div class="eyebrow">YOUTH ACADEMY</div><h2>유망주 보관함 · '+youthVault.length+' / 20명</h2></div><button class="btn sub mini" onclick="toggleYouthVault()">'+(vaultExpanded?'접기':'보관함 열기')+'</button></div>'+
+ (vaultExpanded?'<p class="muted small">유망주는 1군 선수단과 별도 보관됩니다. 1군 등록·판매·방출할 수 있습니다.</p><div class="youth-grid">'+youthVault.map(p=>'<article class="youth-card">'+avatar(p,66)+'<div class="youth-info"><strong>'+txt(p.name)+' '+enhancementLabel(p)+'</strong><small>'+p.age+'세 · '+p.pos+' · OVR '+overall(p)+'</small><small>예상 판매가 '+formatGBP(youthMarketValue(p))+'</small></div><div class="youth-actions"><button class="btn sub mini" onclick="promoteYouth('+p.id+')">1군 등록</button><button class="btn sub mini" onclick="sellYouth('+p.id+')">판매</button><button class="btn sub mini" onclick="releaseYouth('+p.id+')">방출</button></div></article>').join('')+'</div>'+(youthVault.length?'':'<div class="notice">보관 중인 유망주가 없습니다. 경기 후 보상으로 획득할 수 있습니다.</div>'):'')+'</section>';
+}
+function toggleYouthVault(){vaultExpanded=!vaultExpanded;render()}
+function promoteYouth(id){
+ const index=youthVault.findIndex(p=>p.id===id);if(index<0)return;
+ if(myPlayers().length>=30){if(typeof alert==='function')alert('1군 선수단이 30명으로 가득 찼습니다.');return}
+ const p=youthVault.splice(index,1)[0];p.club=manager;p.academyOrigin=true;
+ players.push(p);ensureJerseyNumbers();save();render()
+}
+function sellYouth(id){
+ const index=youthVault.findIndex(p=>p.id===id);if(index<0)return;
+ const p=youthVault.splice(index,1)[0];
+ walletGBP+=youthMarketValue(p);save();render()
+}
+function releaseYouth(id){
+ const index=youthVault.findIndex(p=>p.id===id);if(index<0)return;
+ youthVault.splice(index,1);save();render()
+}
+window.toggleYouthVault=toggleYouthVault;
+window.promoteYouth=promoteYouth;
+window.sellYouth=sellYouth;
+window.releaseYouth=releaseYouth;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
