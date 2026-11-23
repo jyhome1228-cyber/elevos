@@ -14,6 +14,65 @@
 .welcome{background:#22382b}
 @media(max-width:650px){.career-options,.setup-grid{grid-template-columns:1fr}}
 .face-tile{position:relative;display:inline-block;flex:none;overflow:hidden;border-radius:8px;background:#23382e;vertical-align:middle}.face-fallback{position:absolute;inset:0}.face-fallback svg{display:block}.face-tile img{z-index:1}
+
+/* ELEVOS light interface */
+:root{color:#17231c;background:#fff;font-size:14px}
+body{background:#fff;color:#17231c}
+header{background:rgba(255,255,255,.96);border-bottom:1px solid #e2e7e3}
+header small,.eyebrow,.muted,.small,.bottom{color:#69776f}
+.wrapper{padding-top:32px}
+.sidebar,.card{background:#fff;border:1px solid #dfe5e0;box-shadow:none}
+.sidebar{background:#fafbfa}
+.nav{color:#435249}.nav.active,.nav:hover{background:#e7efe9;color:#143b27}
+.card{background:#fff}
+h1,h2,h3,.logo{color:#19231d}
+.club{background:#fff;border:1px solid #dfe5e0;color:#1c2b20}
+.club:hover,.club.selected{border-color:#4b8763;background:#f1f7f2}
+.clubname{color:#1e3024}
+th{color:#68776c}
+td,th{border-bottom:1px solid #e8ece8}
+.tag{border:1px solid #d5dfd7;color:#3b664a}
+.btn{background:#183e2a;color:#fff}.btn.sub{background:#fff;color:#24432d;border:1px solid #b8c9bd}
+.chip{background:#fff;color:#3a5141;border:1px solid #d7dfd9}.chip.on{background:#244c34;color:#fff}
+.value{color:#17251b}
+.career-option{background:#fff;color:#1c2c21;border-color:#dce5dd}
+.career-option span{color:#758578}.career-option.chosen{background:#eef6ef;border-color:#628a6c}
+.setup-field label{color:#526556}
+.setup-field input,.setup-field select,select{background:#fff;border:1px solid #d1ddd3;color:#192b1e}
+.setup-field input::placeholder{color:#9aa89d}
+.welcome{background:#f6f9f6}
+.notice{background:#f3f8f3;border-color:#cee2cf;color:#31533c}
+.bar{background:#e8eee9}.bar i{background:#477b53}
+.stat label{color:#46584a}
+.statgroup{color:#355a40}
+.setting,.slotpick{border-bottom:1px solid #e4e9e4}
+.lineup-stats span{background:#eff4ef;color:#395944}
+.lineup-readout{color:#65786a}
+.bottom{border-top:1px solid #e2e8e3}
+.face-tile{background:#f1f3f1}
+.career-steps{display:flex;gap:7px;margin:0 0 18px;flex-wrap:wrap}
+.career-steps span{padding:6px 10px;border:1px solid #dce5dd;border-radius:20px;color:#677a6c;font-size:11px}
+.career-steps span.current{background:#e9f3ec;border-color:#97b69f;color:#244f33}
+.start-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:15px}
+.league-choice{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 20px}
+.league-choice button{padding:12px 8px;border:1px solid #d8e3d9;border-radius:7px;background:#fff;color:#405346;text-align:left;font-size:12px}
+.league-choice button.chosen{border-color:#53815e;background:#f0f7f1;color:#18452a}
+.team-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.team-tile{border:1px solid #dfe6df;border-radius:9px;background:#fff;padding:11px;display:flex;gap:10px;text-align:left;align-items:center;color:#213128;min-width:0}
+.team-tile.chosen{border-color:#386c49;background:#eff6f0}
+.team-tile strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-tile small{display:block;color:#758579;font-size:11px;margin-top:4px}
+.team-preview{position:sticky;top:100px;align-self:start}
+.team-preview .club-mark{display:flex;align-items:center;gap:13px;margin:15px 0}
+.preview-squad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:13px 0}
+.preview-squad .face-tile{width:100%!important;height:auto!important;aspect-ratio:1}
+.preview-squad .face-tile .face-fallback svg{width:100%;height:100%}
+.preview-squad-label{font-size:10px;color:#738276;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nickname-input{width:100%;border:1px solid #ccd9ce;border-radius:8px;padding:13px 14px;background:#fff;color:#203329;font-size:14px}
+.nickname-input:focus{outline:2px solid #a6cdb0;border-color:#49845b}
+.start-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0}
+@media(max-width:1040px){.start-layout{grid-template-columns:1fr}.team-preview{position:static}.league-choice{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.league-choice,.team-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.preview-squad{grid-template-columns:repeat(5,minmax(0,1fr))}.wrapper{padding:20px 14px}.start-toolbar{flex-direction:column;align-items:stretch}}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -224,6 +283,55 @@ function avatar(p,size=42){
  +'<img loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
  +'</span>';
 }
+
+
+/* First-run experience v3: nickname -> league -> existing club + seeded player squad */
+let setupNickname=coachName||'',setupClubId=null;
+function safeName(s){return txt(s).replaceAll('"','&quot;').replaceAll("'","&#39;")}
+function updateNickname(s){setupNickname=s}
+function setupChooseLeague(i){selectedLeague=i;setupClubId=null;render()}
+function setupChooseClub(i){setupClubId=i;render()}
+function startWithClub(){
+ const nick=(document.getElementById('setup-nickname')?.value||setupNickname||'').trim();
+ if(nick.length<2||nick.length>24){const box=document.getElementById('setup-message');if(box)box.textContent='닉네임은 2~24자로 입력해 주세요.';return}
+ const club=clubs.find(c=>c.id===setupClubId&&c.league===selectedLeague);
+ if(!club){const box=document.getElementById('setup-message');if(box)box.textContent='먼저 참가할 구단을 선택해 주세요.';return}
+ coachName=nick;setupNickname=nick;createdClub=false;manager=club.id;
+ selectedLeague=club.league;currentLineup();page='dashboard';save();render()
+}
+function viewStart(){
+ if(setupClubId===null||!clubs.some(c=>c.id===setupClubId&&c.league===selectedLeague)){setupClubId=clubs.filter(c=>c.league===selectedLeague)[0]?.id??null}
+ const selected=clubs.find(c=>c.id===setupClubId);
+ const squad=selected?players.filter(p=>p.club===selected.id).sort((a,b)=>overall(b)-overall(a)):[];
+ const steps='<div class="career-steps"><span class="current">닉네임 설정</span><span class="current">리그 선택</span><span class="current">구단 선택</span><span>선수단 확인</span></div>';
+ return '<div class="start-layout"><div><section class="card">'+steps+
+ '<h2>감독 커리어 시작</h2><p class="muted">닉네임을 정하고 원하는 구단을 선택하세요. 각 구단에는 기본 선수 23명이 이미 배정되어 있습니다.</p>'+
+ '<label for="setup-nickname" style="display:block;margin:18px 0 8px;font-weight:600">감독 닉네임</label><input id="setup-nickname" class="nickname-input" maxlength="24" placeholder="사용할 닉네임 입력" value="'+safeName(setupNickname)+'" oninput="updateNickname(this.value)"></section>'+
+ '<section class="card"><h2>국가 · 리그 선택</h2><div class="league-choice">'+LEAGUES.map((l,i)=>'<button class="'+(selectedLeague===i?'chosen':'')+'" onclick="setupChooseLeague('+i+')">'+COUNTRY_FLAGS[l[0]]+' '+l[0]+' '+l[2]+'부</button>').join('')+'</div>'+
+ '<div class="start-toolbar"><div><h2 style="margin:0 0 4px">'+txt(LEAGUES[selectedLeague][1])+'</h2><div class="muted small">12개 구단 · 22라운드 · 기존 구단 선택</div></div><span class="tag">CLUB SELECTION</span></div>'+
+ '<div class="team-grid">'+clubs.filter(c=>c.league===selectedLeague).map(c=>'<button class="team-tile '+(c.id===setupClubId?'chosen':'')+'" onclick="setupChooseClub('+c.id+')">'+shield(c)+'<span style="min-width:0"><strong>'+txt(c.name)+'</strong><small>구단 전력 '+c.rating+' · 선수 23명</small></span></button>').join('')+'</div></section></div>'+
+ '<aside class="card team-preview"><div class="eyebrow">SELECTED CLUB</div>'+(selected?'<div class="club-mark">'+shield(selected)+'<div><h2 style="margin:0 0 4px">'+txt(selected.name)+'</h2><span class="muted small">'+txt(LEAGUES[selected.league][1])+'</span></div></div><div class="lineup-stats"><span>구단 전력 '+selected.rating+'</span><span>선수 23명</span><span>예산 '+Math.round(selected.cash/1000000)+'M</span></div><h3>기본 선수단 미리보기</h3><p class="muted small">구단마다 선수 이름·포지션·능력치가 미리 생성되어 있습니다.</p><div class="preview-squad">'+squad.slice(0,15).map(p=>'<div><div>'+avatar(p,58)+'</div><div class="preview-squad-label">'+txt(p.name.split(' ').at(-1))+'</div></div>').join('')+'</div><div class="tablewrap"><table><thead><tr><th>선수</th><th>포지션</th><th>OVR</th></tr></thead><tbody>'+squad.slice(0,5).map(p=>'<tr><td>'+txt(p.name)+'</td><td>'+p.pos+'</td><td>'+overall(p)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">구단을 선택해 주세요.</p>')+
+ '<p id="setup-message" style="color:#b44343;font-size:12px"></p><button class="btn" style="width:100%;padding:14px" onclick="startWithClub()">이 구단으로 커리어 시작</button>'+
+ (manager!==null?'<button class="btn sub" style="width:100%;margin-top:9px" onclick="go(\'dashboard\')">현재 커리어 계속하기</button>':'')+'</aside></div>'
+}
+function nav(){let entries=manager===null?[['start','커리어 시작']]:[['dashboard','대시보드'],['squad','선수단 · 육성'],['tactics','전술 설정'],['match','경기 센터'],['league','리그 순위'],['market','이적시장'],['start','구단 선택']];document.getElementById('nav').innerHTML=entries.map(([id,label])=>'<button class="nav '+(page===id?'active':'')+'" onclick="go(\''+id+'\')">'+label+'</button>').join('')}
+function viewDashboard(){
+ if(manager===null)return viewStart();
+ const c=own(),p=points[manager],squad=myPlayers().sort((a,b)=>overall(b)-overall(a));
+ return '<section class="card welcome"><div class="eyebrow">MY CAREER</div><div class="row"><div><h2 style="font-size:20px;margin:10px 0">'+txt(c.name)+'</h2><p class="muted">'+txt(coachName||'감독')+' 감독 · '+txt(LEAGUES[c.league][1])+'</p></div>'+shield(c)+'</div><button class="btn sub mini" onclick="go(\'tactics\')">포메이션 · 선발 설정</button></section>'+
+ '<div class="grid"><section class="card"><div class="eyebrow">LEAGUE POINTS</div><div class="value">'+(p.w*3+p.d)+'</div><div class="muted small">'+p.w+'승 '+p.d+'무 '+p.l+'패</div></section><section class="card"><div class="eyebrow">SQUAD</div><div class="value">'+squad.length+'</div><div class="muted small">기본 선수단</div></section><section class="card"><div class="eyebrow">TRANSFER BUDGET</div><div class="value">'+Math.round(c.cash/1000000)+'M</div><div class="muted small">게임 내 이적 자금</div></section></div>'+
+ '<section class="card"><div class="row"><div><h2>내 선수단</h2><p class="muted small">보유 선수들의 얼굴과 능력치</p></div><button class="btn sub mini" onclick="go(\'squad\')">전체 선수 보기</button></div><div class="preview-squad" style="grid-template-columns:repeat(8,minmax(0,1fr))">'+squad.slice(0,16).map(p=>'<div style="min-width:0">'+avatar(p,72)+'<div class="preview-squad-label">'+txt(p.name.split(' ').at(-1))+'</div></div>').join('')+'</div></section>'+
+ '<section class="card"><div class="row"><div><h2>다음 경기</h2><p class="muted small">'+(round+1)+'라운드 / 22라운드</p></div><button class="btn" onclick="go(\'match\')">경기 준비</button></div><p style="font-size:18px;text-align:center;margin:25px 0">'+nextOpponent()+'</p></section>'
+}
+/* Face atlas crop: element is exactly 4 columns × 3 rows, preserving 1:1 ratio. */
+function avatar(p,size=42){
+ const h=Math.imul(p.id+1,2654435761)>>>0,tile=h%(FACE_SHEETS.length*12),sheet=Math.floor(tile/12),slot=tile%12,col=slot%4,row=Math.floor(slot/4);
+ return '<span class="face-tile" style="width:'+size+'px;height:'+size+'px" title="가상 선수 얼굴">'
+  +'<span class="face-fallback">'+svgAvatarFallback(p,size)+'</span>'
+  +'<img loading="lazy" decoding="async" alt="" src="'+FACE_SHEETS[sheet]+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
+  +'</span>'
+}
+window.setupChooseLeague=setupChooseLeague;window.setupChooseClub=setupChooseClub;window.updateNickname=updateNickname;window.startWithClub=startWithClub;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
