@@ -598,6 +598,7 @@ function viewMatchCore(){
 }
 function playRound(){
  if(round>=22||manager===null)return;
+ if(pendingReward?.club===manager){matchTab='rewards';page='match';render();return}
  const y=season,week=round,club=own(),myPair=matchPair(),starting=currentLineup().slice(),lineup=starting.map(id=>players.find(p=>p.id===id)),entry=[];
  let ownScore=null;
  for(let li=0;li<LEAGUES.length;li++){
