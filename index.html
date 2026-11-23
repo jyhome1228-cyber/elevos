@@ -125,6 +125,67 @@ table th{font-size:12px}table td{font-size:14px}
 .lobby-profile-large .face-tile .face-fallback svg{width:94px;height:94px}
 @media(max-width:1150px){.lobby-grid{grid-template-columns:240px minmax(0,1fr)}.lobby-col:last-child{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:15px}.lobby-col:last-child .card{margin:0}}
 @media(max-width:740px){.lobby-grid{grid-template-columns:1fr}.lobby-col:last-child{display:block;grid-column:auto}.lobby-col:last-child .card{margin-bottom:15px}.lobby-match{padding:13px;gap:8px}.lobby-team{font-size:13px}.sidebar{border-radius:6px}.nav{font-size:13px;padding:12px}.card{padding:17px}table td{font-size:13px}.lobby-portrait-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* Neutral monochrome game system */
+:root{background:#fff!important;color:#171717!important}
+body{background:#fff!important;color:#171717!important}
+header{background:#fff!important;border-color:#e5e5e5!important}
+header .logo{color:#111!important}
+.sidebar{background:#f7f7f7!important;border-color:#e4e4e4!important}
+.nav{color:#444!important}
+.nav.active,.nav:hover{background:#171717!important;color:#fff!important}
+.card,.team-tile,.club{background:#fff!important;border-color:#e2e2e2!important;color:#222!important}
+.card.welcome{background:#f8f8f8!important}
+.eyebrow,.muted,.small,.bottom,.lobby-news p{color:#737373!important}
+.tag{border-color:#ddd!important;color:#4d4d4d!important}
+.btn{background:#181818!important;color:#fff!important;border-color:#181818!important}
+.btn.sub,.btn.mini.sub{background:#fff!important;color:#222!important;border:1px solid #d2d2d2!important}
+.chip{background:#f8f8f8!important;color:#333!important;border-color:#ddd!important}
+.chip.on{background:#202020!important;color:#fff!important}
+.lineup-stats span{background:#f1f1f1!important;color:#383838!important}
+.lobby-match{background:#f7f7f7!important;border-color:#e5e5e5!important}
+.lobby-vs,.lobby-schedule-item span:nth-child(2){color:#777!important}
+.lobby-schedule-item{border-color:#ececec!important}
+.lobby-schedule-item.mine{background:#f0f0f0!important;color:#141414!important}
+.lobby-news{border-color:#e9e9e9!important}
+.lobby-action-grid button{background:#fafafa!important;color:#222!important;border-color:#e1e1e1!important}
+.lobby-action-grid button:hover{background:#eee!important;border-color:#888!important}
+.notice{background:#f6f6f6!important;border-color:#ddd!important;color:#333!important}
+.setting,.slotpick{border-color:#e4e4e4!important}
+.statgroup{color:#333!important}
+.bar{background:#e8e8e8!important}.bar i{background:#555!important}
+.stat label{color:#444!important}
+.setup-field input,.setup-field select,.nickname-input{background:#fff!important;border-color:#d6d6d6!important;color:#171717!important}
+.league-choice button,.career-option{background:#fff!important;border-color:#ddd!important;color:#222!important}
+.league-choice button.chosen,.career-option.chosen,.team-tile.chosen{background:#f2f2f2!important;border-color:#555!important;color:#222!important}
+.face-tile{background:#f3f3f3!important}
+.pitch{background:repeating-linear-gradient(0deg,#525b55 0,#525b55 60px,#646d66 60px,#646d66 120px)!important;border-color:#999!important}
+.playerdot{background:#fff!important;color:#222!important;border-color:#444!important}
+a{color:#202020}
+.fixture-control{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.fixture-control button{background:#fff;border:1px solid #d4d4d4;border-radius:7px;padding:8px 12px;cursor:pointer;color:#222}
+.fixture-control button:disabled{opacity:.35}
+.fixture-row{display:grid;grid-template-columns:1fr 75px 1fr;gap:10px;align-items:center;border-bottom:1px solid #ededed;padding:13px 6px;font-size:14px}
+.fixture-row>div:last-child{text-align:right}
+.fixture-row.is-me{background:#f2f2f2;font-weight:650}
+.fixture-score{font-weight:700;text-align:center;font-size:15px}
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:15px;text-align:center;padding:22px;background:#f7f7f7;border:1px solid #e4e4e4;border-radius:9px}
+.scoreboard-team{display:flex;flex-direction:column;align-items:center;gap:10px;font-weight:650;font-size:15px;min-width:0}
+.scoreboard-team .crest{width:52px;height:59px}
+.scoreboard-number{font-size:40px;font-weight:750;white-space:nowrap;font-variant-numeric:tabular-nums}
+.match-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.match-tabs button{background:#fff;border:1px solid #ddd;color:#333;border-radius:6px;padding:9px 13px;font-size:13px;cursor:pointer}
+.match-tabs button.active{background:#222;color:#fff}
+.match-summary{display:grid;grid-template-columns:230px 1fr;gap:15px}
+.ratings-pitch{height:315px;border:1px solid #d6d6d6;border-radius:7px;background:repeating-linear-gradient(0deg,#d7dad7,#d7dad7 50px,#e4e6e4 50px,#e4e6e4 100px);position:relative;overflow:hidden}
+.ratings-pitch:before{content:'';position:absolute;inset:10px;border:1px solid #aeb4ae;pointer-events:none}
+.rating-pin{position:absolute;transform:translate(-50%,-50%);background:#fff;border:1px solid #aaa;padding:3px 5px;border-radius:5px;min-width:42px;text-align:center;font-size:11px}
+.rating-pin b{display:block;font-size:12px}
+.reward-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.reward-item{border:1px solid #dedede;border-radius:8px;padding:16px;text-align:center;background:#fafafa}
+.reward-item strong{display:block;font-size:22px;margin:12px 0 4px}
+.reward-item span{font-size:12px;color:#777}
+@media(max-width:740px){.match-summary{grid-template-columns:1fr}.reward-grid{grid-template-columns:1fr 1fr}.fixture-row{grid-template-columns:1fr 54px 1fr;font-size:12px}.scoreboard-number{font-size:27px}.scoreboard-team{font-size:12px}}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -409,6 +470,83 @@ function viewDashboard(){
  return '<div class="lobby-grid">'+left+center+news+'</div>'
 }
 
+
+/* Matchday + results v5: all league match scores retained by season and round. */
+let matchResults=(saved&&saved.matchResults)||{};
+let lastMatch=(saved&&saved.lastMatch)||null;
+let scheduleRound=round,matchTab='preview';
+let newsRead=false;
+function save(){
+ try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch}))}
+ catch(e){console.warn('저장 실패',e)}
+}
+function fixtureKey(y,li,r){return y+'-'+li+'-'+r}
+function setScheduleRound(i){scheduleRound=Math.max(0,Math.min(21,i));render()}
+function fixtureAt(li,r){
+ const matches=fixtures[li]?.[r]||[],savedGames=matchResults[fixtureKey(season,li,r)]||[];
+ return matches.map(([a,b],i)=>({a,b,score:savedGames[i]||null}))
+}
+function fixtureListHTML(li,r){
+ return fixtureAt(li,r).map(g=>'<div class="fixture-row '+(g.a===manager||g.b===manager?'is-me':'')+'"><div>'+shield(clubs[g.a])+ '<span style="margin-left:8px">'+txt(clubs[g.a].name)+'</span></div><div class="fixture-score">'+(g.score?g.score[0]+' : '+g.score[1]:'VS')+'</div><div><span style="margin-right:8px">'+txt(clubs[g.b].name)+'</span>'+shield(clubs[g.b])+'</div></div>').join('')
+}
+function chooseMatchTab(t){matchTab=t;render()}
+function matchPair(){return (fixtures[own().league]?.[round]||[]).find(g=>g.includes(manager))}
+function matchRating(p,bonus=0){return Math.max(4,Math.min(10,Math.round((5.3+(overall(p)-65)*.038+bonus)*10)/10))}
+function viewMatch(){
+ if(manager===null)return viewStart();
+ const m=matchPair(),squad=currentLineup().map(id=>players.find(p=>p.id===id)),slots=FORMATIONS[formation],ready=squad.every(Boolean);
+ const current=lastMatch&&lastMatch.club===manager?lastMatch:null,canNext=round<22;
+ const tabs='<div class="match-tabs"><button class="'+(matchTab==='preview'?'active':'')+'" onclick="chooseMatchTab(\'preview\')">경기 준비</button><button class="'+(matchTab==='result'?'active':'')+'" onclick="chooseMatchTab(\'result\')">경기 결과</button><button class="'+(matchTab==='rewards'?'active':'')+'" onclick="chooseMatchTab(\'rewards\')">보상</button></div>';
+ let board=m?'<div class="scoreboard"><div class="scoreboard-team">'+shield(clubs[m[0]])+txt(clubs[m[0]].name)+'</div><div class="scoreboard-number">VS</div><div class="scoreboard-team">'+shield(clubs[m[1]])+txt(clubs[m[1]].name)+'</div></div>':(current?'<div class="notice">이번 시즌 리그 일정이 종료되었습니다.</div>':'<div class="notice">다음 경기 일정 없음</div>');
+ let results=current?'<div class="scoreboard"><div class="scoreboard-team">'+shield(clubs[current.home])+txt(clubs[current.home].name)+'</div><div class="scoreboard-number">'+current.homeGoals+' : '+current.awayGoals+'</div><div class="scoreboard-team">'+shield(clubs[current.away])+txt(clubs[current.away].name)+'</div></div>':'<div class="notice">아직 진행한 경기가 없습니다.</div>';
+ let ratings=current?'<div class="match-summary"><div class="ratings-pitch">'+(current.lineup||[]).map((x,i)=>{let slot=FORMATIONS[current.formation]?.[i]||slots[i],p=players.find(q=>q.id===x.id);return slot&&p?'<div class="rating-pin" style="left:'+slot.x+'%;top:'+slot.y+'%"><b>'+x.rating.toFixed(1)+'</b>'+p.pos+'</div>':''}).join('')+'</div><div class="card" style="margin:0"><h2>출전 선수 평점</h2><div class="tablewrap"><table><thead><tr><th>선수</th><th>포지션</th><th>평점</th><th>경험치</th></tr></thead><tbody>'+current.lineup.map(x=>{let p=players.find(q=>q.id===x.id);return '<tr><td>'+txt(p?.name||'선수')+'</td><td>'+txt(p?.pos||'-')+'</td><td>'+x.rating.toFixed(1)+'</td><td>+'+x.xp+' XP</td></tr>'}).join('')+'</tbody></table></div></div></div>':'';
+ let reward=current?'<div class="reward-grid"><div class="reward-item"><span>경기 보상</span><strong>'+current.money.toFixed(1)+'M</strong><span>가상 게임머니</span></div><div class="reward-item"><span>경험치</span><strong>+'+current.totalXP+'</strong><span>출전 선수 합계</span></div><div class="reward-item"><span>경기 결과</span><strong>'+current.outcome+'</strong><span>승점 '+current.leaguePts+'</span></div></div>':'<div class="notice">경기 종료 후 보상을 받을 수 있습니다.</div>';
+ return '<section class="card"><div class="row"><div><div class="eyebrow">MATCHDAY</div><h2 style="margin:7px 0">경기 센터 · '+(round+1)+'라운드</h2></div><span class="tag">'+LEAGUES[own().league][1]+'</span></div>'+tabs+
+ (matchTab==='preview'?board+'<div class="lineup-stats"><span>포메이션 '+formation+'</span><span>선발 '+squad.filter(Boolean).length+' / 11명</span><span>전력 '+Math.round(teamPower(manager))+'</span></div><div class="row" style="margin:15px 0"><button class="btn sub" onclick="go(\'tactics\')">선발 · 전술 변경</button><button class="btn" '+(!canNext||!ready?'disabled':'')+' onclick="playRound()">경기 진행</button></div><p class="muted small">경기 진행 후 결과·평점·보상 화면을 확인할 수 있습니다.</p>':matchTab==='result'?results+ratings:reward)+
+ '</section>'
+}
+function playRound(){
+ if(round>=22||manager===null)return;
+ const y=season,week=round,club=own(),myPair=matchPair(),starting=currentLineup().slice(),lineup=starting.map(id=>players.find(p=>p.id===id)),entry=[];
+ let ownScore=null;
+ for(let li=0;li<LEAGUES.length;li++){
+  const recorded=[];
+  for(let [a,b] of fixtures[li][week]){
+   const A=clubs[a],B=clubs[b],av=teamPower(a),bv=teamPower(b);
+   const ta=a===manager?tacticModifier():0,tb=b===manager?tacticModifier():0;
+   let gA=goals((av-bv)*1.45+3+ta),gB=goals((bv-av)*1.45-3+tb);
+   recorded.push([gA,gB]);
+   const pa=points[a],pb=points[b];pa.p++;pb.p++;pa.gf+=gA;pa.ga+=gB;pb.gf+=gB;pb.ga+=gA;
+   if(gA>gB){pa.w++;pb.l++}else if(gA<gB){pb.w++;pa.l++}else{pa.d++;pb.d++}
+   if(a===manager||b===manager)ownScore={home:a,away:b,homeGoals:gA,awayGoals:gB};
+  }
+  matchResults[fixtureKey(y,li,week)]=recorded;
+ }
+ const lineupOut=[],starterSet=new Set(starting),isWin=ownScore&&(manager===ownScore.home?ownScore.homeGoals>ownScore.awayGoals:ownScore.awayGoals>ownScore.homeGoals),isDraw=ownScore&&ownScore.homeGoals===ownScore.awayGoals;
+ let totalXP=0;
+ for(const p of myPlayers()){
+  const isStarter=starterSet.has(p.id);
+  const xp=isStarter?rand(18,36):rand(0,4);
+  p.xp+=xp;if(isStarter){totalXP+=xp;lineupOut.push({id:p.id,rating:matchRating(p,rand(-6,8)/10),xp})}
+  while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}
+ }
+ const money=(isWin?2.5:isDraw?1.3:.7),pts=isWin?3:isDraw?1:0;
+ club.cash+=money*1000000;
+ lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts};
+ round++;scheduleRound=Math.min(round,21);matchTab='result';
+ if(round>=22){finishSeason();scheduleRound=0}
+ save();page='match';render()
+}
+function viewLeague(){
+ const li=selectedLeague,rule=LEAGUE_RULES[li],standings=standing(li),r=Math.max(0,Math.min(21,scheduleRound));
+ return '<section class="card"><div class="row"><div><div class="eyebrow">LEAGUE CENTRE</div><h2 style="margin:7px 0">'+txt(LEAGUES[li][1])+'</h2></div><span class="tag">'+LEAGUES[li][0]+' · '+LEAGUES[li][2]+'부</span></div>'+leaguesChips()+
+ '<div class="fixture-control"><button onclick="setScheduleRound('+(r-1)+')" '+(r===0?'disabled':'')+'>이전 라운드</button><strong>'+(r+1)+' / 22 라운드</strong><button onclick="setScheduleRound('+(r+1)+')" '+(r===21?'disabled':'')+'>다음 라운드</button></div><div class="card" style="padding:10px 15px">'+fixtureListHTML(li,r)+'</div>'+
+ '<h2 style="margin-top:22px">리그 순위</h2><div class="tablewrap"><table><thead><tr><th>순위</th><th>구단</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득점</th><th>실점</th><th>득실</th><th>승점</th></tr></thead><tbody>'+
+ standings.map((c,i)=>{const p=points[c.id];return '<tr style="'+(c.id===manager?'background:#f4f4f4':'')+'"><td>'+(i+1)+'</td><td>'+shield(c)+' <span style="margin-left:8px">'+txt(c.name)+'</span></td><td>'+p.p+'</td><td>'+p.w+'</td><td>'+p.d+'</td><td>'+p.l+'</td><td>'+p.gf+'</td><td>'+p.ga+'</td><td>'+((p.gf-p.ga)>0?'+':'')+(p.gf-p.ga)+'</td><td><strong>'+(p.w*3+p.d)+'</strong></td></tr>'}).join('')+
+ '</tbody></table></div><p class="muted small" style="margin-top:15px">'+(rule.promotion?'상위 2팀 승격':rule.relegation?'하위 2팀 강등':'1부 리그 운영 중')+' · 홈/원정 22라운드</p></section>'
+}
+
+window.setScheduleRound=setScheduleRound;window.chooseMatchTab=chooseMatchTab;
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
 </script></body></html>
