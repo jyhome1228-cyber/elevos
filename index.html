@@ -964,6 +964,7 @@ function playRound(){
  const money=(isWin?80:isDraw?45:25),pts=isWin?3:isDraw?1:0;
  walletGBP+=money;
  lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts,events:simFinalOverride?.events||[],substitutions:simFinalOverride?.substitutions||[],instruction:simFinalOverride?.instruction||tactic};
+ recoverFitnessAfterMatch([...starterSet]);
  advanceInjuryRecovery(round);
  fixInjuredLineup();
  round++;scheduleRound=Math.min(round,21);matchTab='result';pendingReward={club:manager,season:y,round:week};simFinalOverride=null;simState=null;
@@ -1304,7 +1305,7 @@ function viewSquad(){
  const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
  const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
- playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
+ playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>컨디션<b>'+playerFitness(p)+'/100</b></span><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
  '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup" data-cat="'+group+'">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
  return '<div class="player-screen">'+roster+profile+'</div>';
 }
@@ -1510,10 +1511,11 @@ function minuteEvent(){
  const finish=Math.max(.68,Math.min(1.40,d?(d.finishing+d.positioning+d.shotPower)/225:1));
  const create=Math.max(.70,Math.min(1.35,d?(d.shortPass+d.vision+d.firstTouch)/225:1));
  const roll=Math.random();
- if(roll>.965&&roll<.969){
-  const injuryTarget=randomMatchActor(Math.random()<.5);
-  if(injuryTarget){matchInjuryEvent(injuryTarget.club,injuryTarget);return}
- }
+ const injuryTarget=randomMatchActor(Math.random()<.5);
+ const endurance=injuryTarget?detailed(injuryTarget).stamina:70;
+ const fatigue=injuryTarget?(100-playerFitness(injuryTarget))/100:0;
+ const injuryRisk=.0018+fatigue*.008+Math.max(0,75-endurance)*.00004;
+ if(roll>1-injuryRisk&&injuryTarget){matchInjuryEvent(injuryTarget.club,injuryTarget);return}
  simState.ball=simState.ball||{x:50,y:50};
  if(roll<.016*quality*finish){
   if(Math.random()<.32){
@@ -1795,7 +1797,7 @@ function lineupComposition(ids,slots){
  const groups={FW:[],MF:[],DF:[],GK:[]};let total=0,fitTotal=0,filled=0;
  slots.forEach((slot,i)=>{
   const p=players.find(x=>x.id===ids[i]);if(!p)return;
-  const fit=positionFit(p,slot.r),role=ROLE_FAMILY[slot.r]||'MF',score=preciseOverall(p)*fit;
+  const fit=positionFit(p,slot.r),role=ROLE_FAMILY[slot.r]||'MF',score=preciseOverall(p)*fit*playerFitnessFactor(p);
   groups[role].push(score);total+=score;fitTotal+=fit;filled++;
  });
  const averages=Object.fromEntries(Object.entries(groups).map(([k,list])=>[k,list.reduce((a,b)=>a+b,0)/Math.max(1,list.length)]));
@@ -1890,7 +1892,7 @@ function playerUnavailable(p){return !!p&&Number(p.injuryMatches||0)>0}
 function injuryBadge(p){
  if(!playerUnavailable(p))return '';
  const major=p.injurySeverity==='major',color=major?'#c93131':'#e3ab17';
- return '<span class="injury-badge '+(major?'major':'minor')+'" title="'+txt(p.injuryType||'부상')+' · '+p.injuryMatches+'경기 결장" style="--injury-color:'+color+'"><span aria-hidden="true">✚</span> '+(major?'장기 부상':'경미한 부상')+'</span>';
+ return '<span class="injury-badge '+(major?'major':'minor')+'" title="'+txt(p.injuryType||'부상')+' · '+p.injuryMatches+'경기 결장" style="--injury-color:'+color+'"><span aria-hidden="true">✚</span> '+(major?'장기 부상':'경미한 부상')+' · '+p.injuryMatches+'경기</span>';
 }
 function injuryFor(p,forceKind){
  if(!p||playerUnavailable(p))return null;
@@ -1947,7 +1949,7 @@ function injuryOrAISub(teamId,injured,forced=false){
  if(ours){simState.participants.push(next.id)}
  const entry={minute:simMinuteLabel(simState.minute),out:out.id,in:next.id,club:teamId,forced};
  if(ours)simState.substitutions.push(entry);else{if(!simState.aiSubstitutions)simState.aiSubstitutions=[];simState.aiSubstitutions.push(entry)}
- simEvent(teamId,next,'sub',out.name+' OUT → '+next.name+' IN',forced?null:'SUBSTITUTION');
+ simEvent(teamId,next,'sub',out.name+' OUT → '+next.name+' IN',forced||teamId!==manager?null:'SUBSTITUTION');
  return true;
 }
 function matchInjuryEvent(teamId,injured){
@@ -1999,6 +2001,18 @@ function moveMatchObjects(homeAttack,type){
    const prev=old[i]||{x:baseX,y:baseY},step=role==='GK'?2:role==='DF'?6:9;
    return {id:ids?.[i],x:clamp(prev.x+Math.max(-step,Math.min(step,toX-prev.x))),y:clamp(prev.y+Math.max(-step,Math.min(step,toY-prev.y)),7,93)};
   });
+ }
+}
+
+
+function playerFitness(p){return Math.max(0,Math.min(100,Number.isFinite(p.fitness)?p.fitness:100))}
+function playerFitnessFactor(p){return .78+.22*playerFitness(p)/100}
+function recoverFitnessAfterMatch(starterIds){
+ const used=new Set(starterIds||[]);
+ for(const p of myPlayers()){
+  const endurance=detailed(p).stamina;
+  const change=used.has(p.id)?-(9-Math.min(5,Math.floor(endurance/24))):6;
+  p.fitness=Math.max(25,Math.min(100,playerFitness(p)+change));
  }
 }
 
