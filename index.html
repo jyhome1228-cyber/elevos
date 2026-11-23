@@ -610,7 +610,7 @@ a{color:#202020}
 .match-complete .fulltime-clubs{grid-template-columns:minmax(0,1fr) minmax(125px,200px) minmax(0,1fr)!important}
 .match-complete .match-full-score{font-size:clamp(32px,4.5vw,58px)!important;white-space:nowrap!important;display:flex;align-items:center;justify-content:center}
 @media(max-width:650px){.match-complete .fulltime-clubs{grid-template-columns:minmax(0,1fr) minmax(92px,116px) minmax(0,1fr)!important}}
-</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
+.sim-field{background:repeating-linear-gradient(0deg,#2b824d 0,#2b824d 52px,#3b9458 52px,#3b9458 104px)!important}.sim-pawn{transition:left .34s linear,top .34s linear!important}.sim-ball{transition:left .34s linear,top .34s linear!important}.sim-goal-box{position:absolute;top:25%;height:50%;width:12%;border:1px solid #fffd;pointer-events:none}.sim-goal-box.left{left:0;border-left:0}.sim-goal-box.right{right:0;border-right:0}.sim-halfway{position:absolute;top:0;bottom:0;left:50%;border-left:1px solid #fffa;pointer-events:none}</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
 const LEAGUES=[["잉글랜드","Crown Division",1,["Northbridge Athletic","Westford Union","Kingsport Borough","Eastmere City","Redmont Rovers","Ashbourne Vale","Southvale Athletic","Whitestone FC","Marshfield Albion","Harbourgate Town","Oakminster FC","Greyhaven Athletic"]],["잉글랜드","Crown Championship",2,["Brackenfield United","Larkspur Town","Moorcastle FC","Riverstone Athletic","Thornwick Rovers","Copperhill City","Wellsbury FC","Eastcliff Union","Stanford Vale","Bellhaven Town","Cedarbridge FC","Highmoor Athletic"]],["이탈리아","Prima Divisione",1,["Valdoro Calcio","Portovento AC","Monteverde 1924","Bellacosta FC","Rivaforte Calcio","San Lucente","Castelnero AS","Citta Aurelia","Pietramare FC","Rosalba Calcio","Lagoferro 1912","Novacielo AC"]],["이탈리아","Seconda Divisione",2,["Verdemare Calcio","Borgo Alto FC","Torregrande AC","Castelbianco","Lunaforte Calcio","Portosole FC","San Verano","Arcomonte AC","Valnera 1910","Bellafonte","Rivagrigia FC","Montelago Calcio"]],["프랑스","Élite Division",1,["Montelac Sporting","Valcerne Olympique","Rivemont FC","Belcour Athletic","Saint Veraine","Azurienne SC","Lavernay Union","Grandelle FC","Port Celeste","Aubrecourt","Merival Sporting","Fontelune FC"]],["프랑스","Division Nationale",2,["Bellemont FC","Saint Calais","Rocheclair SC","Marivelle Union","Valdorne Athletic","Boisfleur FC","Lacour Olympique","Montprel FC","Azurville SC","Champbrune","Vernet Sporting","Portelle FC"]],["독일","Adler Liga",1,["Eisenwald SV","Nordfels 04","Grunhafen SC","Blauheim 09","Rosenbruck FC","Silberstadt 07","Waldkirch Union","Westtal 08","Kronfeld Athletic","Ostgarten SV","Falkenau FC","Hohenried 06"]],["독일","Adler Liga Zwei",2,["Bergfeld 05","Kaltenbruck SV","Hinterwald FC","Grunfels 11","Stahlgarten SC","Westerhof 03","Birkstadt Union","Rheindorf 08","Oberthal SV","Sonnenbruck 04","Adlersee FC","Neustadt Blau"]],["스페인","División Sol",1,["Costa Brava Norte","Monteluz CF","Puerto Dorado","Valle Claro FC","Real Solviera","Atletico Verdena","Roca Blanca","Marazul Union","Rio Fuerte CF","Costa Serena","Villadoro FC","San Estrella"]],["포르투갈","Liga Atlântica",1,["Porto Claro","Estrela do Vale","Marinha Verde","Atlético Moura","Costa Nova FC","Braga Alta","Vila Serena","Rio Dourado","Montesul SC","Alvorada FC","Santo Lago","Uniao do Norte"]],["네덜란드","Oranje Divisie",1,["Noorderdam FC","Rijnhaven Athletic","Zuidmeer SC","Veldstad United","Havenburg 04","Oostveen FC","Westermeer","Tulpenhof SV","De Groene Stad","Dijkdam FC","Bergveen Union","Kustwijk 09"]],["벨기에","Royal Division",1,["Royal Bravelle","Antwerp Vale","Noordhaven FC","Sainte Marenne","Brugge Heights","Wallonne Athletic","Royal Evermont","Belfort City","Rivelle Sporting","East Flanders FC","Montbel Union","Zilverbeek"]]];
@@ -1403,7 +1403,7 @@ function startSimulation(){
  fixInjuredLineup();
  const healthy=currentLineup();if(!pair||healthy.filter(Boolean).length!==11)return;
  pauseSimulation();
- simState={paused:false,lastTickAt:Date.now(),activeLineup:healthy.slice(),participants:healthy.slice(),substitutions:[],aiSubstitutions:[],manualCoaching:false,formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?healthy.slice():computerLineup(pair[0]),awayLineup:pair[1]===manager?healthy.slice():computerLineup(pair[1]),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
+ simState={paused:false,lastTickAt:Date.now(),activeLineup:healthy.slice(),participants:healthy.slice(),substitutions:[],aiSubstitutions:[],manualCoaching:false,formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?healthy.slice():computerLineup(pair[0]),awayLineup:pair[1]===manager?healthy.slice():computerLineup(pair[1]),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),positions:{home:[],away:[]},possession:pair[0],phase:'kickoff',homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
  matchTab='live';page='match';save();render();runSimulation();
 }
 
@@ -1514,7 +1514,7 @@ function minuteEvent(){
   const injuryTarget=randomMatchActor(Math.random()<.5);
   if(injuryTarget){matchInjuryEvent(injuryTarget.club,injuryTarget);return}
  }
- simState.ball={x:homeSide?25+Math.random()*36:42+Math.random()*34,y:12+Math.random()*76};
+ simState.ball=simState.ball||{x:50,y:50};
  if(roll<.016*quality*finish){
   if(Math.random()<.32){
    simState.pendingVAR={kind:'goal',stage:'provisional',reviewAt:Date.now()+2000,decisionAt:Date.now()+4000,home:homeSide,teamId:attacker.id,playerId:actor?.id??null,disallowed:Math.random()<.47};
@@ -1544,6 +1544,7 @@ function minuteEvent(){
  }else if(roll<.31*create){
   simEvent(attacker.id,actor,'attack',actorName+'이(가) 측면 돌파 후 공격을 전개합니다.');
  }else simEvent(attacker.id,actor,'pass',actorName+'이(가) 중원에서 동료에게 패스를 연결합니다.');
+ moveMatchObjects(homeSide,simState.log[0]?.type||'pass');
 }
 function advanceMinute(){
  if(!simState||simState.club!==manager)return;
@@ -1626,14 +1627,14 @@ function viewMatchSimulationWrapper(){
  const awayIds=m.away===manager?simPlayerIds():(m.awayLineup||computerLineup(m.away));
  const renderPawns=(ids,slots,isAway)=>slots.map((slot,i)=>{
   const p=players.find(q=>q.id===ids[i]),baseX=isAway?slot.y:100-slot.y;
-  const x=Math.max(5,Math.min(95,baseX+(i===0?0:Math.sin((mins+i*7)/6)*2.6)));
-  const y=Math.max(8,Math.min(92,slot.x+Math.cos((mins+i*4)/7)*1.5));
+  const pos=m.positions?.[isAway?'away':'home']?.[i];
+  const x=pos?.x??baseX,y=pos?.y??slot.x;
   return '<div class="sim-pawn '+(isAway?'away':'')+'" title="'+txt(p?.name||'선수')+'" style="left:'+x+'%;top:'+y+'%">'+(p?.jerseyNumber||i+1)+'</div>';
  }).join('');
  const homeDots=renderPawns(homeIds,homeSlots,false),awayDots=renderPawns(awayIds,awaySlots,true);
  const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
  const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'경기 재개')+'</button>';
- return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/simTotalMinutes()*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div>'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
+ return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/simTotalMinutes()*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState}))}
@@ -1969,6 +1970,35 @@ function scheduleAutoSubstitutions(){
   if(!eligible.length)continue;
   const target=eligible[(Math.floor(m.minute/9)+id)%eligible.length];
   injuryOrAISub(id,target,false);
+ }
+}
+
+
+/* Event-driven 2D pitch: saved player points move with ball and possession. */
+function moveMatchObjects(homeAttack,type){
+ const m=simState;if(!m)return;
+ const attacker=homeAttack?m.home:m.away;
+ const previous=m.ball||{x:50,y:50},reversed=attacker!==m.possession;
+ const direction=homeAttack?1:-1;
+ let x,y;
+ if(['goal','provisional','shot','penalty'].includes(type)){x=homeAttack?90:10;y=33+Math.random()*34}
+ else if(['pass','attack'].includes(type)){x=reversed?(homeAttack?36:64):previous.x+direction*(8+Math.random()*12);y=reversed?28+Math.random()*44:previous.y+(Math.random()-.5)*25}
+ else{x=homeAttack?43+Math.random()*27:30+Math.random()*27;y=14+Math.random()*72}
+ const clamp=(v,lo=5,hi=95)=>Math.max(lo,Math.min(hi,v));
+ m.ball={x:clamp(x),y:clamp(y,8,92)};
+ m.possession=attacker;m.phase=type;
+ if(!m.positions)m.positions={home:[],away:[]};
+ for(const side of ['home','away']){
+  const isHome=side==='home',ids=isHome?m.homeLineup:m.awayLineup,slots=FORMATIONS[(isHome?m.homeFormation:m.awayFormation)||'433'];
+  const old=m.positions[side]||[];
+  m.positions[side]=slots.map((slot,i)=>{
+   const role=ROLE_FAMILY[slot.r]||'MF',baseX=isHome?100-slot.y:slot.y,baseY=slot.x;
+   const follow={GK:.02,DF:.17,MF:.31,FW:.38}[role],shift={GK:0,DF:2,MF:5,FW:8}[role];
+   const toX=baseX+(m.ball.x-baseX)*follow+(isHome?1:-1)*shift*(homeAttack===isHome?1:-.65);
+   const toY=baseY+(m.ball.y-baseY)*(role==='GK'?.03:.24);
+   const prev=old[i]||{x:baseX,y:baseY},step=role==='GK'?2:role==='DF'?6:9;
+   return {id:ids?.[i],x:clamp(prev.x+Math.max(-step,Math.min(step,toX-prev.x))),y:clamp(prev.y+Math.max(-step,Math.min(step,toY-prev.y)),7,93)};
+  });
  }
 }
 
