@@ -467,7 +467,7 @@ function nav(){
  const items=manager===null?[['start','커리어 시작']]:[['dashboard','홈'],['squad','선수단 · 육성'],['tactics','포메이션 · 전술'],['match','경기 진행'],['league','리그 · 일정'],['market','이적시장'],['start','구단 변경']];
  document.getElementById('nav').innerHTML=items.map(([id,label])=>'<button class="nav '+(page===id?'active':'')+'" onclick="go(\''+id+'\')">'+label+'</button>').join('');
 }
-function viewDashboard(){
+function viewDashboardBase(){
  if(manager===null)return viewStart();
  const c=own(),r=points[manager],all=myPlayers().slice().sort((a,b)=>overall(b)-overall(a));
  const rounds=fixtures[c.league],games=rounds[round]||[],mine=games.find(g=>g.includes(manager)),opponent=mine?clubs[mine[0]===manager?mine[1]:mine[0]]:null;
@@ -583,7 +583,7 @@ function recentMatchCards(){
  }
  return items.length?'<section class="card"><div class="row"><h2 style="margin:0">최근 경기 결과</h2><button class="btn sub mini" onclick="go(\'league\')">경기 일정</button></div><div class="recent-results">'+items.join('')+'</div></section>':'';
 }
-const originalViewDashboard=viewDashboard;
+const originalViewDashboard=viewDashboardBase;
 function viewDashboard(){
  const html=originalViewDashboard();
  if(!manager)return html;
