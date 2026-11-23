@@ -515,6 +515,20 @@ a{color:#202020}
 .sim-sub-notice strong{color:#16764c;font-size:13px;display:block}
 .sim-sub-notice span{font-size:12px;line-height:1.5;color:#333;display:block;margin-top:4px}
 @media(max-width:640px){.drag-pitch{height:520px}.drag-spot{width:70px}.drag-spot .face-tile,.drag-spot .face-fallback svg{width:45px!important;height:45px!important}.drag-spot .drag-label{max-width:70px;font-size:10px;padding:3px 4px}.drag-spot .drag-position{left:calc(50% + 11px)}}
+
+.player-radar-panel{display:grid;grid-template-columns:minmax(175px,220px) 1fr;gap:12px;align-items:center;background:#fafafa;border:1px solid #e4e4e4;border-radius:9px;padding:12px;margin:12px 0}
+.player-radar-panel svg{width:100%;max-width:220px;height:auto}
+.player-radar-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.player-radar-values div{border:1px solid #eee;background:#fff;padding:8px;border-radius:5px}
+.player-radar-values small{color:#777;font-size:11px;display:block}.player-radar-values strong{font-size:15px}
+.tactics-dossier{background:#fafafa;border:1px solid #e0e0e0;border-radius:9px;padding:13px;margin:12px 0}
+.tactics-dossier-top{display:flex;align-items:center;gap:12px}
+.tactics-dossier-top .face-tile,.tactics-dossier-top .face-fallback svg{width:72px!important;height:72px!important}
+.tactics-dossier-top strong{font-size:16px}.tactics-dossier-top small{display:block;color:#777;margin-top:4px;font-size:12px}
+.tactics-dossier .player-radar-panel{grid-template-columns:1fr 1fr;padding:8px}
+.tactics-dossier .player-radar-values strong{font-size:13px}
+.tactics-group{padding:10px 12px;background:#f1f1f1;border-radius:6px;margin:15px 0 9px;display:flex;justify-content:space-between;font-weight:700;font-size:13px}
+@media(max-width:700px){.player-radar-panel{grid-template-columns:1fr}.player-radar-panel svg{margin:auto}.tactics-dossier .player-radar-panel{grid-template-columns:1fr 1fr}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1197,7 +1211,7 @@ function viewSquad(){
  const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
  const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="player-grid">'+squad.map(x=>'<button class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong><small>'+x.pos+' · LV.'+x.level+'</small><span class="ovr">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
- '<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
+ playerRadar(p)+'<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
  '<p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
  return '<div class="player-screen">'+roster+profile+'</div>';
 }
@@ -1514,6 +1528,20 @@ function applyCuratedAsianName(p){
  p.nationality=pack.nation;p.portraitPreset=pack.nation;
 }
 function localizedPlayerName(p){return displayLanguage==='en'?(p.nameEn||p.name):(p.nameKo||playerKorean(p.nameEn||p.name))}
+
+
+function playerRadar(p){
+ const d=detailed(p),k=p.pos==='GK';
+ const m=k?[['반사',d.reflex],['핸들링',d.handling],['위치',d.gkPosition],['패스',d.shortPass],['체력',d.stamina],['피지컬',d.strength]]:[['속력',Math.round((d.acceleration+d.sprint)/2)],['슈팅',Math.round((d.finishing+d.shotPower+d.positioning)/3)],['패스',Math.round((d.shortPass+d.longPass+d.vision)/3)],['기술',Math.round((d.dribble+d.firstTouch)/2)],['수비',Math.round((d.tackle+d.interception+d.marking)/3)],['피지컬',Math.round((d.stamina+d.strength)/2)]];
+ const pt=(i,r)=>{const a=(-90+i*60)*Math.PI/180;return [(120+Math.cos(a)*r).toFixed(1),(120+Math.sin(a)*r).toFixed(1)].join(',')};
+ const grids=[.25,.5,.75,1].map(v=>'<polygon points="'+m.map((_,i)=>pt(i,86*v)).join(' ')+'" fill="none" stroke="#d5d5d5"/>').join('');
+ const shape=m.map((a,i)=>pt(i,86*Math.max(0,Math.min(120,a[1]))/120)).join(' ');
+ const labels=m.map((a,i)=>{const q=pt(i,107).split(',');return '<text x="'+q[0]+'" y="'+q[1]+'" font-size="11" text-anchor="middle" dominant-baseline="middle" fill="#333">'+a[0]+'</text>'}).join('');
+ return '<div class="player-radar-panel"><svg viewBox="0 0 240 240" role="img" aria-label="선수 능력치 육각형 그래프">'+grids+'<polygon points="'+shape+'" fill="#777" fill-opacity=".25" stroke="#222" stroke-width="2.5"/>'+labels+'</svg><div class="player-radar-values">'+m.map(a=>'<div><small>'+a[0]+'</small><strong>'+a[1]+'</strong></div>').join('')+'</div></div>';
+}
+function tacticsDossier(p){playerBio(p);return '<div class="tactics-dossier"><div class="eyebrow">PLAYER DETAILS</div><div class="tactics-dossier-top">'+avatar(p,72)+'<div><strong>'+txt(p.name)+'</strong><small>'+txt(p.nationality)+' · '+p.age+'세 · '+p.pos+'</small><small>주발 '+txt(p.foot)+' · '+p.height+'cm / '+p.weight+'kg · OVR '+overall(p)+'</small></div></div>'+playerRadar(p)+'</div>'}
+function inspectTacticsPlayer(id){if(manager===null||!players.some(p=>p.id===id&&p.club===manager))return;selectedPlayer=id;render()}
+window.inspectTacticsPlayer=inspectTacticsPlayer;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
