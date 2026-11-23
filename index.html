@@ -648,6 +648,10 @@ a{color:#202020}
 .squad-lineup-slot b{font-size:11px}.squad-lineup-slot .face-tile,.squad-lineup-slot .face-fallback svg{width:36px!important;height:36px!important;border-radius:50%}
 .squad-lineup-slot small{font-size:10px;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center}
 @media(max-width:1050px){.squad-lineup-strip{grid-template-columns:repeat(6,minmax(0,1fr))}}@media(max-width:650px){.squad-lineup-strip{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.enhancement-result{opacity:0;animation:enhancePulse .85s ease .65s forwards!important}
+.enhancement-animation-card .enhancement-glow{animation:enhanceCharging 1s ease-out}
+@keyframes enhanceCharging{0%{transform:scaleX(0);opacity:.6}100%{transform:scaleX(1);opacity:1}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1877,9 +1881,12 @@ function ensureJerseyNumbers(){
  for(const roster of byClub.values()){
   const used=new Set();
   for(const p of roster){
+   // Upgrade older automatically assigned numbers once. Explicit user edits are preserved.
+   if(p.jerseyAutoVersion!==2&&!p.jerseyLocked)p.jerseyNumber=null;
    const n=Number(p.jerseyNumber);
-   if(Number.isInteger(n)&&n>=1&&n<=99&&!used.has(n)){p.jerseyNumber=n;used.add(n)}
+   if(p.jerseyNumber!==null&&Number.isInteger(n)&&n>=1&&n<=99&&!used.has(n)){p.jerseyNumber=n;used.add(n)}
    else p.jerseyNumber=null;
+   p.jerseyAutoVersion=2;
   }
   const missing=roster.filter(p=>p.jerseyNumber===null).sort((a,b)=>(a.pos==='GK'?-1:0)-(b.pos==='GK'?-1:0)||preciseOverall(b)-preciseOverall(a));
   for(const p of missing){
@@ -1893,7 +1900,7 @@ function changeJerseyNumber(id,value){
  const player=players.find(p=>p.id===id&&p.club===manager),n=Number(value);
  if(!player||!Number.isInteger(n)||n<1||n>99){alert('등번호는 1부터 99까지 입력하세요.');render();return}
  if(myPlayers().some(p=>p.id!==id&&Number(p.jerseyNumber)===n)){alert('같은 구단에서 이미 사용 중인 등번호입니다.');render();return}
- player.jerseyNumber=n;save();render();
+ player.jerseyNumber=n;player.jerseyLocked=true;player.jerseyAutoVersion=2;save();render();
 }
 function fixtureWeather(clubA,clubB,r,year){
  const hash=Math.abs((clubA*131+clubB*83+r*17+year*7)>>>0);
