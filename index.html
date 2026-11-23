@@ -1590,8 +1590,8 @@ window.updateSimTactic=updateSimTactic;window.substituteSimPlayer=substituteSimP
 
 /* One finished-match record drives score, statistics, events, MVP and rewards. */
 function resultEventList(events){
- const relevant=(events||[]).filter(e=>['goal','yellow','red','shot'].includes(e.type));
- return relevant.length?relevant.map(e=>'<div class="result-event"><span class="event-time">'+e.minute+"'</span>"+'<span class="event-type">'+({goal:'⚽ GOAL',yellow:'🟨 경고',red:'🟥 퇴장',shot:'슈팅'}[e.type]||'경기')+'</span><span>'+txt(e.text||'')+'</span></div>').join(''):'<p class="muted small">기록된 주요 경기 이벤트가 없습니다.</p>';
+ const relevant=(events||[]).filter(e=>['goal','yellow','red','shot','var','cancel','offside','foul','penalty','corner','save','freekick'].includes(e.type));
+ return relevant.length?relevant.map(e=>'<div class="result-event"><span class="event-time">'+e.minute+"'</span>"+'<span class="event-type">'+({goal:'⚽ GOAL',yellow:'🟨 경고',red:'🟥 퇴장',shot:'슈팅',var:'VAR',cancel:'골 취소',offside:'오프사이드',foul:'파울',penalty:'PK',corner:'코너킥',save:'선방',freekick:'프리킥'}[e.type]||'경기')+'</span><span>'+txt(e.text||'')+'</span></div>').join(''):'<p class="muted small">기록된 주요 경기 이벤트가 없습니다.</p>';
 }
 function viewMatchFinished(){
  const result=lastMatch?.club===manager?lastMatch:null;
