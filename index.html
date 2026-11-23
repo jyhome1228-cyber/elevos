@@ -636,6 +636,18 @@ a{color:#202020}
 .youth-info strong{font-size:14px;display:block}.youth-info small{display:block;margin-top:4px;color:#777;font-size:12px}
 .youth-actions{grid-column:1/-1;display:flex;gap:6px}.youth-actions button{flex:1}
 @media(max-width:800px){.youth-grid{grid-template-columns:1fr}}
+
+.card,.btn,.chip,.nav,.sim-panel,.notice,.sim-status,.player-card,.home-action,.transfer-card,.squad-lineup-panel{border-radius:2px!important}
+.sim-controls{display:flex;align-items:center;gap:9px!important}.sim-controls .btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+.sim-controls .sim-status{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 14px;background:#f5f5f5;border:1px solid #ddd;font-weight:650;font-size:13px;color:#555}
+.player-screen .eyebrow{display:block;padding-top:8px;margin-bottom:12px}
+.squad-lineup-panel{padding:13px 12px;background:#fafafa;border:1px solid #dedede;margin-bottom:15px}.squad-lineup-panel strong{font-size:14px}.squad-lineup-panel p{margin:6px 0 10px}
+.squad-lineup-strip{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:5px}
+.squad-lineup-slot{min-width:0;border:1px dashed #c8c8c8;border-top:4px solid var(--role-color,#ccc);background:#fff;min-height:101px;display:flex;flex-direction:column;gap:5px;align-items:center;padding:8px 3px}
+.squad-lineup-slot[data-role="FW"]{--role-color:#d84040}.squad-lineup-slot[data-role="MF"]{--role-color:#3185dc}.squad-lineup-slot[data-role="DF"]{--role-color:#a3db61}.squad-lineup-slot[data-role="GK"]{--role-color:#edc53f}
+.squad-lineup-slot b{font-size:11px}.squad-lineup-slot .face-tile,.squad-lineup-slot .face-fallback svg{width:36px!important;height:36px!important;border-radius:50%}
+.squad-lineup-slot small{font-size:10px;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center}
+@media(max-width:1050px){.squad-lineup-strip{grid-template-columns:repeat(6,minmax(0,1fr))}}@media(max-width:650px){.squad-lineup-strip{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1330,7 +1342,7 @@ function viewSquad(){
  if(!squad.length)return '<div class="card">소속 선수가 없습니다.</div>';
  if(selectedPlayer===null||!squad.some(p=>p.id===selectedPlayer))selectedPlayer=squad[0].id;
  const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
- const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+' '+enhancementLabel(x)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
+ const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div>'+squadLineupStrip()+'<div class="player-grid">'+squad.map(x=>'<button draggable="true" ondragstart="squadDragStart(event,'+x.id+')" data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+' '+enhancementLabel(x)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
  playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>컨디션<b>'+playerFitness(p)+'/100</b></span><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
  '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p>'+enhancementPanel(p)+'<div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup" data-cat="'+group+'">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
@@ -1664,7 +1676,7 @@ function viewMatchSimulationWrapper(){
  const oldBall=m.previousBall||m.ball;
  const ballPath='<svg class="sim-ball-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="'+oldBall.x+'" y1="'+oldBall.y+'" x2="'+m.ball.x+'" y2="'+m.ball.y+'" stroke="#ffffffb5" stroke-width=".65" stroke-dasharray="1 1.1"/></svg>';
  const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
- const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'경기 재개')+'</button>';
+ const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'자동 진행':'일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'경기 재개')+'</button>';
  return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+Math.min(100,(mins<=45?mins:mins<=45+simAddedFirst()?45:mins<=90+simAddedFirst()?mins-simAddedFirst():90)/90*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+ballPath+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
@@ -2109,6 +2121,30 @@ window.toggleYouthVault=toggleYouthVault;
 window.promoteYouth=promoteYouth;
 window.sellYouth=sellYouth;
 window.releaseYouth=releaseYouth;
+
+
+let squadDragId=null;
+function squadDragStart(ev,id){squadDragId=id;if(ev&&ev.dataTransfer){ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain','squad:'+id)}}
+function squadDropOnSlot(ev,i){
+ if(ev&&ev.preventDefault)ev.preventDefault();
+ let id=Number(squadDragId);
+ if(!Number.isFinite(id)&&ev&&ev.dataTransfer)id=Number((ev.dataTransfer.getData('text/plain')||'').split(':').pop());
+ squadDragId=null;
+ const p=players.find(p=>p.id===id&&p.club===manager&&!playerUnavailable(p));if(!p)return;
+ const lineup=currentLineup(),from=lineup.indexOf(id),out=lineup[i];
+ if(from===i)return;
+ if(from>=0)lineup[from]=out;
+ lineup[i]=id;selectedPlayer=id;save();render();
+}
+function squadGoTactics(){go('tactics')}
+function squadLineupStrip(){
+ const lineup=currentLineup(),slots=FORMATIONS[formation];
+ return '<div class="squad-lineup-panel"><div class="row"><div><strong>선발 11명 배치</strong><p class="muted small">선수 카드를 원하는 위치로 드래그해 교체하세요.</p></div><button class="btn sub mini" onclick="squadGoTactics()">포메이션 보기</button></div><div class="squad-lineup-strip">'+slots.map((slot,i)=>{
+ const p=players.find(x=>x.id===lineup[i]);
+ return '<div class="squad-lineup-slot" data-role="'+(ROLE_FAMILY[slot.r]||'MF')+'" ondragover="event.preventDefault()" ondrop="squadDropOnSlot(event,'+i+')" title="드래그하여 교체"><b>'+slot.r+'</b>'+(p?avatar(p,42):'<span>＋</span>')+'<small>'+txt(p?.name.split(' ').slice(-1)[0]||'빈 자리')+'</small></div>';
+ }).join('')+'</div></div>';
+}
+window.squadDragStart=squadDragStart;window.squadDropOnSlot=squadDropOnSlot;window.squadGoTactics=squadGoTactics;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
