@@ -572,6 +572,26 @@ a{color:#202020}
 
 .sim-goal{background:repeating-linear-gradient(0deg,#ffffff18 0,#ffffff18 5px,#dfe5df77 6px,#ffffff18 7px),repeating-linear-gradient(90deg,transparent 0,transparent 5px,#f5f5f577 6px,transparent 7px);width:20px;height:35%;border:2px solid #fff}
 .sim-ball{filter:drop-shadow(0 1px 2px #2226)}
+
+/* Pregame starting XI and jersey number control */
+.pregame-info{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}
+.pregame-info>span{border:1px solid #dedede;border-radius:7px;background:#f8f8f8;padding:9px 12px;font-size:13px}
+.pregame-lineups{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.pregame-lineup{background:#fafafa;border:1px solid #ddd;border-radius:10px;padding:17px}
+.pregame-team-title{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;margin-bottom:12px}
+.pregame-team-title .crest{width:43px!important;height:50px!important}
+.pregame-team-title small{display:block;color:#777;font-size:12px;margin-top:4px}
+.pregame-player{display:grid;grid-template-columns:33px minmax(0,1fr) 48px;gap:9px;align-items:center;padding:8px 0;border-bottom:1px solid #ececec;font-size:13px}
+.pregame-player .shirt-no{font-weight:800;background:#252525;color:#fff;border-radius:5px;text-align:center;padding:6px 2px}
+.pregame-player small{color:#777;font-size:12px;text-align:right}
+.pregame-player:last-child{border:0}
+.jersey-config{display:flex;gap:9px;align-items:center;margin-top:12px;font-size:13px}
+.jersey-config input{width:70px;border:1px solid #ccc;border-radius:7px;padding:9px;background:white;color:#222;font-size:14px}
+.jersey-config button{padding:9px 11px}
+.field-home-away{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:9px 0;font-size:12px;color:#777}
+.sim-field{background:repeating-linear-gradient(0deg,#398554 0,#398554 58px,#4b9966 58px,#4b9966 116px)!important}
+.sim-goal{border:3px solid white!important;background:repeating-linear-gradient(0deg,transparent 0,transparent 5px,#ffffff88 6px,transparent 7px),repeating-linear-gradient(90deg,transparent 0,transparent 5px,#ffffff88 6px,transparent 7px)!important}
+@media(max-width:720px){.pregame-lineups{grid-template-columns:1fr}.pregame-lineup{padding:12px}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -886,7 +906,7 @@ function viewMatchCore(){
  let ratings=current?'<div class="match-summary"><div class="ratings-pitch">'+(current.lineup||[]).map((x,i)=>{let slot=FORMATIONS[current.formation]?.[i]||slots[i],p=players.find(q=>q.id===x.id);return slot&&p?'<div class="rating-pin" style="left:'+slot.x+'%;top:'+slot.y+'%"><b>'+x.rating.toFixed(1)+'</b>'+p.pos+'</div>':''}).join('')+'</div><div class="card" style="margin:0"><h2>출전 선수 평점</h2><div class="tablewrap"><table><thead><tr><th>선수</th><th>포지션</th><th>평점</th><th>경험치</th></tr></thead><tbody>'+current.lineup.map(x=>{let p=players.find(q=>q.id===x.id);return '<tr><td>'+txt(p?.name||'선수')+'</td><td>'+txt(p?.pos||'-')+'</td><td>'+x.rating.toFixed(1)+'</td><td>+'+x.xp+' XP</td></tr>'}).join('')+'</tbody></table></div></div></div>':'';
  let reward=current?'<div class="reward-grid"><div class="reward-item"><span>경기 보상</span><strong>'+current.money.toFixed(1)+'M</strong><span>가상 게임머니</span></div><div class="reward-item"><span>경험치</span><strong>+'+current.totalXP+'</strong><span>출전 선수 합계</span></div><div class="reward-item"><span>경기 결과</span><strong>'+current.outcome+'</strong><span>승점 '+current.leaguePts+'</span></div></div>':'<div class="notice">경기 종료 후 보상을 받을 수 있습니다.</div>';
  return '<section class="card"><div class="row"><div><div class="eyebrow">MATCHDAY</div><h2 style="margin:7px 0">경기 센터 · '+(round+1)+'라운드</h2></div><span class="tag">'+LEAGUES[own().league][1]+'</span></div>'+tabs+
- (matchTab==='preview'?board+'<div class="lineup-stats"><span>포메이션 '+formation+'</span><span>선발 '+squad.filter(Boolean).length+' / 11명</span><span>전력 '+Math.round(teamPower(manager))+'</span></div><div class="row" style="margin:15px 0"><button class="btn sub" onclick="go(\'tactics\')">선발 · 전술 변경</button><button class="btn" '+(!canNext||!ready?'disabled':'')+' onclick="startSimulation()">시뮬레이션 시작</button></div><p class="muted small">경기 진행 후 결과·평점·보상 화면을 확인할 수 있습니다.</p>':matchTab==='result'?results+ratings:reward)+
+ (matchTab==='preview'?board+pregameHTML()+'<div class="lineup-stats"><span>포메이션 '+formation+'</span><span>선발 '+squad.filter(Boolean).length+' / 11명</span><span>전력 '+Math.round(teamPower(manager))+'</span></div><div class="row" style="margin:15px 0"><button class="btn sub" onclick="go(\'tactics\')">선발 · 전술 변경</button><button class="btn" '+(!canNext||!ready?'disabled':'')+' onclick="startSimulation()">시뮬레이션 시작</button></div><p class="muted small">경기 진행 후 결과·평점·보상 화면을 확인할 수 있습니다.</p>':matchTab==='result'?results+ratings:reward)+
  '</section>'
 }
 function playRound(){
@@ -1257,7 +1277,7 @@ function viewSquad(){
  const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong>'+positionBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
  playerRadar(p)+'<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
- '<p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
+ '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
  return '<div class="player-screen">'+roster+profile+'</div>';
 }
 function setMarketPosition(v){marketPosition=v;render()}
@@ -1667,7 +1687,7 @@ function playerRadar(p){
  const labels=m.map((a,i)=>{const q=pt(i,107).split(',');return '<text x="'+q[0]+'" y="'+q[1]+'" font-size="11" text-anchor="middle" dominant-baseline="middle" fill="#333">'+a[0]+'</text>'}).join('');
  return '<div class="player-radar-panel"><svg viewBox="0 0 240 240" role="img" aria-label="선수 능력치 육각형 그래프">'+grids+'<polygon points="'+shape+'" fill="#777" fill-opacity=".25" stroke="#222" stroke-width="2.5"/>'+labels+'</svg><div class="player-radar-values">'+m.map(a=>'<div><small>'+a[0]+'</small><strong>'+a[1]+'</strong></div>').join('')+'</div></div>';
 }
-function tacticsDossier(p){playerBio(p);return '<div class="tactics-dossier"><div class="eyebrow">PLAYER DETAILS</div><div class="tactics-dossier-top">'+avatar(p,72)+'<div><strong>'+txt(p.name)+'</strong><small>'+txt(p.nationality)+' · '+p.age+'세 · '+p.pos+'</small><small>주발 '+txt(p.foot)+' · '+p.height+'cm / '+p.weight+'kg · OVR '+overall(p)+'</small></div></div>'+playerRadar(p)+'</div>'}
+function tacticsDossier(p){playerBio(p);return '<div class="tactics-dossier"><div class="eyebrow">PLAYER DETAILS</div><div class="tactics-dossier-top">'+avatar(p,72)+'<div><strong>'+txt(p.name)+'</strong><small>'+txt(p.nationality)+' · '+p.age+'세 · '+p.pos+'</small><small>주발 '+txt(p.foot)+' · '+p.height+'cm / '+p.weight+'kg · OVR '+overall(p)+'</small></div></div>'+playerRadar(p)+'<div class="jersey-config"><label>등번호</label><input type="number" min="1" max="99" value="'+p.jerseyNumber+'" id="jersey-'+p.id+'"><button class="btn sub" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 변경</button></div></div>'}
 function inspectTacticsPlayer(id){if(manager===null||!players.some(p=>p.id===id&&p.club===manager))return;selectedPlayer=id;render()}
 window.inspectTacticsPlayer=inspectTacticsPlayer;
 
@@ -1711,8 +1731,61 @@ function homeLeagueStandings(){
  return '<section class="card home-standings"><div class="home-heading"><h2>리그 전체 순위</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><table class="home-standing-table"><thead><tr><th>순위</th><th>구단</th><th>경기</th><th>득실</th><th>승점</th></tr></thead><tbody>'+entries.map((c,i)=>{const p=points[c.id];return '<tr class="'+(c.id===manager?'mine':'')+'"><td>'+(i+1)+'</td><td>'+shield(c)+' '+txt(c.name)+'</td><td>'+p.p+'</td><td>'+((p.gf-p.ga)>0?'+':'')+(p.gf-p.ga)+'</td><td>'+(p.w*3+p.d)+'</td></tr>'}).join('')+'</tbody></table></section>';
 }
 
+
+/* Squad-specific stable jersey numbers, editable only for own squad. */
+function ensureJerseyNumbers(){
+ const byClub=new Map();
+ for(const p of players){if(!byClub.has(p.club))byClub.set(p.club,[]);byClub.get(p.club).push(p)}
+ for(const roster of byClub.values()){
+  const used=new Set();
+  for(const p of roster){const n=Number(p.jerseyNumber);if(Number.isInteger(n)&&n>=1&&n<=99&&!used.has(n))used.add(n);else p.jerseyNumber=null}
+  let gk=0;
+  for(const p of roster){
+   if(p.jerseyNumber!==null)continue;
+   const preferred=p.pos==='GK'?[1,12,22][gk++%3]:({ST:9,CAM:10,CM:8,CDM:6,CB:4,RB:2,LB:3,LW:11,RW:7,LM:14,RM:17}[p.pos]||18);
+   let n=preferred;
+   if(used.has(n)){for(n=1;n<=99&&used.has(n);n++);if(n>99)n=99}
+   p.jerseyNumber=n;used.add(n);
+  }
+ }
+}
+function changeJerseyNumber(id,value){
+ const player=players.find(p=>p.id===id&&p.club===manager),n=Number(value);
+ if(!player||!Number.isInteger(n)||n<1||n>99){alert('등번호는 1부터 99까지 입력하세요.');render();return}
+ if(myPlayers().some(p=>p.id!==id&&Number(p.jerseyNumber)===n)){alert('같은 구단에서 이미 사용 중인 등번호입니다.');render();return}
+ player.jerseyNumber=n;save();render();
+}
+function fixtureWeather(clubA,clubB,r,year){
+ const hash=Math.abs((clubA*131+clubB*83+r*17+year*7)>>>0);
+ const list=[['맑음','22°C'],['흐림','17°C'],['약한 비','14°C'],['구름 조금','19°C'],['바람','16°C']];
+ return list[hash%list.length];
+}
+function computerLineup(clubId){
+ const candidates=players.filter(p=>p.club===clubId).slice().sort((a,b)=>overall(b)-overall(a));
+ const slots=FORMATIONS['433'],used=new Set(),chosen=[];
+ for(const pos of slots){const best=candidates.filter(p=>!used.has(p.id)).sort((a,b)=>overall(b)*positionFit(b,pos.r)-overall(a)*positionFit(a,pos.r))[0];chosen.push(best?.id??null);if(best)used.add(best.id)}
+ return chosen;
+}
+function pregameLineupHTML(clubId,side,ids,form){
+ const c=clubs[clubId],slots=FORMATIONS[form]||FORMATIONS['433'];
+ return '<section class="pregame-lineup"><div class="pregame-team-title">'+shield(c)+'<div>'+txt(c.name)+'<small>'+side+' · '+form.replace(/(\d)(?=\d)/g,'$1-')+'</small></div></div>'+
+ ids.map((id,i)=>{const p=players.find(p=>p.id===id);return p?'<div class="pregame-player"><span class="shirt-no">'+p.jerseyNumber+'</span><span>'+txt(p.name)+'</span><small>'+slots[i].r+'</small></div>':''}).join('')+'</section>';
+}
+function pregameHTML(){
+ const pair=matchPair();if(!pair)return '<div class="notice">현재 예정된 경기가 없습니다.</div>';
+ const ownHome=pair[0]===manager;
+ const homeIDs=ownHome?currentLineup():computerLineup(pair[0]);
+ const awayIDs=ownHome?computerLineup(pair[1]):currentLineup();
+ const homeForm=ownHome?formation:'433',awayForm=ownHome?'433':formation;
+ const weather=fixtureWeather(pair[0],pair[1],round,season);
+ return '<div class="pregame-info"><span>경기장: '+txt(clubs[pair[0]].name)+' 홈</span><span>날씨: '+weather[0]+' · '+weather[1]+'</span><span>리그 '+(round+1)+'라운드</span></div>'+
+ '<div class="pregame-lineups">'+pregameLineupHTML(pair[0],'HOME',homeIDs,homeForm)+pregameLineupHTML(pair[1],'AWAY',awayIDs,awayForm)+'</div>';
+}
+window.changeJerseyNumber=changeJerseyNumber;
+
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
+ensureJerseyNumbers();
 createdClub=false;
 render();
 </script></body></html>
