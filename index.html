@@ -637,7 +637,7 @@ function playRound(){if(round>=22)return;let ownMatch=null;for(let li=0;li<LEAGU
 function finishSeason(){let changes=[];for(let [hi,lo] of [[0,1],[2,3],[4,5],[6,7]]){let upper=standing(hi),lower=standing(lo),down=upper.slice(-2),up=lower.slice(0,2);for(let c of down)c.league=lo;for(let c of up)c.league=hi;changes.push(...up.map(c=>c.name))}season++;round=0;for(let c of clubs)points[c.id]={p:0,w:0,d:0,l:0,gf:0,ga:0};for(let i=0;i<LEAGUES.length;i++)fixtures[i]=schedule(clubs.filter(c=>c.league===i).map(c=>c.id));for(let p of players)p.age++;selectedLeague=own().league}
 function viewLeague(){let c=manager?own():null;let chosen=c&&selectedLeague===0?c.league:selectedLeague;return '<section class="card"><h2>리그 순위</h2>'+leaguesChips()+'<div class="row"><h3>'+LEAGUES[selectedLeague][1]+'</h3><span class="muted small">상위 2팀 승격 / 하위 2팀 강등 (4개국만)</span></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>순위</th><th>구단</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득실</th><th>승점</th></tr></thead><tbody>'+standing(selectedLeague).map((c,i)=>{let p=points[c.id];return '<tr style="'+(c.id===manager?'background:#263e2e':'')+'"><td>'+(i+1)+'</td><td>'+c.name+'</td><td>'+p.p+'</td><td>'+p.w+'</td><td>'+p.d+'</td><td>'+p.l+'</td><td>'+((p.gf-p.ga)>0?'+':'')+(p.gf-p.ga)+'</td><td><strong>'+(p.w*3+p.d)+'</strong></td></tr>'}).join('')+'</tbody></table></div></section>'}
 function viewMarket(){if(manager===null)return viewStart();let c=own(),candidates=players.filter(p=>p.club!==manager).sort((a,b)=>overall(b)-overall(a)).slice(0,60),opts=candidates.slice(0,20);return '<section class="card"><h2>이적시장</h2><p class="muted small">타 구단 선수를 영입할 수 있습니다. 능력치 기반 이적료가 차감되고 선수 소속이 변경됩니다. 첫 버전은 간단 영입 기능입니다.</p><div class="tablewrap"><table><thead><tr><th>선수</th><th>소속</th><th>포지션</th><th>능력</th><th>이적료</th><th></th></tr></thead><tbody>'+opts.map(p=>{let fee=Math.max(1,Math.round((overall(p)-50)*1.2))*1000000;return '<tr><td><div style="display:flex;align-items:center;gap:9px">'+avatar(p,32)+'<span>'+txt(p.name)+'</span></div></td><td>'+clubs[p.club].name+'</td><td>'+p.pos+'</td><td>'+overall(p)+'</td><td>'+formatGBP(fee)+'</td><td><button class="btn mini" '+(c.cash<fee?'disabled':'')+' onclick="buy('+p.id+','+fee+')">영입</button></td></tr>'}).join('')+'</tbody></table></div></section>'}
-function buy(id,fee){let p=players.find(p=>p.id===id);if(!p||own().cash<fee)return;if(myPlayers().length>=30){alert('선수단 최대 인원은 30명입니다.');return}let seller=clubs[p.club];own().cash-=fee;seller.cash+=fee;p.club=manager;save();render()}
+function buy(id,fee){let p=players.find(p=>p.id===id);if(!p||own().cash<fee)return;if(myPlayers().length>=30){alert('선수단 최대 인원은 30명입니다.');return}let seller=clubs[p.club];own().cash-=fee;seller.cash+=fee;p.club=manager;ensureJerseyNumbers();save();render()}
 
 /* ELEVOS player development and tactical lineup v2 */
 const ATTRIBUTE_GROUPS={
@@ -944,7 +944,7 @@ function playRound(){
  lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts,events:simFinalOverride?.events||[],substitutions:simFinalOverride?.substitutions||[],instruction:simFinalOverride?.instruction||tactic};
  round++;scheduleRound=Math.min(round,21);matchTab='result';pendingReward={club:manager,season:y,round:week};simFinalOverride=null;simState=null;
  if(round>=22){finishSeason();scheduleRound=0}
- save();page='match';render()
+ save();render()
 }
 function viewLeague(){
  const li=selectedLeague,rule=LEAGUE_RULES[li],standings=standing(li),r=Math.max(0,Math.min(21,scheduleRound));
@@ -1178,7 +1178,7 @@ function recruitYouthPlayer(){
  const id=Math.max(...players.map(p=>p.id))+1;
  const base=Math.max(45,Math.min(75,Math.round(own().rating-9+rand(-6,6))));
  const p={id,club:manager,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(17,21),level:1,xp:0,pts:0,potential:Math.min(120,base+rand(15,32)),stats:{pace:Math.min(95,base+rand(-5,6)),shoot:Math.min(95,base+rand(-5,6)),pass:Math.min(95,base+rand(-5,6)),defend:Math.min(95,base+rand(-5,6)),physical:Math.min(95,base+rand(-5,6))}};
- playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);players.push(p);return p.name+' ('+p.pos+') 영입 완료';
+ playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);players.push(p);ensureJerseyNumbers();return p.name+' ('+p.pos+') 영입 완료';
 }
 function claimReward(option){
  if(!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
@@ -1256,7 +1256,7 @@ function viewDashboard(){
  const stats=points[manager],squad=myPlayers().slice().sort((a,b)=>overall(b)-overall(a));
  const matchUp=next?'<div class="home-matchup"><div class="home-matchup-side">'+shield(home)+'<strong>'+txt(home.name)+'</strong></div><div class="home-matchup-vs">VS</div><div class="home-matchup-side">'+shield(away)+'<strong>'+txt(away.name)+'</strong></div></div>':'<div class="notice">이번 시즌의 리그 경기를 모두 마쳤습니다.</div>';
  const nextAction=pendingReward?.club===manager?"chooseMatchTab('rewards');go('match')":"go('match')";
- const nextText=pendingReward?.club===manager?'경기 보상 받기':'다음 경기 시작';
+ const nextText=pendingReward?.club===manager?'경기 보상 받기':simState?.club===manager?'진행 중인 경기 관전':'다음 경기 시작';
  let intro='';
  if(round===0&&!tutorialDismissed){intro='<div class="home-getting-started"><div><strong>첫 경기부터 시작해 볼까요?</strong><p>선발 선수를 확인한 다음 경기를 진행하면 경험치와 보상을 받을 수 있어요.</p></div><button class="btn sub mini" onclick="hideTutorial()">확인했어요</button></div>'}
  const main='<div class="home-main"><section class="card home-match"><div><div class="home-heading"><div><div class="eyebrow">NEXT MATCH</div><h2>'+txt(LEAGUES[club.league][1])+' · '+Math.min(round+1,22)+'라운드</h2></div><span class="tag">'+season+' 시즌</span></div>'+matchUp+'</div><div class="home-match-actions"><button class="btn" onclick="'+nextAction+'">'+nextText+'</button><button class="btn sub" onclick="go(\'tactics\')">선발·전술 설정</button></div></section>'+
@@ -1621,7 +1621,8 @@ function substituteSimPlayer(){
  if(!simState.substitutions)simState.substitutions=[];
  simState.substitutions.push({minute:simState.minute,out:outId,in:inId});
  const subMessage=(outbound?.name||'선수')+' OUT  →  '+(inbound?.name||'선수')+' IN';
- simState.majorEvent={minute:simState.minute,type:'sub',title:'SUBSTITUTION',detail:subMessage};
+ simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:simMinuteLabel(simState.minute),type:'sub',title:'SUBSTITUTION',detail:subMessage};
+ if(!simBatchMode)displaySimEventOnce(simState.majorEvent);
  simState.lastSubNotice={minute:simState.minute,text:subMessage};
  simState.log.unshift({minute:simState.minute,type:'sub',text:'선수 교체: '+subMessage});
  save();render();
@@ -1829,6 +1830,14 @@ updateDisplayLanguage(displayLanguage);
 ensureJerseyNumbers();
 createdClub=false;
 render();
+if(window.addEventListener){
+ window.addEventListener('focus',()=>{
+  if(simState&&!simState.paused&&!simState.finishPending){
+   if(simTicker!==null){clearInterval(simTicker);simTicker=null}
+   catchUpSavedSimulation();
+  }
+ });
+}
 if(simState&&manager!==null){
  if(simState.finishPending){
   const remaining=Math.max(0,(simState.finishAt||0)-Date.now());
