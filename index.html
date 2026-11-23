@@ -1346,7 +1346,7 @@ function startSimulation(){
  const pair=matchPair(),s=currentLineup();
  if(!pair||s.filter(Boolean).length!==11)return;
  pauseSimulation();
- simState={activeLineup:s.slice(),participants:s.slice(),substitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeGoals:0,awayGoals:0,yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
+ simState={activeLineup:s.slice(),participants:s.slice(),substitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
  matchTab='live';page='match';save();render();runSimulation();
 }
 
@@ -1357,74 +1357,151 @@ function randomMatchActor(attackingHome){
  const eligible=selected.filter(p=>p.pos!=='GK');
  return eligible.length?eligible[Math.floor(Math.random()*eligible.length)]:null;
 }
-function showableMajorEvent(){
- const e=simState?.majorEvent;
- return e&&simState.minute-e.minute<=2?e:null;
+
+/* Authoritative timed events. Only confirmed goals change the score. */
+function simAddedFirst(){return simState?.firstAdded??0}
+function simAddedSecond(){return simState?.secondAdded??0}
+function simTotalMinutes(){return 90+simAddedFirst()+simAddedSecond()}
+function simMinuteLabel(elapsed){
+ const first=simAddedFirst();
+ if(elapsed<=45)return String(elapsed);
+ if(elapsed<=45+first)return '45+'+(elapsed-45);
+ if(elapsed<=90+first)return String(elapsed-first);
+ return '90+'+(elapsed-90-first);
+}
+function simEvent(team,actor,type,text,majorTitle){
+ const e={minute:simMinuteLabel(simState.minute),elapsed:simState.minute,type,team,playerId:actor?.id??null,text};
+ simState.log.unshift(e);simState.log=simState.log.slice(0,110);
+ if(['goal','yellow','red','shot','foul','offside','penalty','var','cancel','corner','save','freekick'].includes(type)){
+  if(!Array.isArray(simState.events))simState.events=[];
+  simState.events.push(e);
+ }
+ if(majorTitle){
+  simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:e.minute,type,title:majorTitle,detail:text};
+  displaySimEventOnce(simState.majorEvent);
+ }
+}
+let simEventTimeout=null;
+function displaySimEventOnce(event){
+ // Mounted outside the re-rendered match panel, so animation plays just once for two seconds.
+ if(typeof document==='undefined'||!document.createElement||!document.body)return;
+ const prev=document.getElementById('elevos-sim-flash');if(prev)prev.remove();
+ if(simEventTimeout!==null){clearTimeout(simEventTimeout);simEventTimeout=null}
+ const el=document.createElement('div');
+ el.id='elevos-sim-flash';el.className='sim-event-overlay-fixed '+event.type;
+ const h=document.createElement('div'),d=document.createElement('div');
+ h.className='event-title';d.className='event-detail';
+ h.textContent=event.title;d.textContent=event.detail;
+ el.appendChild(h);el.appendChild(d);document.body.appendChild(el);
+ const id=event.id;
+ simEventTimeout=setTimeout(()=>{
+  const current=document.getElementById('elevos-sim-flash');
+  if(current&&simState?.majorEvent?.id===id)current.remove();
+  simEventTimeout=null;
+ },2000);
+}
+function scoreConfirmedGoal(homeSide,actor,text){
+ if(homeSide)simState.homeGoals++;else simState.awayGoals++;
+ const teamId=homeSide?simState.home:simState.away;
+ simEvent(teamId,actor,'goal',text,'GOAL!');
+}
+function resolveVAR(){
+ const p=simState.pendingVAR;if(!p)return false;
+ simState.pendingVAR=null;
+ const team=clubs[p.teamId],actor=players.find(x=>x.id===p.playerId);
+ if(p.kind==='goal'){
+  if(p.disallowed){
+   simEvent(team.id,actor,'cancel',team.name+'의 득점이 오프사이드로 취소됐습니다.','GOAL CANCELLED');
+   simEvent(team.id,actor,'offside','VAR 최종 판정: 오프사이드, 득점 취소');
+  }else{
+   scoreConfirmedGoal(p.home,actor,team.name+' 득점 인정! VAR 확인 완료.');
+  }
+ }else if(p.kind==='penalty'){
+  if(p.disallowed)simEvent(team.id,actor,'cancel','VAR 판정: 페널티킥 취소, 경기를 재개합니다.','NO PENALTY');
+  else{
+   simEvent(team.id,actor,'penalty',team.name+' 페널티킥 판정이 유지됩니다!','PENALTY');
+   if(Math.random()<p.conversion){
+    scoreConfirmedGoal(p.home,actor,(actor?.name||team.name)+' 페널티킥 성공!');
+   }else simEvent(team.id,actor,'save','페널티킥을 골키퍼가 막아냈습니다!');
+  }
+ }
+ return true;
 }
 function minuteEvent(){
+ if(simState.pendingVAR){resolveVAR();return}
  const h=clubs[simState.home],a=clubs[simState.away],hp=h.id===manager?simTeamPower():teamPower(h.id),ap=a.id===manager?simTeamPower():teamPower(a.id);
  const homeAdv=hp+2+(h.id===manager?tacticModifier():0),awayAdv=ap+(a.id===manager?tacticModifier():0);
- const homeChance=Math.max(.20,Math.min(.80,homeAdv/(homeAdv+awayAdv)));
- const isHome=Math.random()<homeChance,attacker=isHome?h:a;
- const quality=Math.max(.55,Math.min(1.45,(isHome?homeAdv:awayAdv)/(isHome?awayAdv:homeAdv)));
- const actor=randomMatchActor(isHome),playerName=actor?.name||attacker.name;
+ const homeChance=Math.max(.22,Math.min(.78,homeAdv/Math.max(1,homeAdv+awayAdv)));
+ const homeSide=Math.random()<homeChance,attacker=homeSide?h:a,defender=homeSide?a:h;
+ const quality=Math.max(.55,Math.min(1.45,(homeSide?homeAdv:awayAdv)/Math.max(1,homeSide?awayAdv:homeAdv)));
+ const actor=randomMatchActor(homeSide),actorName=actor?.name||attacker.name;
  const d=actor?detailed(actor):null;
- const finishing=d?(d.finishing+d.positioning+d.shotPower)/3:70,creation=d?(d.shortPass+d.vision+d.firstTouch)/3:70;
- const finishFactor=Math.max(.65,Math.min(1.45,finishing/73));
- const creationFactor=Math.max(.65,Math.min(1.40,creation/73));
- const roll=Math.random(),m=simState.minute;
- simState.ball={x:isHome?25+Math.random()*32:44+Math.random()*30,y:14+Math.random()*72};
- let type='pass',message='',title='';
- if(roll<.018*quality*finishFactor){
-  if(isHome)simState.homeGoals++;else simState.awayGoals++;
-  type='goal';title='GOAL!';message=playerName+' 득점! '+attacker.name+'이(가) 골망을 흔듭니다.';
- }else if(roll<.026){
-  type='yellow';title='YELLOW CARD';message=playerName+'에게 옐로카드가 주어졌습니다.';
+ const finish=Math.max(.68,Math.min(1.40,d?(d.finishing+d.positioning+d.shotPower)/225:1));
+ const create=Math.max(.70,Math.min(1.35,d?(d.shortPass+d.vision+d.firstTouch)/225:1));
+ const roll=Math.random();
+ simState.ball={x:homeSide?25+Math.random()*36:42+Math.random()*34,y:12+Math.random()*76};
+ if(roll<.016*quality*finish){
+  if(Math.random()<.32){
+   simState.pendingVAR={kind:'goal',home:homeSide,teamId:attacker.id,playerId:actor?.id??null,disallowed:Math.random()<.47};
+   simEvent(attacker.id,actor,'var',actorName+'의 득점 장면, VAR 오프사이드 여부 확인 중','VAR CHECK');
+  }else scoreConfirmedGoal(homeSide,actor,actorName+' 득점! '+attacker.name+'의 공격이 성공했습니다.');
+ }else if(roll<.024*quality){
+  simState.pendingVAR={kind:'penalty',home:homeSide,teamId:attacker.id,playerId:actor?.id??null,disallowed:Math.random()<.28,conversion:Math.max(.55,Math.min(.93,.72+(finish-1)*.17))};
+  simEvent(attacker.id,actor,'var',attacker.name+' 페널티킥 여부 VAR 판독 중','VAR CHECK');
+ }else if(roll<.027){
   simState.yellowCards=(simState.yellowCards||0)+1;
- }else if(roll<.028){
-  type='red';title='RED CARD';message=playerName+' 퇴장! 상대 팀에 수적 우위가 생깁니다.';
+  simEvent(defender.id,actor,'yellow',defender.name+' 수비 과정에서 경고를 받았습니다.','YELLOW CARD');
+ }else if(roll<.029){
   simState.redCards=(simState.redCards||0)+1;
- }else if(roll<.105*quality*finishFactor){type='shot';message=playerName+'의 슈팅! 골키퍼가 막아냅니다.'}
- else if(roll<.19*quality*creationFactor){type='attack';message=attacker.name+'이(가) 공격 기회를 만들어냅니다.'}
- else if(roll<.30){type='defense';message=playerName+'의 패스가 상대 수비에 차단됐습니다.'}
- else message=attacker.name+'이(가) 중원에서 패스를 전개합니다.';
- if(title)simState.majorEvent={minute:m,type,title,detail:message};
- if(!simState.events)simState.events=[];
- if(['goal','yellow','red','shot'].includes(type))simState.events.push({minute:m,type,team:attacker.id,playerId:actor?.id??null,text:message});
- simState.log.unshift({minute:m,type,text:message});
- simState.log=simState.log.slice(0,95);
+  if(!simState.dismissals)simState.dismissals={};
+  simState.dismissals[defender.id]=(simState.dismissals[defender.id]||0)+1;
+  simEvent(defender.id,actor,'red',defender.name+' 퇴장! 남은 시간 10명으로 경기합니다.','RED CARD');
+ }else if(roll<.062){
+  simEvent(defender.id,actor,'foul',attacker.name+' 공격 과정에서 파울이 선언됩니다.');
+ }else if(roll<.095*quality*finish){
+  simEvent(attacker.id,actor,'shot',actorName+'의 슈팅! 골키퍼가 선방합니다.');
+ }else if(roll<.132*quality*create){
+  simEvent(attacker.id,actor,'offside',actorName+'이(가) 오프사이드 위치에서 공을 받았습니다.');
+ }else if(roll<.17){
+  simEvent(attacker.id,actor,'corner',attacker.name+' 코너킥을 얻습니다.');
+ }else if(roll<.21){
+  simEvent(attacker.id,actor,'freekick',attacker.name+' 프리킥 기회를 얻었습니다.');
+ }else if(roll<.31*create){
+  simEvent(attacker.id,actor,'attack',attacker.name+'이(가) 측면에서 공격을 전개합니다.');
+ }else simEvent(attacker.id,actor,'pass',attacker.name+'이(가) 중원에서 패스를 연결합니다.');
 }
 function advanceMinute(){
  if(!simState||simState.club!==manager||page!=='match'){pauseSimulation();return}
- if(simState.minute>=90){pauseSimulation();return}
+ if(simState.minute>=simTotalMinutes()){pauseSimulation();return}
  simState.minute++;
  minuteEvent();
- if(simState.minute===45){
-  simState.log.unshift({minute:45,type:'info',text:'하프타임! 잠시 후 후반전이 자동으로 시작됩니다.'});
-  simState.halftime=true;
+ const elapsed=simState.minute,half=45+simAddedFirst(),end=simTotalMinutes();
+ if(elapsed===45)simEvent(null,null,'info','전반 추가시간 +'+simAddedFirst()+'분');
+ if(elapsed===half)simEvent(null,null,'info','하프타임! 후반전이 이어집니다.');
+ if(elapsed===half+1)simEvent(null,null,'info','후반전 킥오프!');
+ if(elapsed===90+simAddedFirst())simEvent(null,null,'info','후반 추가시간 +'+simAddedSecond()+'분');
+ if(elapsed===end&&simState.pendingVAR){
+  // Do not finalize until VAR review has a ruling. Extend one minute if necessary.
+  simState.secondAdded=(simState.secondAdded||0)+1;
  }
- if(simState.minute===46&&simState.halftime){
-  simState.halftime=false;
-  simState.log.unshift({minute:46,type:'info',text:'후반전이 시작됐습니다.'});
- }
- if(simState.minute===90){
-  simState.log.unshift({minute:90,type:'info',text:'경기 종료! 최종 결과를 집계합니다.'});
+ if(simState.minute>=simTotalMinutes()){
+  simEvent(null,null,'info','경기 종료! 최종 스코어가 확정됐습니다.','FULL TIME');
   save();pauseSimulation();commitSimulation();return;
  }
  save();render();
 }
 function runSimulation(){
- if(!simState||simState.minute>=90)return;
+ if(!simState||simState.minute>=simTotalMinutes())return;
  if(simTicker!==null)return;
  simTicker=setInterval(advanceMinute,420);
  render();
 }
 function stepSimulation(){
  pauseSimulation();
- if(simState?.minute<90)advanceMinute();
+ if(simState?.minute<simTotalMinutes())advanceMinute();
 }
 function commitSimulation(){
- if(!simState||simState.minute!==90||simState.club!==manager)return;
+ if(!simState||simState.minute!==simTotalMinutes()||simState.club!==manager)return;
  pauseSimulation();
  simFinalOverride={homeGoals:simState.homeGoals,awayGoals:simState.awayGoals,events:(simState.events||[]).slice(),participants:[...new Set(simState.participants||simPlayerIds())],substitutions:(simState.substitutions||[]).slice(),instruction:simState.instruction};
  playRound();
@@ -1435,10 +1512,9 @@ function viewMatchSimulationWrapper(){
  const myHome=m.home===manager,slots=FORMATIONS[m.formation||formation],lineup=simPlayerIds();
  const homeDots=slots.map((slot,i)=>{let p=players.find(q=>q.id===lineup[i]),x=myHome?slot.y:100-slot.y,y=slot.x;return '<div class="sim-pawn" style="left:'+x+'%;top:'+y+'%">'+(p?i+1:'?')+'</div>'}).join('');
  const awayDots=slots.map((slot,i)=>'<div class="sim-pawn away" style="left:'+(myHome?100-slot.y:slot.y)+'%;top:'+slot.x+'%">'+(i+1)+'</div>').join('');
- const major=showableMajorEvent();
- const overlay=major?'<div class="sim-major-event '+major.type+'" aria-live="polite"><div class="event-title">'+major.title+'</div><div class="event-detail">'+txt(major.detail)+'</div><div class="event-minute">'+major.minute+"'"+'</div></div>':'';
- const button=mins===90?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'계속 진행')+'</button><button class="btn sub" onclick="stepSimulation()">+1분 진행</button>';
- return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+mins+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/90*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 하프타임 후에도 이어집니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
+ const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
+ const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'계속 진행')+'</button><button class="btn sub" onclick="stepSimulation()">+1분 진행</button>';
+ return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/simTotalMinutes()*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%">⚽</div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 전후 추가시간과 후반 90분 이후 추가시간이 적용됩니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState}))}
