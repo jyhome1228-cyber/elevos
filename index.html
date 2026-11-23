@@ -610,7 +610,25 @@ a{color:#202020}
 .match-complete .fulltime-clubs{grid-template-columns:minmax(0,1fr) minmax(125px,200px) minmax(0,1fr)!important}
 .match-complete .match-full-score{font-size:clamp(32px,4.5vw,58px)!important;white-space:nowrap!important;display:flex;align-items:center;justify-content:center}
 @media(max-width:650px){.match-complete .fulltime-clubs{grid-template-columns:minmax(0,1fr) minmax(92px,116px) minmax(0,1fr)!important}}
-.sim-field{background:repeating-linear-gradient(0deg,#2b824d 0,#2b824d 52px,#3b9458 52px,#3b9458 104px)!important}.sim-pawn{transition:left .34s linear,top .34s linear!important}.sim-ball{transition:left .34s linear,top .34s linear!important}.sim-goal-box{position:absolute;top:25%;height:50%;width:12%;border:1px solid #fffd;pointer-events:none}.sim-goal-box.left{left:0;border-left:0}.sim-goal-box.right{right:0;border-right:0}.sim-halfway{position:absolute;top:0;bottom:0;left:50%;border-left:1px solid #fffa;pointer-events:none}.sim-ball-trail{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.8}.sim-pawn{z-index:3}.sim-ball{z-index:5!important}</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
+.sim-field{background:repeating-linear-gradient(0deg,#2b824d 0,#2b824d 52px,#3b9458 52px,#3b9458 104px)!important}.sim-pawn{transition:left .34s linear,top .34s linear!important}.sim-ball{transition:left .34s linear,top .34s linear!important}.sim-goal-box{position:absolute;top:25%;height:50%;width:12%;border:1px solid #fffd;pointer-events:none}.sim-goal-box.left{left:0;border-left:0}.sim-goal-box.right{right:0;border-right:0}.sim-halfway{position:absolute;top:0;bottom:0;left:50%;border-left:1px solid #fffa;pointer-events:none}.sim-ball-trail{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.8}.sim-pawn{z-index:3}.sim-ball{z-index:5!important}
+.card,.player-card,.home-action,.transfer-card,.player-radar-panel,.squad-chemistry,.enhance-panel{border-radius:2px!important;box-shadow:none!important}
+.player-card{background:linear-gradient(145deg,#fff,#f7f7f7)!important;min-height:105px;transition:transform .18s,border-color .18s}
+.player-card:hover{transform:translateY(-2px);border-color:#aaa!important}
+.player-screen .eyebrow{letter-spacing:.08em;margin:10px 0 14px}
+.player-profile{padding-top:13px!important}
+.enhancement-tier{display:inline-block;padding:3px 6px;margin-left:5px;font-size:10px;vertical-align:middle;background:#89634d;color:white;border:1px solid #75503d}
+.enhancement-tier.silver{background:#c6cdd3;border-color:#aab2ba;color:#293239}
+.enhancement-tier.gold{background:#e0bd59;border-color:#b39032;color:#473009}
+.enhance-panel{border:1px solid #ddd;background:#fafafa;padding:17px;margin:15px 0}
+.enhance-panel h3{font-size:16px;margin:0}
+.enhance-panel p,.enhance-panel small{display:block;color:#666;font-size:12px;line-height:1.6;margin:10px 0}
+.enhancement-details{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}.enhancement-details span{background:#fff;border:1px solid #ddd;padding:9px 11px;font-size:12px}
+.enhancement-overlay{position:fixed;z-index:1000;inset:0;display:grid;place-items:center;background:#161616c9}
+.enhancement-animation-card{width:min(440px,90vw);min-height:270px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;position:relative;overflow:hidden;background:#f8f8f8;padding:28px;text-align:center}
+.enhancement-glow{position:absolute;top:0;left:0;right:0;height:10px;background:#926e4a}.enhancement-glow.success{background:#d6b251}.enhancement-glow.fail{background:#777}
+.enhancement-result{font-size:30px;font-weight:900;animation:enhancePulse .9s ease}.enhancement-sub{color:#666}
+@keyframes enhancePulse{0%{transform:scale(.85);opacity:0}55%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
 const LEAGUES=[["잉글랜드","Crown Division",1,["Northbridge Athletic","Westford Union","Kingsport Borough","Eastmere City","Redmont Rovers","Ashbourne Vale","Southvale Athletic","Whitestone FC","Marshfield Albion","Harbourgate Town","Oakminster FC","Greyhaven Athletic"]],["잉글랜드","Crown Championship",2,["Brackenfield United","Larkspur Town","Moorcastle FC","Riverstone Athletic","Thornwick Rovers","Copperhill City","Wellsbury FC","Eastcliff Union","Stanford Vale","Bellhaven Town","Cedarbridge FC","Highmoor Athletic"]],["이탈리아","Prima Divisione",1,["Valdoro Calcio","Portovento AC","Monteverde 1924","Bellacosta FC","Rivaforte Calcio","San Lucente","Castelnero AS","Citta Aurelia","Pietramare FC","Rosalba Calcio","Lagoferro 1912","Novacielo AC"]],["이탈리아","Seconda Divisione",2,["Verdemare Calcio","Borgo Alto FC","Torregrande AC","Castelbianco","Lunaforte Calcio","Portosole FC","San Verano","Arcomonte AC","Valnera 1910","Bellafonte","Rivagrigia FC","Montelago Calcio"]],["프랑스","Élite Division",1,["Montelac Sporting","Valcerne Olympique","Rivemont FC","Belcour Athletic","Saint Veraine","Azurienne SC","Lavernay Union","Grandelle FC","Port Celeste","Aubrecourt","Merival Sporting","Fontelune FC"]],["프랑스","Division Nationale",2,["Bellemont FC","Saint Calais","Rocheclair SC","Marivelle Union","Valdorne Athletic","Boisfleur FC","Lacour Olympique","Montprel FC","Azurville SC","Champbrune","Vernet Sporting","Portelle FC"]],["독일","Adler Liga",1,["Eisenwald SV","Nordfels 04","Grunhafen SC","Blauheim 09","Rosenbruck FC","Silberstadt 07","Waldkirch Union","Westtal 08","Kronfeld Athletic","Ostgarten SV","Falkenau FC","Hohenried 06"]],["독일","Adler Liga Zwei",2,["Bergfeld 05","Kaltenbruck SV","Hinterwald FC","Grunfels 11","Stahlgarten SC","Westerhof 03","Birkstadt Union","Rheindorf 08","Oberthal SV","Sonnenbruck 04","Adlersee FC","Neustadt Blau"]],["스페인","División Sol",1,["Costa Brava Norte","Monteluz CF","Puerto Dorado","Valle Claro FC","Real Solviera","Atletico Verdena","Roca Blanca","Marazul Union","Rio Fuerte CF","Costa Serena","Villadoro FC","San Estrella"]],["포르투갈","Liga Atlântica",1,["Porto Claro","Estrela do Vale","Marinha Verde","Atlético Moura","Costa Nova FC","Braga Alta","Vila Serena","Rio Dourado","Montesul SC","Alvorada FC","Santo Lago","Uniao do Norte"]],["네덜란드","Oranje Divisie",1,["Noorderdam FC","Rijnhaven Athletic","Zuidmeer SC","Veldstad United","Havenburg 04","Oostveen FC","Westermeer","Tulpenhof SV","De Groene Stad","Dijkdam FC","Bergveen Union","Kustwijk 09"]],["벨기에","Royal Division",1,["Royal Bravelle","Antwerp Vale","Noordhaven FC","Sainte Marenne","Brugge Heights","Wallonne Athletic","Royal Evermont","Belfort City","Rivelle Sporting","East Flanders FC","Montbel Union","Zilverbeek"]]];
@@ -689,7 +707,7 @@ const ROLE_FAMILY={GK:'GK',ST:'FW',LW:'FW',RW:'FW',CAM:'MF',CM:'MF',CDM:'MF',LM:
 let lineups=(saved&&saved.lineups)||{};
 function detailed(p){if(p.detail)return p.detail;const s=p.stats;const noise=(n)=>(((p.id*41+n*97)>>>0)%13)-6;const clamp=x=>Math.max(25,Math.min(95,Math.round(x)));p.detail={
  acceleration:clamp(s.pace+noise(1)),sprint:clamp(s.pace+noise(2)),finishing:clamp(s.shoot+noise(3)),shotPower:clamp(s.shoot+noise(4)),positioning:clamp(s.shoot+noise(5)),shortPass:clamp(s.pass+noise(6)),longPass:clamp(s.pass+noise(7)),vision:clamp(s.pass+noise(8)),dribble:clamp((s.pace+s.pass)/2+noise(9)),firstTouch:clamp(s.pass+noise(10)),tackle:clamp(s.defend+noise(11)),interception:clamp(s.defend+noise(12)),marking:clamp(s.defend+noise(13)),stamina:clamp(s.physical+noise(14)),strength:clamp(s.physical+noise(15)),reflex:clamp(s.defend+noise(16)),handling:clamp(s.defend+noise(17)),gkPosition:clamp(s.defend+noise(18))};return p.detail}
-function overall(p){let d=detailed(p);let keys=OVR_KEYS[p.pos]||OVR_KEYS.CM;return Math.round(keys.reduce((sum,k)=>sum+d[k],0)/keys.length)}
+function overall(p){return Math.round(preciseOverall(p))}
 function positionFit(p,role){if(p.pos===role)return 1;if(ROLE_FAMILY[p.pos]===ROLE_FAMILY[role])return .88;if((ROLE_FAMILY[p.pos]==='FW'&&ROLE_FAMILY[role]==='MF')||(ROLE_FAMILY[p.pos]==='MF'&&ROLE_FAMILY[role]==='FW'))return .7;return .48}
 function initLineup(form){let used=new Set(),arr=[];for(let slot of FORMATIONS[form]){let choices=myPlayers().filter(p=>!used.has(p.id));choices.sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r));let best=choices[0];arr.push(best?best.id:null);if(best)used.add(best.id)}return arr}
 function currentLineup(){if(manager===null)return[];let key=manager+':'+formation;if(!lineups[key]||lineups[key].length!==11)lineups[key]=initLineup(formation);let used=new Set();lineups[key]=lineups[key].map(id=>{if(id===null||used.has(id)||!players.some(p=>p.id===id&&p.club===manager))return null;used.add(id);return id});return lineups[key]}
@@ -1303,10 +1321,10 @@ function viewSquad(){
  if(!squad.length)return '<div class="card">소속 선수가 없습니다.</div>';
  if(selectedPlayer===null||!squad.some(p=>p.id===selectedPlayer))selectedPlayer=squad[0].id;
  const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
- const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
+ const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div><div class="player-grid">'+squad.map(x=>'<button data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+' '+enhancementLabel(x)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
  playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>컨디션<b>'+playerFitness(p)+'/100</b></span><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
- '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup" data-cat="'+group+'">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
+ '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p>'+enhancementPanel(p)+'<div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup" data-cat="'+group+'">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
  return '<div class="player-screen">'+roster+profile+'</div>';
 }
 function setMarketPosition(v){marketPosition=v;render()}
@@ -1794,7 +1812,7 @@ const ROLE_COLORS={FW:'#d84040',MF:'#3185dc',DF:'#a3db61',GK:'#edc53f'};
 const ROLE_TITLES={FW:'공격수',MF:'미드필더',DF:'수비수',GK:'골키퍼'};
 function playerRole(p){return ROLE_FAMILY[p.pos]||'MF'}
 function positionBadge(p){const r=playerRole(p);return '<span class="squad-role-name"><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+p.pos+' · '+ROLE_TITLES[r]+'</span>'}
-function preciseOverall(p){const d=detailed(p),keys=OVR_KEYS[p.pos]||OVR_KEYS.CM;return keys.reduce((sum,k)=>sum+d[k],0)/keys.length}
+function preciseOverall(p){const d=detailed(p),keys=OVR_KEYS[p.pos]||OVR_KEYS.CM;return Math.min(120,keys.reduce((sum,k)=>sum+d[k],0)/keys.length+(enhancementLevel(p)-1)*1.5)}
 function lineupComposition(ids,slots){
  const groups={FW:[],MF:[],DF:[],GK:[]};let total=0,fitTotal=0,filled=0;
  slots.forEach((slot,i)=>{
@@ -2021,6 +2039,37 @@ function recoverFitnessAfterMatch(starterIds){
   p.fitness=Math.max(25,Math.min(100,playerFitness(p)+change));
  }
 }
+
+
+const ENHANCE_COST={2:30,3:45,4:70,5:110,6:160,7:240,8:340,9:470,10:650};
+const ENHANCE_CHANCE={2:1,3:.95,4:.85,5:.72,6:.56,7:.40,8:.27,9:.15,10:.08};
+let enhancementBusy=false;
+function enhancementLevel(p){return Math.min(10,Math.max(1,Number(p?.enhancementLevel)||1))}
+function enhancementTier(p){return enhancementLevel(p)>=8?'gold':enhancementLevel(p)>=5?'silver':'bronze'}
+function enhancementLabel(p){return '<span class="enhancement-tier '+enhancementTier(p)+'">+'+enhancementLevel(p)+'</span>'}
+function enhancePlayer(id){
+ const p=players.find(x=>x.id===id&&x.club===manager);
+ if(!p||enhancementBusy||enhancementLevel(p)>=10)return;
+ const current=enhancementLevel(p),target=current+1,cost=ENHANCE_COST[target];
+ if(walletGBP<cost){if(typeof alert==='function')alert('강화 비용이 부족합니다: '+formatGBP(cost));return}
+ enhancementBusy=true;walletGBP-=cost;
+ const success=Math.random()<ENHANCE_CHANCE[target];
+ p.enhancementLevel=success?target:current>=5?current-1:current;
+ save();render();
+ if(typeof document.createElement==='function'&&document.body){
+  const el=document.createElement('div');el.id='enhancement-animation';el.className='enhancement-overlay';
+  el.innerHTML='<div class="enhancement-animation-card"><div class="enhancement-glow '+(success?'success':'fail')+'"></div><div class="eyebrow">PLAYER ENHANCEMENT</div><strong>'+txt(p.name)+'</strong><div class="enhancement-result">'+(success?'강화 성공!':'강화 실패')+'</div><div class="enhancement-sub">+'+current+' → +'+enhancementLevel(p)+' · '+formatGBP(cost)+'</div></div>';
+  document.body.appendChild(el);
+  setTimeout(()=>{el.remove();enhancementBusy=false;if(page==='squad')render()},1800);
+ }else enhancementBusy=false;
+}
+function enhancementPanel(p){
+ const n=enhancementLevel(p),next=n+1;
+ return '<section class="enhance-panel"><div class="row"><h3>선수 강화</h3>'+enhancementLabel(p)+'</div><p>1–4 브론즈 · 5–7 실버 · 8–10 골드. 강화 능력치는 실제 경기력에 반영됩니다.</p>'+
+ (n>=10?'<strong>최대 +10 강화 완료</strong>':'<div class="enhancement-details"><span>다음 단계 <b>+'+next+'</b></span><span>성공률 <b>'+Math.round(ENHANCE_CHANCE[next]*100)+'%</b></span><span>비용 <b>'+formatGBP(ENHANCE_COST[next])+'</b></span></div><button class="btn" onclick="enhancePlayer('+p.id+')">강화 시도</button>')+
+ '<small>확률은 ELEVOS 자체 밸런스 값입니다. 실패 시 +5부터 1단계 하락할 수 있으며 비용은 차감됩니다.</small></section>';
+}
+window.enhancePlayer=enhancePlayer;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
