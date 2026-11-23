@@ -781,6 +781,70 @@ input::placeholder{color:#8b93a0!important}
 .sim-flash-crest{width:70px!important;height:78px!important}
 .sim-flash-crest .crest{width:68px!important;height:74px!important}
 .sim-event-overlay-fixed{border-left-color:color-mix(in srgb,var(--event-club-color,#a0a6b0) 65%,white)!important}
+
+/* ELEVOS UI 2.0 — audited contrast corrections for legacy light components.
+   Keep this block last: existing light-theme declarations are earlier in the file. */
+:root{--eg-bg:#0c0e12;--eg-panel:#181b22;--eg-card:#20242d;--eg-line:#414956;--eg-text:#f3f5f8;--eg-muted:#b6bfcb}
+.firstplay-context,.home-getting-started,.season-award-summary,.home-quick-market,.squad-chemistry,.squad-lineup-panel,.team-composition-note,.team-chemistry-detail,.tactics-change-feedback,.sim-pause-alert,.sim-sub-notice,.sim-pending-result,.squad-team-composition,.firstplay-actions,.reward-selected{
+ background:#1b2029!important;color:var(--eg-text)!important;border:1px solid var(--eg-line)!important;border-radius:3px!important
+}
+.firstplay-context strong,.home-getting-started strong,.squad-chemistry strong,.squad-lineup-panel strong,.team-composition-note strong,.team-chemistry-detail strong,.reward-selected strong{color:#f5f6f9!important}
+.firstplay-context span,.home-getting-started p,.season-award-summary span,.squad-chemistry p,.squad-lineup-panel p,.tactics-change-feedback p,.sim-sub-notice span,.sim-pause-alert,.team-composition-note,.team-chemistry-detail{color:#bdc5d0!important}
+.firstplay-context .btn,.home-getting-started .btn,.season-award-summary .btn{color:#f2f5f9!important;background:#282f3a!important;border-color:#667183!important}
+.squad-role-guide span{background:#252b36!important;color:#edf1f6!important;border:1px solid #4b5665!important;border-radius:22px!important}
+.squad-role-guide span .role-dot{box-shadow:0 0 0 2px #222833}
+.squad-role-name,.squad-role-name b{color:#c5ceda!important}
+.profile-stats span,.player-radar-values div,.player-profile-extra span,.enhancement-details span,.squad-team-composition,.home-datum,.home-datum strong,.result-statline,.lineup-stats span,.pregame-info>span,.home-quick-market,.home-news,.home-news strong{
+ background:#242a35!important;color:#d9e0e9!important;border-color:#414a58!important
+}
+.profile-stats b,.player-radar-values strong,.player-radar-values b,.player-profile-extra strong,.home-datum strong,.result-statline strong,.squad-team-composition strong,.lineup-stats strong,.home-news strong{color:#f8fafc!important}
+.profile-stats span,.player-radar-values small,.player-profile-extra span,.home-news p,.pregame-info span,.home-datum span{color:#b7c0cc!important}
+.profile-stats b{font-size:14px;letter-spacing:-.01em}
+.tag,.badge,.wallet-header,.name-lang-button,.firstplay-hide,.jersey-config label,.squad-role-guide,.eyebrow{color:#cdd5df!important}
+.wallet-header strong{color:#f8fafc!important}
+.tag,.badge{background:#252b35!important;border:1px solid #566173!important}
+.player-screen .eyebrow,.player-profile .eyebrow,.player-profile h2,.player-profile-ovr{color:#f3f5f8!important}
+.notice,.no-results,.setting,.slotpick,.transfer-club,.statgroup,.sim-status{background:#242a34!important;color:#e7ebf1!important;border-color:#465161!important}
+.notice strong,.notice span,.no-results strong{color:#f3f5f8!important}
+.notice p,.notice small{color:#b9c3d0!important}
+.btn.sub,.btn.ghost,.btn.outline,.tactics-detail-button,.name-lang-button,.chip,.sim-tactics-choices button,.firstplay-context button,.home-action,.market-window button,.squad-lineup-panel button{
+ background:#29313d!important;color:#edf2f8!important;border:1px solid #586474!important
+}
+.btn.sub:hover,.btn.ghost:hover,.btn.outline:hover,.tactics-detail-button:hover,.name-lang-button:hover,.chip:hover,.sim-tactics-choices button:hover{background:#343e4d!important;color:#fff!important}
+.btn:not(.sub):not(.ghost):not(.outline),.nav.active,.chip.on,.sim-tactics-choices button.selected{background:#e9edf2!important;color:#131820!important;border-color:#e9edf2!important}
+.btn:not(.sub):not(.ghost):not(.outline) *,.nav.active *,.chip.on *{color:#131820!important}
+button:disabled{opacity:.52!important;cursor:not-allowed}
+input,select,textarea,.transfer-toolbar input,.transfer-toolbar select,.jersey-config input,.setting select,.setting input,.slotpick select{
+ background:#242b36!important;color:#f5f7fa!important;border:1px solid #596577!important
+}
+input::placeholder,textarea::placeholder{color:#9faabb!important;opacity:1}
+.player-card small,.player-card .squad-role-name,.transfer-card small,.transfer-card .transfer-club,.home-player small,.youth-card small,.pregame-player small{color:#bec7d3!important}
+.player-card .squad-overall,.transfer-face strong,.pregame-player strong{color:#f7f8fa!important}
+.player-radar-panel{background:#202630!important;border-color:#495361!important}
+.player-radar-panel .player-radar-values div{background:#2a313d!important;border-color:#505c6d!important}
+.player-radar-panel .player-radar-values small{color:#b8c3d0!important}
+.player-radar-panel .player-radar-values strong{color:#f7fafc!important}
+.player-radar-panel svg text{fill:#e0e6f0!important}
+.player-radar-panel svg polygon[fill="none"]{stroke:#647184!important}
+.reward-choice,.game-reward .reward-choice{background:linear-gradient(150deg,#2b323f,#1c222c)!important;color:#f2f5f9!important;border:1px solid #566274!important;border-radius:3px!important}
+.reward-choice strong,.reward-choice span{color:#f5f7fa!important}
+.reward-choice small{color:#bdc8d5!important}
+.reward-choice .reward-symbol,.game-reward .reward-choice .reward-symbol{background:#323c4b!important;color:#f4f7fa!important;border-color:#637085!important;border-radius:3px!important}
+.reward-choice:hover,.game-reward .reward-choice:hover{background:linear-gradient(150deg,#374253,#252e3b)!important;border-color:#94a5bb!important}
+.match-result-box,.match-result-box h3,.match-result-box strong,.result-event,.result-event span{color:#eef2f7!important}
+.home-standing-table td,.home-standing-table th,.cup-bracket-stage,.cup-bracket-match,.pending-transfer-row{color:#e4e9f0!important;border-color:#414b5a!important}
+.home-standing-table th{color:#bec7d1!important}
+.cup-overview-card span,.cup-bracket-panel small,.pending-transfer-row small{color:#b9c4d2!important}
+.enhance-panel>small,.enhance-panel>p,.sim-info,.coaching-note,.drop-note{color:#bbc6d4!important}
+.squad-lineup-slot,.live-roster-box,.live-roster-row{background:#252c37!important;color:#e9edf4!important;border-color:#566274!important}
+.squad-lineup-slot small,.live-roster-row small{color:#c2ccd8!important}
+/* Preserve meaning of the saturated game-status accents. */
+.injury-badge.major{color:#f47575!important}
+.injury-badge.minor{color:#f5cc64!important}
+.recent-result-pill.win{background:#29452f!important;color:#aee4b7!important}
+.recent-result-pill.loss{background:#263b5d!important;color:#b8d2ff!important}
+.recent-result-pill.draw{background:#414650!important;color:#e1e6ee!important}
+
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
