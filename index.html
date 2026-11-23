@@ -777,9 +777,9 @@ function clubBrand(c){
  const countryIndex={'잉글랜드':0,'이탈리아':1,'프랑스':2,'독일':3,'스페인':4,'포르투갈':5,'네덜란드':6,'벨기에':7}[c.country]??0;
  const id=Number(c.id)||0,groups=CLUB_PALETTES[countryIndex];
  const colors=groups[(id*7+Math.floor(id/12))%groups.length];
- const title=c.name.toLowerCase();
- let symbol=CLUB_RESERVED[c.name]||CLUB_SYMBOLS[(id*11+Math.floor(id/3))%CLUB_SYMBOLS.length];
- if(!CLUB_RESERVED[c.name]){
+ const title=(c.nameEn||c.name).toLowerCase();
+ let symbol=CLUB_RESERVED[c.nameEn||c.name]||CLUB_SYMBOLS[(id*11+Math.floor(id/3))%CLUB_SYMBOLS.length];
+ if(!CLUB_RESERVED[c.nameEn||c.name]){
   if(/king|royal|crown|real|regal/.test(title))symbol='crown';
   else if(/port|harbour|haven|marina|coast|lake|rio|river|sea/.test(title))symbol='wave';
   else if(/bridge|bruck|brug/.test(title))symbol='bridge';
@@ -787,7 +787,7 @@ function clubBrand(c){
   else if(/mont|berg|mount|fell|hill/.test(title))symbol='mountain';
   else if(/castle|tower|torre/.test(title))symbol='tower';
  }
- const words=c.name.replace(/[^\p{L}\p{N} ]/gu,'').split(' ').filter(Boolean);
+ const words=(c.nameEn||c.name).replace(/[^\p{L}\p{N} ]/gu,'').split(' ').filter(Boolean);
  const initials=(words.length>1?words[0][0]+words[1][0]:(words[0]||'FC').slice(0,2)).toUpperCase();
  return {primary:colors[0],secondary:colors[1],shape:CLUB_SHAPES[(id+countryIndex*2)%5],symbol,initials};
 }
@@ -878,6 +878,48 @@ function viewMatch(){
 }
 window.claimReward=claimReward;
 
+
+/* ELEVOS name localization. English IDs/names are retained; rendering defaults to Korean.
+   This name-only locale setting is future-ready, not a full UI translation. */
+const CLUB_NAMES_KO=[["노스브리지 애슬레틱","웨스트포드 유니언","킹스포트 버러","이스트미어 시티","레드몬트 로버스","애시본 베일","사우스베일 애슬레틱","화이트스톤 FC","마시필드 알비온","하버게이트 타운","오크민스터 FC","그레이헤이븐 애슬레틱"],["브래컨필드 유나이티드","라크스퍼 타운","무어캐슬 FC","리버스톤 애슬레틱","손윅 로버스","코퍼힐 시티","웰스버리 FC","이스트클리프 유니언","스탠포드 베일","벨헤이븐 타운","시더브리지 FC","하이무어 애슬레틱"],["발도로 칼초","포르토벤토 AC","몬테베르데 1924","벨라코스타 FC","리바포르테 칼초","산 루첸테","카스텔네로 AS","치타 아우렐리아","피에트라마레 FC","로살바 칼초","라고페로 1912","노바치엘로 AC"],["베르데마레 칼초","보르고 알토 FC","토레그란데 AC","카스텔비앙코","루나포르테 칼초","포르토솔레 FC","산 베라노","아르코몬테 AC","발네라 1910","벨라폰테","리바그리지아 FC","몬텔라고 칼초"],["몽틀락 스포르팅","발세른 올랭피크","리브몽 FC","벨쿠르 애슬레틱","생 베렌","아쥐리엔 SC","라베르네 유니언","그랑델 FC","포르 셀레스트","오브르쿠르","메리발 스포르팅","퐁틀륀 FC"],["벨몽 FC","생 칼레","로슈클레르 SC","마리벨 유니언","발도른 애슬레틱","부아플뢰르 FC","라쿠르 올랭피크","몽프렐 FC","아쥐르빌 SC","샹브륀","베르네 스포르팅","포르텔 FC"],["아이젠발트 SV","노르트펠스 04","그륀하펜 SC","블라우하임 09","로젠브뤼크 FC","질버슈타트 07","발트키르히 유니언","베스트탈 08","크론펠트 애슬레틱","오스트가르텐 SV","팔케나우 FC","호엔리트 06"],["베르크펠트 05","칼텐브뤼크 SV","힌터발트 FC","그륀펠스 11","슈탈가르텐 SC","베스터호프 03","비르크슈타트 유니언","라인도르프 08","오버탈 SV","조넨브뤼크 04","아들러제 FC","노이슈타트 블라우"],["코스타 브라바 노르테","몬텔루스 CF","푸에르토 도라도","바예 클라로 FC","레알 솔비에라","아틀레티코 베르데나","로카 블랑카","마라술 유니언","리오 푸에르테 CF","코스타 세레나","비야도로 FC","산 에스트레야"],["포르토 클라로","에스트렐라 두 발레","마리냐 베르데","아틀레티쿠 모우라","코스타 노바 FC","브라가 알타","빌라 세레나","리우 도우라도","몬테술 SC","알보라다 FC","산투 라구","우니앙 두 노르트"],["노르더담 FC","레인하펜 애슬레틱","자위트메어 SC","벨트스타트 유나이티드","하벤부르크 04","오스트베인 FC","베스터메어","튈펜호프 SV","더 흐루네 스타트","다이크담 FC","베르크베인 유니언","퀴스트베이크 09"],["로열 브라벨","안트베르펜 베일","노르트하펜 FC","생트 마렌","브뤼허 하이츠","왈론 애슬레틱","로열 에버몽","벨포르 시티","리벨 스포르팅","이스트 플랜더스 FC","몽벨 유니언","질베르베크"]];
+const LEAGUE_NAMES_KO=["크라운 1부 리그","크라운 챔피언십","프리마 디비지오네","세콘다 디비지오네","엘리트 디비전","내셔널 디비전","아들러 리가","아들러 2부 리그","솔 디비전","아틀란티카 리가","오라녜 디비전","로열 디비전"];
+const PLAYER_FIRST_KO={"Luca":"루카","Daniel":"다니엘","Mateo":"마테오","Noah":"노아","Leo":"레오","Elias":"엘리아스","Victor":"빅토르","Adrian":"아드리안","Theo":"테오","Gabriel":"가브리엘","Hugo":"위고","Marco":"마르코","Felix":"펠릭스","Jonas":"요나스","Milan":"밀란","Rafael":"라파엘","Enzo":"엔초","Nicolas":"니콜라스","Owen":"오언","Alex":"알렉스","Bruno":"브루노","Tomas":"토마스","Niko":"니코","Julian":"율리안","Sebastian":"세바스티안","Emil":"에밀","Anton":"안톤","Louis":"루이","Andre":"앙드레","Oscar":"오스카르","Martin":"마르틴","Leon":"레온","Erik":"에리크","Dario":"다리오","Soren":"쇠렌","Ruben":"루벤","Mauro":"마우로","Pablo":"파블로","Cesar":"세사르","Nils":"닐스"};
+const PLAYER_LAST_KO={"Moretti":"모레티","Brennan":"브레넌","Valdes":"발데스","Fischer":"피셔","Lindholm":"린드홀름","Marquez":"마르케스","Silva":"실바","Duarte":"두아르테","Berger":"베르거","Nielsen":"닐센","Costa":"코스타","Rossi":"로시","Varela":"바렐라","Mendes":"멘데스","Arden":"아든","Bellini":"벨리니","Navarro":"나바로","Holm":"홀름","Cortez":"코르테스","Fontana":"폰타나","Aubert":"오베르","Renard":"르나르","Bauer":"바우어","Weiss":"바이스","Voss":"포스","Moreau":"모로","Ribeiro":"리베이루","Schmidt":"슈미트","Delgado":"델가도","Mertens":"메르턴스","Soler":"솔레르","Vermeulen":"페르뮐런","Bianchi":"비앙키","Keller":"켈러","Laurent":"로랑","Dumont":"뒤몽","Santos":"산투스","Ferreira":"페레이라","Hansen":"한센","Correa":"코레아"};
+let displayLanguage=localStorage.getItem('elevos-name-language')==='en'?'en':'ko';
+function playerKorean(en){
+ const parts=String(en||'').trim().split(/\s+/);
+ if(parts.length===2)return (PLAYER_FIRST_KO[parts[0]]||parts[0])+' '+(PLAYER_LAST_KO[parts[1]]||parts[1]);
+ return parts.map(p=>PLAYER_FIRST_KO[p]||PLAYER_LAST_KO[p]||p).join(' ');
+}
+function updateDisplayLanguage(lang){
+ displayLanguage=lang==='en'?'en':'ko';
+ localStorage.setItem('elevos-name-language',displayLanguage);
+ for(let i=0;i<LEAGUES.length;i++){
+  const l=LEAGUES[i];
+  if(!l.nameEn)l.nameEn=l[1];
+  l[1]=displayLanguage==='ko'?LEAGUE_NAMES_KO[i]:l.nameEn;
+ }
+ for(const c of clubs){
+  if(!c.nameEn)c.nameEn=c.name;
+  const canonical=LEAGUES[c.league]?.[3]?.includes(c.nameEn)?c.nameEn:c.nameEn;
+  // Club ID is stable even after transfers and promotion.
+  const localeClub=CLUB_NAMES_KO[Math.floor(c.id/12)]?.[c.id%12];
+  c.name=displayLanguage==='ko'?(localeClub||canonical):canonical;
+ }
+ for(const p of players){
+  if(!p.nameEn)p.nameEn=p.name;
+  p.name=displayLanguage==='ko'?playerKorean(p.nameEn):p.nameEn;
+ }
+}
+function nameLanguageSettings(){
+ return '<button class="name-lang-button" onclick="toggleDisplayLanguage()" title="구단·선수 이름 언어 변경">이름 표시: '+(displayLanguage==='ko'?'한국어':'English')+'</button>';
+}
+function toggleDisplayLanguage(){
+ updateDisplayLanguage(displayLanguage==='ko'?'en':'ko');save();render();
+}
+window.toggleDisplayLanguage=toggleDisplayLanguage;
+
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
+updateDisplayLanguage(displayLanguage);
 render();
 </script></body></html>
