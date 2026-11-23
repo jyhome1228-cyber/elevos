@@ -592,6 +592,9 @@ a{color:#202020}
 .sim-field{background:repeating-linear-gradient(0deg,#398554 0,#398554 58px,#4b9966 58px,#4b9966 116px)!important}
 .sim-goal{border:3px solid white!important;background:repeating-linear-gradient(0deg,transparent 0,transparent 5px,#ffffff88 6px,transparent 7px),repeating-linear-gradient(90deg,transparent 0,transparent 5px,#ffffff88 6px,transparent 7px)!important}
 @media(max-width:720px){.pregame-lineups{grid-template-columns:1fr}.pregame-lineup{padding:12px}}
+
+.sim-pause-alert{font-size:12px;padding:10px 13px;background:#fff7dd;border:1px solid #e9cf82;border-radius:7px;margin:11px 0}
+.sim-pending-result{padding:12px;background:#f2f2f2;border-radius:7px;font-size:13px;font-weight:650;margin-top:9px}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1024,6 +1027,7 @@ function guideStep(){
 }
 function go(p){
  if(manager===null&&p!=='start'&&p!=='league')return;
+ if(p==='match'&&!simState&&pendingReward?.club!==manager){matchTab='preview'}
  page=p;
  if(manager!==null&&p==='tactics'){tutorialViewedTactics=true;localStorage.setItem(GUIDE_KEY+'-tactics','1')}
  if(manager!==null&&p==='squad'){tutorialViewedSquad=true;localStorage.setItem(GUIDE_KEY+'-squad','1')}
@@ -1365,13 +1369,16 @@ function viewTactics(){
    Player abilities and tactics affect attack and scoring chance; final score is committed once at 90'. */
 let simState=saved?.simState||null;
 let simTicker=null,simFinalOverride=null;
-function pauseSimulation(){if(simTicker!==null){clearInterval(simTicker);simTicker=null}}
+function pauseSimulation(){
+ if(simTicker!==null){clearInterval(simTicker);simTicker=null}
+ if(simState){simState.paused=true;simState.lastTickAt=Date.now();save()}
+}
 function startSimulation(){
  if(manager===null||round>=22||pendingReward?.club===manager)return;
  const pair=matchPair(),s=currentLineup();
  if(!pair||s.filter(Boolean).length!==11)return;
  pauseSimulation();
- simState={activeLineup:s.slice(),participants:s.slice(),substitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
+ simState={paused:false,lastTickAt:Date.now(),activeLineup:s.slice(),participants:s.slice(),substitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?s.slice():computerLineup(pair[0]),awayLineup:pair[1]===manager?s.slice():computerLineup(pair[1]),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),homeGoals:0,awayGoals:0,firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
  matchTab='live';page='match';save();render();runSimulation();
 }
 
@@ -1403,7 +1410,7 @@ function simEvent(team,actor,type,text,majorTitle){
  }
  if(majorTitle){
   simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:e.minute,type,title:majorTitle,detail:text};
-  displaySimEventOnce(simState.majorEvent);
+  if(!simBatchMode)displaySimEventOnce(simState.majorEvent);
  }
 }
 let simEventTimeout=null;
@@ -1499,9 +1506,10 @@ function minuteEvent(){
  }else simEvent(attacker.id,actor,'pass',attacker.name+'이(가) 중원에서 패스를 연결합니다.');
 }
 function advanceMinute(){
- if(!simState||simState.club!==manager||page!=='match'){pauseSimulation();return}
- if(simState.minute>=simTotalMinutes()){pauseSimulation();return}
+ if(!simState||simState.club!==manager)return;
+ if(simState.minute>=simTotalMinutes())return;
  simState.minute++;
+ simState.lastTickAt=Date.now();
  minuteEvent();
  const elapsed=simState.minute,half=45+simAddedFirst(),end=simTotalMinutes();
  if(elapsed===45)simEvent(null,null,'info','전반 추가시간 +'+simAddedFirst()+'분');
@@ -1514,22 +1522,45 @@ function advanceMinute(){
  }
  if(simState.minute>=simTotalMinutes()){
   simEvent(null,null,'info','경기 종료! 최종 스코어가 확정됐습니다.','FULL TIME');
-  save();pauseSimulation();commitSimulation();return;
+  if(simTicker!==null){clearInterval(simTicker);simTicker=null}
+  simState.finishPending=true;simState.finishAt=Date.now()+2100;simState.paused=false;save();
+  if(simBatchMode){commitSimulation(true);return}
+  if(finishTimeout!==null)clearTimeout(finishTimeout);
+  finishTimeout=setTimeout(()=>{finishTimeout=null;commitSimulation(true)},2100);
+  if(page==='match')render();
+  return;
  }
- save();render();
+ save();if(!simBatchMode&&page==='match')render();
 }
+const SIM_TICK_MS=420;
+let simBatchMode=false,finishTimeout=null;
 function runSimulation(){
  if(!simState||simState.minute>=simTotalMinutes())return;
  if(simTicker!==null)return;
- simTicker=setInterval(advanceMinute,420);
- render();
+ simState.paused=false;
+ simState.lastTickAt=Date.now();
+ simTicker=setInterval(()=>{if(simState&&!simState.paused)advanceMinute()},SIM_TICK_MS);
+ save();if(page==='match')render();
+}
+function catchUpSavedSimulation(){
+ if(!simState||simState.paused||simState.club!==manager)return;
+ const elapsed=Math.max(0,Math.min(130,Math.floor((Date.now()-(simState.lastTickAt||Date.now()))/SIM_TICK_MS)));
+ simBatchMode=true;
+ for(let i=0;i<elapsed&&simState;i++)advanceMinute();
+ simBatchMode=false;
+ if(simState&&!simState.paused){
+  simState.lastTickAt=Date.now();save();
+  runSimulation();
+ }else if(page==='match')render();
 }
 function stepSimulation(){
  pauseSimulation();
  if(simState?.minute<simTotalMinutes())advanceMinute();
 }
-function commitSimulation(){
+function commitSimulation(force=false){
  if(!simState||simState.minute!==simTotalMinutes()||simState.club!==manager)return;
+ if(simState.finishPending&&!force&&Date.now()<(simState.finishAt||0))return;
+ if(finishTimeout!==null){clearTimeout(finishTimeout);finishTimeout=null}
  pauseSimulation();
  simFinalOverride={homeGoals:simState.homeGoals,awayGoals:simState.awayGoals,events:(simState.events||[]).slice(),participants:[...new Set(simState.participants||simPlayerIds())],substitutions:(simState.substitutions||[]).slice(),instruction:simState.instruction};
  playRound();
@@ -1788,4 +1819,11 @@ updateDisplayLanguage(displayLanguage);
 ensureJerseyNumbers();
 createdClub=false;
 render();
+if(simState&&manager!==null){
+ if(simState.finishPending){
+  const remaining=Math.max(0,(simState.finishAt||0)-Date.now());
+  if(remaining===0)commitSimulation(true);
+  else finishTimeout=setTimeout(()=>commitSimulation(true),remaining);
+ }else if(!simState.paused)catchUpSavedSimulation();
+}
 </script></body></html>
