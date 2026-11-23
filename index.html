@@ -845,6 +845,37 @@ input::placeholder,textarea::placeholder{color:#9faabb!important;opacity:1}
 .recent-result-pill.loss{background:#263b5d!important;color:#b8d2ff!important}
 .recent-result-pill.draw{background:#414650!important;color:#e1e6ee!important}
 
+
+/* ELEVOS — match centre contrast and list spacing */
+:root{color-scheme:dark}
+html body .firstplay-context,html body .firstplay,html body .firstplay-step,html body .scoreboard,html body .reward-item,html body .recent-result,html body .pending-transfers,html body .tactics-group,html body .bench-person,html body .sim-impact-strip span,html body .wallet-header{background:#1c212a!important;color:#f0f2f6!important;border-color:#414955!important}
+html body .firstplay-context strong,html body .scoreboard-team,html body .reward-item strong{color:#f4f6fa!important}
+html body .firstplay-context span,html body .firstplay-step small,html body .reward-item span{color:#b9c3d0!important}
+html body .scoreboard{background:linear-gradient(115deg,#222c36,#15191f 50%,#29262c)!important;padding:30px 20px;border-radius:4px!important}
+html body .scoreboard-number{color:#e5e9ef!important}
+html body .scoreboard-team .crest{width:64px;height:74px}
+html body .match-tabs button,html body .fixture-control button{background:#242a34!important;color:#e0e5ed!important;border:1px solid #48515e!important;border-radius:4px}
+html body .match-tabs button.active{background:#e5e9ef!important;color:#151920!important;border-color:#e5e9ef!important}
+html body .tag,html body .badge{background:#252b35!important;color:#cdd5df!important;border-color:#566173!important}
+html body .fixture-row.is-me,html body .home-standing-table tr.mine,html body tr[style*="background:#f4f4f4"]{background:#29323e!important;color:#f0f3f8!important}
+html body .pregame-lineups{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+html body .pregame-lineup{min-width:0;padding:18px!important}
+html body .pregame-player{grid-template-columns:34px minmax(0,1fr) 52px;gap:12px;padding:9px 14px!important;min-height:46px;border-bottom:1px solid #39414e!important}
+html body .pregame-player:last-child{border-bottom:0!important}
+html body .pregame-player>span:nth-child(2){overflow-wrap:anywhere;min-width:0}
+html body .pregame-player small,html body .live-roster-row small{justify-self:end;min-width:40px;text-align:center;color:#bfc9d7!important;font-weight:600;font-size:12px}
+html body .pregame-player .shirt-no{background:#303743!important;color:#f3f5f8!important;border-radius:3px}
+html body .live-roster-row{padding:7px 10px!important;grid-template-columns:26px minmax(0,1fr) 40px}
+html body .sim-line.goal{background:#243b2c!important;color:#d9f5df!important}
+html body .sim-line.yellow{background:#39321f!important;color:#f5df9a!important}
+html body .sim-line.red,html body .sim-line.cancel,html body .injury-card-banner{background:#39262a!important;color:#ffbfc2!important}
+html body .rating-pin{background:#202833!important;color:#f4f6f9!important;border-color:#8190a2!important}
+html body .news-modal{background:#1c212a!important;color:#f0f2f6!important}
+html body .firstplay-step.current{border-color:#a1aebf!important}
+html body .firstplay-step.done{background:#27352d!important}
+html body .btn:focus-visible,html body .match-tabs button:focus-visible{outline:2px solid #a6b9d4;outline-offset:3px}
+@media(max-width:720px){html body .pregame-lineups{grid-template-columns:minmax(0,1fr)}html body .pregame-lineup{padding:12px!important}html body .pregame-player{padding:8px 10px!important;gap:8px}html body .scoreboard{padding:22px 10px;gap:8px}html body .scoreboard-team .crest{width:48px;height:56px}}
+
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
