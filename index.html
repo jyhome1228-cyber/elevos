@@ -745,7 +745,7 @@ input::placeholder{color:#8b93a0!important}
 .sim-event-overlay-fixed{border-width:3px!important}
 .sim-event-overlay-fixed .event-team{font-size:14px;font-weight:700;margin-bottom:12px}
 @media(max-width:720px){.enhancement-result-shot .face-tile{width:80px!important;height:80px!important}}
-</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
+.sim-event-overlay-fixed{background:linear-gradient(145deg,#20252e,#0e1117)!important;color:#fff!important;border-left:6px solid var(--event-club-color,#a0a6b0)!important;border-top:1px solid #777!important;border-right:1px solid #777!important;border-bottom:1px solid #777!important}.sim-event-overlay-fixed .event-title,.sim-event-overlay-fixed .event-detail,.sim-event-overlay-fixed .event-team{color:#f3f5f7!important}.enhancement-animation-card small{color:#d1d7e0!important}.enhancement-animation-card .enhancement-tier{font-size:20px!important;padding:9px 15px!important}.enhancement-animation-card .enhancement-result-shot .face-tile{border:1px solid #646c79}.game-dialog-content .btn{margin-top:4px}</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
 const LEAGUES=[["잉글랜드","Crown Division",1,["Northbridge Athletic","Westford Union","Kingsport Borough","Eastmere City","Redmont Rovers","Ashbourne Vale","Southvale Athletic","Whitestone FC","Marshfield Albion","Harbourgate Town","Oakminster FC","Greyhaven Athletic"]],["잉글랜드","Crown Championship",2,["Brackenfield United","Larkspur Town","Moorcastle FC","Riverstone Athletic","Thornwick Rovers","Copperhill City","Wellsbury FC","Eastcliff Union","Stanford Vale","Bellhaven Town","Cedarbridge FC","Highmoor Athletic"]],["이탈리아","Prima Divisione",1,["Valdoro Calcio","Portovento AC","Monteverde 1924","Bellacosta FC","Rivaforte Calcio","San Lucente","Castelnero AS","Citta Aurelia","Pietramare FC","Rosalba Calcio","Lagoferro 1912","Novacielo AC"]],["이탈리아","Seconda Divisione",2,["Verdemare Calcio","Borgo Alto FC","Torregrande AC","Castelbianco","Lunaforte Calcio","Portosole FC","San Verano","Arcomonte AC","Valnera 1910","Bellafonte","Rivagrigia FC","Montelago Calcio"]],["프랑스","Élite Division",1,["Montelac Sporting","Valcerne Olympique","Rivemont FC","Belcour Athletic","Saint Veraine","Azurienne SC","Lavernay Union","Grandelle FC","Port Celeste","Aubrecourt","Merival Sporting","Fontelune FC"]],["프랑스","Division Nationale",2,["Bellemont FC","Saint Calais","Rocheclair SC","Marivelle Union","Valdorne Athletic","Boisfleur FC","Lacour Olympique","Montprel FC","Azurville SC","Champbrune","Vernet Sporting","Portelle FC"]],["독일","Adler Liga",1,["Eisenwald SV","Nordfels 04","Grunhafen SC","Blauheim 09","Rosenbruck FC","Silberstadt 07","Waldkirch Union","Westtal 08","Kronfeld Athletic","Ostgarten SV","Falkenau FC","Hohenried 06"]],["독일","Adler Liga Zwei",2,["Bergfeld 05","Kaltenbruck SV","Hinterwald FC","Grunfels 11","Stahlgarten SC","Westerhof 03","Birkstadt Union","Rheindorf 08","Oberthal SV","Sonnenbruck 04","Adlersee FC","Neustadt Blau"]],["스페인","División Sol",1,["Costa Brava Norte","Monteluz CF","Puerto Dorado","Valle Claro FC","Real Solviera","Atletico Verdena","Roca Blanca","Marazul Union","Rio Fuerte CF","Costa Serena","Villadoro FC","San Estrella"]],["포르투갈","Liga Atlântica",1,["Porto Claro","Estrela do Vale","Marinha Verde","Atlético Moura","Costa Nova FC","Braga Alta","Vila Serena","Rio Dourado","Montesul SC","Alvorada FC","Santo Lago","Uniao do Norte"]],["네덜란드","Oranje Divisie",1,["Noorderdam FC","Rijnhaven Athletic","Zuidmeer SC","Veldstad United","Havenburg 04","Oostveen FC","Westermeer","Tulpenhof SV","De Groene Stad","Dijkdam FC","Bergveen Union","Kustwijk 09"]],["벨기에","Royal Division",1,["Royal Bravelle","Antwerp Vale","Noordhaven FC","Sainte Marenne","Brugge Heights","Wallonne Athletic","Royal Evermont","Belfort City","Rivelle Sporting","East Flanders FC","Montbel Union","Zilverbeek"]]];
@@ -1467,7 +1467,7 @@ function viewSquad(){
  if(!squad.length)return '<div class="card">소속 선수가 없습니다.</div>';
  if(selectedPlayer===null||!squad.some(p=>p.id===selectedPlayer))selectedPlayer=squad[0].id;
  const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
- const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div>'+squadLineupStrip()+'<div class="player-grid">'+squad.map(x=>'<button draggable="true" ondragstart="squadDragStart(event,'+x.id+')" data-role="'+playerRole(x)+'" class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+' '+enhancementLabel(x)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
+ const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="squad-role-guide">'+Object.entries(ROLE_TITLES).map(([r,name])=>'<span><i class="role-dot" style="--role-color:'+ROLE_COLORS[r]+'"></i>'+name+'</span>').join('')+'</div><div class="squad-chemistry"><strong>우리 팀 조직력 '+playerTeamComposition().chemistry+' / 100</strong><p>선발 배치와 선수 스탯이 실제 경기력에 반영됩니다.</p></div>'+squadLineupStrip()+'<div class="player-grid">'+squad.map(x=>'<button draggable="true" ondragstart="squadDragStart(event,'+x.id+')" data-role="'+playerRole(x)+'" class="player-card '+cardTierClass(overall(x))+' '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+' '+enhancementLabel(x)+'</strong>'+positionBadge(x)+injuryBadge(x)+'<small>LV.'+x.level+' · 종합 능력치</small><span class="squad-overall">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
  const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
  playerRadar(p)+injuryBadge(p)+'<div class="profile-stats"><span>컨디션<b>'+playerFitness(p)+'/100</b></span><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
  '<div class="jersey-config"><label>선수 등번호</label><input id="jersey-'+p.id+'" type="number" min="1" max="99" value="'+p.jerseyNumber+'"><button class="btn sub mini" onclick="changeJerseyNumber('+p.id+',document.getElementById(\'jersey-'+p.id+'\').value)">번호 저장</button></div><p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p>'+enhancementPanel(p)+'<div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup" data-cat="'+group+'">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="--stat-color:'+statColor(d[key])+';width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong class="ability-value '+statTier(d[key])+'">'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
@@ -1617,8 +1617,12 @@ function displaySimEventOnce(event){
  const h=document.createElement('div'),d=document.createElement('div');
  h.className='event-title';d.className='event-detail';
  h.textContent=event.title;d.textContent=event.detail;
- if(event.team!==null&&event.team!==undefined&&['goal','provisional','penalty','var','save'].includes(event.type)){
-  const c=clubs[event.team];if(c){const logo=document.createElement('div');logo.className='sim-flash-crest';logo.innerHTML=shield(c);el.appendChild(logo)}
+ const team=event.team!==null&&event.team!==undefined?clubs[event.team]:null;
+ if(team){
+  const brand=clubBrand(team);
+  el.style.borderColor=brand.primary;el.style.setProperty('--event-club-color',brand.primary);
+  const logo=document.createElement('div');logo.className='sim-flash-crest';logo.innerHTML=shield(team);el.appendChild(logo);
+  const teamLine=document.createElement('div');teamLine.className='event-team';teamLine.textContent=team.name;el.appendChild(teamLine);
  }
  el.appendChild(h);el.appendChild(d);document.body.appendChild(el);
  const id=event.id;
@@ -2203,22 +2207,42 @@ let enhancementBusy=false;
 function enhancementLevel(p){return Math.min(10,Math.max(1,Number(p?.enhancementLevel)||1))}
 function enhancementTier(p){return enhancementLevel(p)>=8?'gold':enhancementLevel(p)>=5?'silver':'bronze'}
 function enhancementLabel(p){return '<span class="enhancement-tier '+enhancementTier(p)+'">+'+enhancementLevel(p)+'</span>'}
+
+function showGameDialog(title,rows){
+ if(typeof document.createElement!=='function'||!document.body)return;
+ const prev=document.getElementById('elevos-game-dialog');if(prev&&prev.remove)prev.remove();
+ const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog';
+ el.innerHTML='<div class="game-dialog-content"><h3>'+txt(title)+'</h3>'+rows.map(([k,v])=>'<div class="cost-row"><span>'+txt(k)+'</span><strong>'+txt(v)+'</strong></div>').join('')+'<div style="display:flex;justify-content:flex-end;margin-top:22px"><button class="btn" onclick="dismissGameDialog()">확인</button></div></div>';
+ document.body.appendChild(el);
+}
+function dismissGameDialog(){document.getElementById('elevos-game-dialog')?.remove()}
 function enhancePlayer(id){
  const p=players.find(x=>x.id===id&&x.club===manager);
  if(!p||enhancementBusy||enhancementLevel(p)>=10)return;
  const current=enhancementLevel(p),target=current+1,cost=ENHANCE_COST[target];
- if(walletGBP<cost){if(typeof alert==='function')alert('강화 비용이 부족합니다: '+formatGBP(cost));return}
+ if(walletGBP<cost){
+  showGameDialog('강화 비용 부족',[['보유 금액',formatGBP(walletGBP)],['필요 비용',formatGBP(cost)],['부족 금액',formatGBP(cost-walletGBP)]]);
+  return;
+ }
  enhancementBusy=true;walletGBP-=cost;
  const success=Math.random()<ENHANCE_CHANCE[target];
  p.enhancementLevel=success?target:current>=5?current-1:current;
  save();render();
- if(typeof document.createElement==='function'&&document.body){
-  const el=document.createElement('div');el.id='enhancement-animation';el.className='enhancement-overlay';
-  el.innerHTML='<div class="enhancement-animation-card"><div class="enhancement-glow '+(success?'success':'fail')+'"></div><div class="eyebrow">PLAYER ENHANCEMENT</div><strong>'+txt(p.name)+'</strong><div class="enhancement-result">'+(success?'강화 성공!':'강화 실패')+'</div><div class="enhancement-sub">+'+current+' → +'+enhancementLevel(p)+' · '+formatGBP(cost)+'</div></div>';
-  document.body.appendChild(el);
-  setTimeout(()=>{el.remove();enhancementBusy=false;if(page==='squad')render()},1800);
- }else enhancementBusy=false;
+ const el=typeof document.createElement==='function'&&document.body?document.createElement('div'):null;
+ if(!el){enhancementBusy=false;return}
+ el.id='enhancement-animation';el.className='enhancement-overlay';
+ const tier=enhancementTier(p);
+ const loading='<div class="enhancement-animation-card"><div class="enhancement-glow"></div><div class="eyebrow">PLAYER ENHANCEMENT</div><strong class="enhancement-busy-title">'+txt(p.name)+'</strong><div style="font-size:22px;font-weight:800">+'+current+' → +'+target+'</div><div class="enhancement-progress"><i></i></div><small>강화를 진행하고 있습니다</small></div>';
+ el.innerHTML=loading;document.body.appendChild(el);
+ setTimeout(()=>{
+  if(!el.parentNode&&!el.isConnected&&typeof el.remove==='function'&&typeof document.getElementById==='function'&&document.getElementById('enhancement-animation')!==el){enhancementBusy=false;return}
+  const style='enhancement-tier '+tier;
+  el.innerHTML='<div class="enhancement-animation-card"><div class="enhancement-glow '+(success?'success':'fail')+'"></div><div class="eyebrow">ENHANCEMENT RESULT</div><div class="enhancement-result-shot">'+avatar(p,100)+'<div><strong style="font-size:19px">'+txt(p.name)+'</strong><div class="'+style+'" style="margin-top:9px">+'+enhancementLevel(p)+'</div></div></div><strong class="enhancement-result">'+(success?'강화 성공!':'강화 실패')+'</strong><div class="enhancement-sub">+'+current+' → +'+enhancementLevel(p)+' · '+formatGBP(cost)+'</div><button class="btn" onclick="closeEnhancementResult()">확인</button></div>';
+ },1800);
+ setTimeout(()=>{enhancementBusy=false;if(page==='squad')render()},1800);
 }
+function closeEnhancementResult(){document.getElementById('enhancement-animation')?.remove()}
+window.dismissGameDialog=dismissGameDialog;window.closeEnhancementResult=closeEnhancementResult;
 function enhancementPanel(p){
  const n=enhancementLevel(p),next=n+1;
  return '<section class="enhance-panel"><div class="row"><h3>선수 강화</h3>'+enhancementLabel(p)+'</div><p>1–4 브론즈 · 5–7 실버 · 8–10 골드. 강화 능력치는 실제 경기력에 반영됩니다.</p>'+
