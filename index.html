@@ -569,6 +569,9 @@ a{color:#202020}
 .home-quick-market{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 0 0;padding:12px;border:1px solid #e6e6e6;border-radius:8px;background:#fafafa}
 .home-quick-market strong{display:block;font-size:13px}
 .home-quick-market small{display:block;font-size:12px;color:#777;margin-top:4px}
+
+.sim-goal{background:repeating-linear-gradient(0deg,#ffffff18 0,#ffffff18 5px,#dfe5df77 6px,#ffffff18 7px),repeating-linear-gradient(90deg,transparent 0,transparent 5px,#f5f5f577 6px,transparent 7px);width:20px;height:35%;border:2px solid #fff}
+.sim-ball{filter:drop-shadow(0 1px 2px #2226)}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1433,10 +1436,13 @@ function minuteEvent(){
  if(simState.pendingVAR){resolveVAR();return}
  const h=clubs[simState.home],a=clubs[simState.away],hp=h.id===manager?simTeamPower():teamPower(h.id),ap=a.id===manager?simTeamPower():teamPower(a.id);
  const homeAdv=hp+2+(h.id===manager?tacticModifier():0),awayAdv=ap+(a.id===manager?tacticModifier():0);
- const homeChance=Math.max(.22,Math.min(.78,homeAdv/Math.max(1,homeAdv+awayAdv)));
+ const homeReds=simState.dismissals?.[h.id]||0,awayReds=simState.dismissals?.[a.id]||0;
+ const adjustedHome=Math.max(15,homeAdv-homeReds*7),adjustedAway=Math.max(15,awayAdv-awayReds*7);
+ const homeChance=Math.max(.22,Math.min(.78,adjustedHome/Math.max(1,adjustedHome+adjustedAway)));
  const homeSide=Math.random()<homeChance,attacker=homeSide?h:a,defender=homeSide?a:h;
- const quality=Math.max(.55,Math.min(1.45,(homeSide?homeAdv:awayAdv)/Math.max(1,homeSide?awayAdv:homeAdv)));
+ const quality=Math.max(.55,Math.min(1.45,(homeSide?adjustedHome:adjustedAway)/Math.max(1,homeSide?adjustedAway:adjustedHome)));
  const actor=randomMatchActor(homeSide),actorName=actor?.name||attacker.name;
+ const defensiveActor=randomMatchActor(!homeSide);
  const d=actor?detailed(actor):null;
  const finish=Math.max(.68,Math.min(1.40,d?(d.finishing+d.positioning+d.shotPower)/225:1));
  const create=Math.max(.70,Math.min(1.35,d?(d.shortPass+d.vision+d.firstTouch)/225:1));
@@ -1452,12 +1458,12 @@ function minuteEvent(){
   simEvent(attacker.id,actor,'var',attacker.name+' 페널티킥 여부 VAR 판독 중','VAR CHECK');
  }else if(roll<.027){
   simState.yellowCards=(simState.yellowCards||0)+1;
-  simEvent(defender.id,actor,'yellow',defender.name+' 수비 과정에서 경고를 받았습니다.','YELLOW CARD');
+  simEvent(defender.id,defensiveActor,'yellow',defender.name+' 수비 과정에서 경고를 받았습니다.','YELLOW CARD');
  }else if(roll<.029){
   simState.redCards=(simState.redCards||0)+1;
   if(!simState.dismissals)simState.dismissals={};
   simState.dismissals[defender.id]=(simState.dismissals[defender.id]||0)+1;
-  simEvent(defender.id,actor,'red',defender.name+' 퇴장! 남은 시간 10명으로 경기합니다.','RED CARD');
+  simEvent(defender.id,defensiveActor,'red',defender.name+' 퇴장! 남은 시간 10명으로 경기합니다.','RED CARD');
  }else if(roll<.062){
   simEvent(defender.id,actor,'foul',attacker.name+' 공격 과정에서 파울이 선언됩니다.');
  }else if(roll<.095*quality*finish){
@@ -1516,7 +1522,7 @@ function viewMatchSimulationWrapper(){
  const awayDots=slots.map((slot,i)=>{const baseX=myHome?slot.y:100-slot.y,wave=i===0?0:Math.sin((mins+i*7)/5)*2.5,x=Math.max(5,Math.min(95,baseX+wave)),y=Math.max(8,Math.min(92,slot.x+Math.cos((mins+i*5)/8)*1.8));return '<div class="sim-pawn away" style="left:'+x+'%;top:'+y+'%">'+(i+1)+'</div>'}).join('');
  const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
  const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'계속 진행')+'</button><button class="btn sub" onclick="stepSimulation()">+1분 진행</button>';
- return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/simTotalMinutes()*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%">⚽</div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 전후 추가시간과 후반 90분 이후 추가시간이 적용됩니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
+ return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/simTotalMinutes()*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 전후 추가시간과 후반 90분 이후 추가시간이 적용됩니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub','var','cancel','offside','foul'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState}))}
@@ -1540,7 +1546,7 @@ function updateSimTactic(v){
  save();render();
 }
 function substituteSimPlayer(){
- if(!simState||simState.club!==manager||simState.minute>=90)return;
+ if(!simState||simState.club!==manager||simState.minute>=simTotalMinutes())return;
  const inId=Number(document.getElementById('sim-sub-in')?.value??simSubIn);
  const outId=Number(document.getElementById('sim-sub-out')?.value??simSubOut);
  const lineup=simPlayerIds(),outIndex=lineup.indexOf(outId),squad=myPlayers();
