@@ -763,6 +763,24 @@ input::placeholder{color:#8b93a0!important}
 .sim-log-text{min-width:0;font-size:12px;line-height:1.5;color:#e9edf4}.sim-log-time{font-weight:800;font-size:12px;color:#e0e3e8}.sim-log-club{display:block;color:#aeb9c9;font-size:11px;margin:3px 0}
 .tactics-dragging .drag-spot{outline:1px dashed #a5b4c7;outline-offset:5px}.tactics-dragging .drag-spot:hover,.drag-spot.drag-over{background:#b6cce02e!important;outline:2px dashed #c5deff!important;outline-offset:7px;z-index:100}
 .tactics-dragging .drag-spot .face-tile{box-shadow:0 6px 25px #0009}.bench-person{cursor:grab}.bench-person:active{cursor:grabbing}.drag-spot{transition:transform .15s ease,background .15s ease}.drag-spot.drag-over{transform:translate(-50%,-50%) scale(1.08)}
+
+/* Dark result palettes and improved readable squad/market tiers */
+.match-result-page.is-win .match-complete{background:linear-gradient(105deg,#3b321b,#1b1f27 65%)!important;border-bottom:1px solid #766342!important;color:#fff!important}
+.match-result-page.is-loss .match-complete{background:linear-gradient(105deg,#22364d,#1a202a 65%)!important;border-bottom:1px solid #405b7e!important;color:#fff!important}
+.match-result-page.is-draw .match-complete{background:linear-gradient(105deg,#30343b,#1b2028 65%)!important;color:#fff!important}
+.match-result-page .fulltime,.match-result-page .fulltime-club,.match-result-page .match-full-score{color:#f2f4f7!important}
+.match-result-page.is-win .result-badge{background:linear-gradient(120deg,#6a5222,#a48539)!important;color:#fff!important}
+.match-result-page.is-loss .result-badge{background:linear-gradient(120deg,#233d70,#406caa)!important;color:#fff!important}
+.match-result-page.is-draw .result-badge{background:#4f5967!important;color:#fff!important}
+.transfer-card.tier-80{border-top:3px solid #d6b651!important}.transfer-card.tier-90{border-top:3px solid #b78ee5!important}.transfer-card.tier-100{border-top:3px solid #6be3cd!important}
+.player-card.tier-80{border-right:2px solid #a88b49!important}.player-card.tier-90{border-right:2px solid #a879ca!important}.player-card.tier-100{border-right:2px solid #64b6ac!important}
+.enhancement-details span{border-style:dashed!important}
+.enhancement-glow{background:linear-gradient(90deg,#60412b,#c5a273,#60412b)!important}
+.enhancement-glow.success{background:linear-gradient(90deg,#59471d,#f4d37b,#59471d)!important}
+.enhancement-glow.fail{background:linear-gradient(90deg,#474f5e,#9dabbc,#474f5e)!important}
+.sim-flash-crest{width:70px!important;height:78px!important}
+.sim-flash-crest .crest{width:68px!important;height:74px!important}
+.sim-event-overlay-fixed{border-left-color:color-mix(in srgb,var(--event-club-color,#a0a6b0) 65%,white)!important}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
