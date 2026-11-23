@@ -489,6 +489,32 @@ a{color:#202020}
 .result-mvp strong{font-size:16px;display:block;margin-bottom:6px}
 .result-mvp span{font-size:12px;color:#777}
 @media(max-width:700px){.result-event{grid-template-columns:37px 75px 1fr;font-size:12px}.game-reward .reward-choice{min-height:205px}}
+
+/* Football squad badges, more prominent portraits, compact labels */
+.drag-pitch{height:625px}
+.drag-spot{width:94px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.drag-spot .face-tile{width:62px!important;height:62px!important;border:3px solid var(--role-color,#fff)!important;border-radius:50%!important;box-shadow:0 2px 7px #0005}
+.drag-spot .face-fallback svg{width:62px;height:62px}
+.drag-spot .drag-position{position:absolute;top:0;left:calc(50% + 17px);z-index:4;padding:3px 5px;font-size:10px;font-weight:700;background:var(--role-color,#111)!important;color:var(--role-text,#fff)!important;line-height:1.1;border:1px solid #ffffffa8}
+.drag-spot .drag-label{max-width:84px;min-width:0;width:auto;display:block;background:#fff!important;color:#171717!important;padding:3px 7px;font-size:11px;line-height:1.25;border:1px solid #dedede;border-radius:5px;white-space:nowrap;box-shadow:0 1px 4px #0003}
+.drag-spot .drag-score{background:#fff;border:1px solid #ddd;font-weight:650;font-size:10px;padding:2px 5px;line-height:1}
+.drag-spot[data-role="FW"]{--role-color:#d84040;--role-text:#fff}
+.drag-spot[data-role="MF"]{--role-color:#3185dc;--role-text:#fff}
+.drag-spot[data-role="DF"]{--role-color:#a3db61;--role-text:#172311}
+.drag-spot[data-role="GK"]{--role-color:#edc53f;--role-text:#201c0a}
+.bench-person{border-left:4px solid var(--role-color,#ddd)}
+.bench-person[data-role="FW"]{--role-color:#d84040}
+.bench-person[data-role="MF"]{--role-color:#3185dc}
+.bench-person[data-role="DF"]{--role-color:#a3db61}
+.bench-person[data-role="GK"]{--role-color:#edc53f}
+.tactics-change-feedback{padding:11px 14px;background:#f3f3f3;border:1px solid #ccc;border-radius:7px;margin:11px 0;font-size:13px;font-weight:650}
+.sim-major-event.sub{border-color:#25895a}
+.sim-major-event.sub .event-title{color:#16764c;font-size:25px}
+.sim-line.sub{border-left:4px solid #259964;background:#eef8f1;padding-left:10px;font-weight:600}
+.sim-sub-notice{border:1px solid #b6d8c3;border-radius:8px;padding:12px;background:#f0f8f3;margin-top:11px}
+.sim-sub-notice strong{color:#16764c;font-size:13px;display:block}
+.sim-sub-notice span{font-size:12px;line-height:1.5;color:#333;display:block;margin-top:4px}
+@media(max-width:640px){.drag-pitch{height:520px}.drag-spot{width:70px}.drag-spot .face-tile,.drag-spot .face-fallback svg{width:45px!important;height:45px!important}.drag-spot .drag-label{max-width:70px;font-size:10px;padding:3px 4px}.drag-spot .drag-position{left:calc(50% + 11px)}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1213,6 +1239,7 @@ function save(){
 
 
 /* DnD player positioning: swapping starters and dropping bench players on a slot. */
+let lastTacticsChange=null;
 let dragSource=null;
 function tacticsDragStart(e,sourceType,sourceId){
  dragSource={type:sourceType,id:sourceId};
@@ -1225,6 +1252,7 @@ function tacticsDrop(e,slotIndex){
  if(!source&&e?.dataTransfer){let data=e.dataTransfer.getData('text/plain').split(':');source={type:data[0],id:Number(data[1])}}
  dragSource=null;if(!source||manager===null)return;
  let lineup=currentLineup();
+ const previous=lineup[slotIndex];
  if(source.type==='slot'){
   const from=Number(source.id);
   if(!Number.isInteger(from)||from<0||from>10||from===slotIndex)return;
@@ -1236,6 +1264,8 @@ function tacticsDrop(e,slotIndex){
   if(was!==-1)lineup[was]=lineup[slotIndex];
   lineup[slotIndex]=id;
  }
+ const outgoing=players.find(p=>p.id===previous),incoming=players.find(p=>p.id===lineup[slotIndex]);
+ if(previous!==lineup[slotIndex]&&incoming)lastTacticsChange='교체 · '+(outgoing?.name||'빈 자리')+' OUT → '+incoming.name+' IN';
  save();render();
 }
 function viewTactics(){
@@ -1245,11 +1275,11 @@ function viewTactics(){
  const pitch=slots.map((slot,i)=>{
   const p=players.find(x=>x.id===lineup[i]);
   const contribution=p?Math.round(overall(p)*positionFit(p,slot.r)):0;power+=contribution;
-  return '<div class="drag-spot" draggable="true" ondragstart="tacticsDragStart(event,\'slot\','+i+')" ondragover="tacticsDragOver(event)" ondrop="tacticsDrop(event,'+i+')" style="left:'+slot.x+'%;top:'+slot.y+'%" title="드래그해서 선발 선수 위치 교체"><span class="drag-position">'+slot.r+'</span><div>'+(p?avatar(p,45):'<span class="playerdot">?</span>')+'</div><div class="drag-label">'+(p?txt(p.name.split(' ').slice(-1)[0]):'빈 자리')+'</div><div class="drag-score">'+contribution+'</div></div>'
+  return '<div class="drag-spot" data-role="'+ROLE_FAMILY[slot.r]+'" draggable="true" ondragstart="tacticsDragStart(event,\'slot\','+i+')" ondragover="tacticsDragOver(event)" ondrop="tacticsDrop(event,'+i+')" style="left:'+slot.x+'%;top:'+slot.y+'%" title="드래그해서 선발 선수 위치 교체"><span class="drag-position">'+slot.r+'</span><div>'+(p?avatar(p,62):'<span class="playerdot">?</span>')+'</div><div class="drag-label">'+(p?txt(p.name.split(' ').slice(-1)[0]):'빈 자리')+'</div><div class="drag-score">'+contribution+'</div></div>'
  }).join('');
  const reserves=squad.filter(p=>!used.has(p.id)).sort((a,b)=>overall(b)-overall(a));
  return '<div class="grid two"><section class="card"><div class="row"><h2>선수 포메이션</h2><button class="btn sub mini" onclick="resetLineup()">자동 선발</button></div><p class="drop-note">선수를 마우스로 드래그해 다른 선수와 위치를 교체하세요. 오른쪽 후보 선수도 경기장 위로 드래그할 수 있어요.</p><div class="chips">'+Object.keys(FORMATIONS).map(k=>'<button class="chip '+(formation===k?'on':'')+'" onclick="setFormation(\''+k+'\')">'+({433:'4-3-3',4231:'4-2-3-1',442:'4-4-2',352:'3-5-2',343:'3-4-3'}[k])+'</button>').join('')+'</div><div class="pitch drag-pitch"><div class="half"></div>'+pitch+'</div><div class="lineup-stats"><span>선발 '+lineup.filter(Boolean).length+' / 11명</span><span>예상 전력 '+Math.round(power/11)+'</span><span>최대 능력치 120</span></div></section>'+
- '<section class="card"><h2>선발·후보 선수</h2><p class="muted small">위치를 드래그하거나 아래에서 직접 선수를 변경할 수 있어요.</p><div style="max-height:445px;overflow:auto">'+slots.map((slot,i)=>'<div class="slotpick"><span class="tag">'+slot.r+'</span><select aria-label="'+slot.r+' 선발 선수" onchange="setSlot('+i+',this.value)">'+squad.slice().sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r)).map(p=>'<option value="'+p.id+'" '+(p.id===lineup[i]?'selected':'')+'>'+txt(p.name)+' · '+p.pos+' '+overall(p)+'</option>').join('')+'</select></div>').join('')+'</div><h2 style="margin:20px 0 5px">후보 선수</h2><div class="bench-grid">'+reserves.map(p=>'<div class="bench-person" draggable="true" ondragstart="tacticsDragStart(event,\'player\','+p.id+')" title="경기장 선수 위에 드롭">'+avatar(p,36)+'<span>'+txt(p.name)+' · '+p.pos+'</span></div>').join('')+'</div><h2 style="margin-top:20px">팀 전술</h2><div class="setting"><label>경기 운영</label><select onchange="setTactic(this.value)"><option value="balanced" '+(tactic==='balanced'?'selected':'')+'>균형</option><option value="attack" '+(tactic==='attack'?'selected':'')+'>공격적</option><option value="defend" '+(tactic==='defend'?'selected':'')+'>수비적</option></select></div><div class="setting"><label>압박 <span id="pressnum">'+pressure+'</span></label><input type="range" min="10" max="90" step="5" value="'+pressure+'" oninput="setPressure(this.value)"></div><button class="btn" style="width:100%;margin-top:14px" onclick="go(\'match\')">경기 준비 완료</button></section></div>';
+ '<section class="card"><h2>선발·후보 선수</h2><p class="muted small">위치를 드래그하거나 아래에서 직접 선수를 변경할 수 있어요.</p><div style="max-height:445px;overflow:auto">'+slots.map((slot,i)=>'<div class="slotpick"><span class="tag">'+slot.r+'</span><select aria-label="'+slot.r+' 선발 선수" onchange="setSlot('+i+',this.value)">'+squad.slice().sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r)).map(p=>'<option value="'+p.id+'" '+(p.id===lineup[i]?'selected':'')+'>'+txt(p.name)+' · '+p.pos+' '+overall(p)+'</option>').join('')+'</select></div>').join('')+'</div><h2 style="margin:20px 0 5px">후보 선수</h2><div class="bench-grid">'+reserves.map(p=>'<div class="bench-person" data-role="'+ROLE_FAMILY[p.pos]+'" draggable="true" ondragstart="tacticsDragStart(event,\'player\','+p.id+')" title="경기장 선수 위에 드롭">'+avatar(p,36)+'<span>'+txt(p.name)+' · '+p.pos+'</span></div>').join('')+'</div><h2 style="margin-top:20px">팀 전술</h2><div class="setting"><label>경기 운영</label><select onchange="setTactic(this.value)"><option value="balanced" '+(tactic==='balanced'?'selected':'')+'>균형</option><option value="attack" '+(tactic==='attack'?'selected':'')+'>공격적</option><option value="defend" '+(tactic==='defend'?'selected':'')+'>수비적</option></select></div><div class="setting"><label>압박 <span id="pressnum">'+pressure+'</span></label><input type="range" min="10" max="90" step="5" value="'+pressure+'" oninput="setPressure(this.value)"></div><button class="btn" style="width:100%;margin-top:14px" onclick="go(\'match\')">경기 준비 완료</button></section></div>';
 }
 /* Match simulation: each tick represents exactly one simulated minute.
    Player abilities and tactics affect attack and scoring chance; final score is committed once at 90'. */
@@ -1349,7 +1379,7 @@ function viewMatchSimulationWrapper(){
  const major=showableMajorEvent();
  const overlay=major?'<div class="sim-major-event '+major.type+'" aria-live="polite"><div class="event-title">'+major.title+'</div><div class="event-detail">'+txt(major.detail)+'</div><div class="event-minute">'+major.minute+"'"+'</div></div>':'';
  const button=mins===90?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'계속 진행')+'</button><button class="btn sub" onclick="stepSimulation()">+1분 진행</button>';
- return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+mins+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/90*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 하프타임 후에도 이어집니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(e.type==='goal'?'goal':'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
+ return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+mins+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/90*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 하프타임 후에도 이어집니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(['goal','yellow','red','sub'].includes(e.type)?e.type:'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState}))}
@@ -1386,7 +1416,10 @@ function substituteSimPlayer(){
  const outbound=players.find(p=>p.id===outId),inbound=players.find(p=>p.id===inId);
  if(!simState.substitutions)simState.substitutions=[];
  simState.substitutions.push({minute:simState.minute,out:outId,in:inId});
- simState.log.unshift({minute:simState.minute,type:'sub',text:'선수 교체: '+(outbound?.name||'선수')+' OUT / '+(inbound?.name||'선수')+' IN'});
+ const subMessage=(outbound?.name||'선수')+' OUT  →  '+(inbound?.name||'선수')+' IN';
+ simState.majorEvent={minute:simState.minute,type:'sub',title:'SUBSTITUTION',detail:subMessage};
+ simState.lastSubNotice={minute:simState.minute,text:subMessage};
+ simState.log.unshift({minute:simState.minute,type:'sub',text:'선수 교체: '+subMessage});
  save();render();
 }
 function simTeamPower(){
@@ -1406,6 +1439,7 @@ function simCoachingPanel(){
  ].map(([v,label])=>'<button class="'+(instruction===v?'selected':'')+'" onclick="updateSimTactic(\''+v+'\')">'+label+'</button>').join('')+'</div><h3>선수 교체 <span style="color:#888;font-size:12px">('+subs.length+'/5)</span></h3>'+
  '<div class="coach-action"><select onpointerdown="pauseSimulation()" onfocus="pauseSimulation()" id="sim-sub-out" aria-label="교체 아웃">'+outs.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select><span>⇄</span><select onpointerdown="pauseSimulation()" onfocus="pauseSimulation()" id="sim-sub-in" aria-label="교체 인">'+available.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select></div>'+
  '<button class="btn" style="width:100%" '+(subs.length>=5||!available.length?'disabled':'')+' onclick="substituteSimPlayer()">선수 교체 확정</button><p class="coaching-note">교체 선수를 고르면 경기가 자동으로 일시정지됩니다. 교체 또는 전술 변경 후 ‘계속 진행’을 눌러주세요. 최대 5명 교체할 수 있습니다.</p>'+
+ (simState.lastSubNotice&&simState.minute-simState.lastSubNotice.minute<=3?'<div class="sim-sub-notice"><strong>↔ 교체 완료</strong><span>'+txt(simState.lastSubNotice.text)+'</span></div>':'')+
  (subs.length?'<div class="sim-subrecent">'+subs.slice(-2).map(x=>x.minute+"' 교체 "+txt(players.find(p=>p.id===x.in)?.name||'선수')).join(' · ')+'</div>':'')+'</div>';
 }
 window.updateSimTactic=updateSimTactic;window.substituteSimPlayer=substituteSimPlayer;
