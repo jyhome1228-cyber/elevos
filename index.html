@@ -591,21 +591,19 @@ function updateNickname(s){setupNickname=s}
 function setupChooseLeague(i){selectedLeague=i;setupClubId=null;render()}
 function setupChooseClub(i){setupClubId=i;render()}
 function startWithClub(){
- const nick=(document.getElementById('setup-nickname')?.value||setupNickname||'').trim();
- if(nick.length<2||nick.length>24){const box=document.getElementById('setup-message');if(box)box.textContent='닉네임은 2~24자로 입력해 주세요.';return}
  const club=clubs.find(c=>c.id===setupClubId&&c.league===selectedLeague);
  if(!club){const box=document.getElementById('setup-message');if(box)box.textContent='먼저 참가할 구단을 선택해 주세요.';return}
- coachName=nick;setupNickname=nick;createdClub=false;manager=club.id;
- selectedLeague=club.league;currentLineup();page='dashboard';save();render()
+ createdClub=false;coachName='';manager=club.id;
+ selectedLeague=club.league;currentLineup();page='dashboard';save();render();
 }
 function viewStart(){
  if(setupClubId===null||!clubs.some(c=>c.id===setupClubId&&c.league===selectedLeague)){setupClubId=clubs.filter(c=>c.league===selectedLeague)[0]?.id??null}
  const selected=clubs.find(c=>c.id===setupClubId);
  const squad=selected?players.filter(p=>p.club===selected.id).sort((a,b)=>overall(b)-overall(a)):[];
- const steps='<div class="career-steps"><span class="current">닉네임 설정</span><span class="current">리그 선택</span><span class="current">구단 선택</span><span>선수단 확인</span></div>';
+ const steps='<div class="career-steps"><span class="current">리그 선택</span><span class="current">구단 선택</span><span>선수단 확인</span></div>';
  return '<div class="start-layout"><div><section class="card">'+steps+
- '<h2>감독 커리어 시작</h2><p class="muted">닉네임을 정하고 원하는 구단을 선택하세요. 각 구단에는 기본 선수 23명이 이미 배정되어 있습니다.</p>'+
- '<label for="setup-nickname" style="display:block;margin:18px 0 8px;font-weight:600">감독 닉네임</label><input id="setup-nickname" class="nickname-input" maxlength="24" placeholder="사용할 닉네임 입력" value="'+safeName(setupNickname)+'" oninput="updateNickname(this.value)"></section>'+
+ '<h2>구단 선택</h2><p class="muted">국가와 리그를 고른 다음 운영할 구단을 선택하세요. 가상 구단마다 기본 선수 23명이 준비되어 있습니다.</p>'+
+ '</section>'+
  '<section class="card"><h2>국가 · 리그 선택</h2><div class="league-choice">'+LEAGUES.map((l,i)=>'<button class="'+(selectedLeague===i?'chosen':'')+'" onclick="setupChooseLeague('+i+')">'+COUNTRY_FLAGS[l[0]]+' '+l[0]+' '+l[2]+'부</button>').join('')+'</div>'+
  '<div class="start-toolbar"><div><h2 style="margin:0 0 4px">'+txt(LEAGUES[selectedLeague][1])+'</h2><div class="muted small">12개 구단 · 22라운드 · 기존 구단 선택</div></div><span class="tag">CLUB SELECTION</span></div>'+
  '<div class="team-grid">'+clubs.filter(c=>c.league===selectedLeague).map(c=>'<button class="team-tile '+(c.id===setupClubId?'chosen':'')+'" onclick="setupChooseClub('+c.id+')">'+shield(c)+'<span style="min-width:0"><strong>'+txt(c.name)+'</strong><small>구단 전력 '+c.rating+' · 선수 23명</small></span></button>').join('')+'</div></section></div>'+
@@ -997,10 +995,12 @@ function updateDisplayLanguage(lang){
   l[1]=displayLanguage==='ko'?LEAGUE_NAMES_KO[i]:l.nameEn;
  }
  for(const c of clubs){
-  if(!c.nameEn)c.nameEn=c.name;
-  const canonical=LEAGUES[c.league]?.[3]?.includes(c.nameEn)?c.nameEn:c.nameEn;
-  // Club ID is stable even after transfers and promotion.
-  const localeClub=CLUB_NAMES_KO[Math.floor(c.id/12)]?.[c.id%12];
+  // Immutable club identity is based on its original league/slot ID.
+  // This repairs older saved careers containing user-entered or real-club names.
+  const originalLeagueIndex=Math.floor(c.id/12),originalSlot=c.id%12;
+  const canonical=LEAGUES[originalLeagueIndex]?.[3]?.[originalSlot]||c.nameEn||c.name;
+  c.nameEn=canonical;
+  const localeClub=CLUB_NAMES_KO[originalLeagueIndex]?.[originalSlot];
   c.name=displayLanguage==='ko'?(localeClub||canonical):canonical;
  }
  for(const p of players){
@@ -1033,7 +1033,7 @@ function viewDashboard(){
  '<div class="home-actions"><button class="home-action" onclick="go(\'squad\')"><span class="action-ic">♟</span><strong>선수단 육성</strong><span>선수 능력치 · 레벨업</span></button><button class="home-action" onclick="go(\'market\')"><span class="action-ic">⇄</span><strong>이적시장</strong><span>선수 검색 · 영입</span></button><button class="home-action" onclick="go(\'league\')"><span class="action-ic">▦</span><strong>리그 일정</strong><span>순위 · 경기 기록</span></button></div>'+
  '<section class="card" style="margin-top:14px"><div class="home-heading"><h2>우리 팀 핵심 선수</h2><button class="btn sub mini" onclick="go(\'squad\')">전체 선수단</button></div><div class="home-featured-players">'+squad.slice(0,4).map(p=>'<div class="home-player">'+avatar(p,100)+'<strong>'+txt(p.name)+'</strong><small>'+p.pos+' · 능력 '+overall(p)+'</small></div>').join('')+'</div></section></div>';
  const side='<aside class="home-right"><section class="card"><div class="eyebrow">MY CLUB</div><div class="home-club-identity">'+shield(club)+'<div><strong>'+txt(club.name)+'</strong><small>'+txt(LEAGUES[club.league][1])+'</small></div></div>'+
- '<div class="home-datum"><span>감독</span><strong>'+txt(coachName||'감독')+'</strong></div><div class="home-datum"><span>리그 순위</span><strong>'+rank+'위</strong></div><div class="home-datum"><span>현재 전적</span><strong>'+stats.w+'승 '+stats.d+'무 '+stats.l+'패</strong></div><div class="home-datum"><span>보유 선수</span><strong>'+squad.length+'명</strong></div><div class="home-datum"><span>구단 예산</span><strong>'+formatGBP(walletGBP)+'</strong></div>'+
+ '<div class="home-datum"><span>소속 리그</span><strong>'+txt(LEAGUES[club.league][1])+'</strong></div><div class="home-datum"><span>리그 순위</span><strong>'+rank+'위</strong></div><div class="home-datum"><span>현재 전적</span><strong>'+stats.w+'승 '+stats.d+'무 '+stats.l+'패</strong></div><div class="home-datum"><span>보유 선수</span><strong>'+squad.length+'명</strong></div><div class="home-datum"><span>구단 예산</span><strong>'+formatGBP(walletGBP)+'</strong></div>'+
  '<div class="home-progress"><div class="row"><strong style="font-size:12px">시즌 진행</strong><span class="muted small">'+round+' / 22</span></div><div class="home-progress-meter"><span style="width:'+Math.min(100,round/22*100)+'%"></span></div></div></section>'+
  '<section class="card"><div class="home-heading"><h2>구단 소식</h2><span class="tag">NEWS</span></div><div class="home-news"><strong>다음 경기 준비</strong><p>'+(next?'전술을 확인하고 '+txt(away.id===manager?home.name:away.name)+'과(와) 경기를 진행하세요.':'다음 시즌을 준비하세요.')+'</p></div><div class="home-news"><strong>선수 육성</strong><p>경기 경험치를 모아 세부 능력치를 최대 120까지 성장시킬 수 있어요.</p></div><div class="home-news"><strong>경기 후 보상</strong><p>'+(pendingReward?.club===manager?'선택하지 않은 추가 보상이 남아 있어요.':'경기를 끝내면 3가지 추가 보상 중 하나를 고를 수 있어요.')+'</p></div></section></aside>';
  return intro+'<div class="elevos-home">'+main+side+'</div><div class="home-bottom">'+classicDock()+'</div>';
@@ -1093,5 +1093,6 @@ function save(){
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
+createdClub=false;
 render();
 </script></body></html>
