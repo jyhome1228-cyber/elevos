@@ -662,7 +662,7 @@ function classicDock(){
  const items=[['dashboard','⌂','대시보드'],['squad','♟','선수단'],['tactics','▦','전술'],['match','▶','경기진행'],['league','▤','리그일정'],['market','⇄','이적시장']];
  return '<nav class="classic-dock" aria-label="게임 바로가기">'+items.map(([id,icon,label])=>'<button class="'+(page===id?'active':'')+'" onclick="go(\''+id+'\')"><span class="dock-icon" aria-hidden="true">'+icon+'</span>'+label+'</button>').join('')+'</nav>'
 }
-function viewDashboard(){
+function viewDashboardClassic(){
  if(manager===null)return viewStart();
  const c=own(),l=LEAGUES[c.league],p=points[manager],ranked=standing(c.league),rank=ranked.findIndex(x=>x.id===manager)+1;
  const games=fixtures[c.league]?.[round]||[],m=games.find(pair=>pair.includes(manager));
@@ -731,7 +731,7 @@ function contextualGuide(){
  const h=pageHelp[page];if(!h)return '';
  return '<div class="firstplay-context"><div><strong>'+h[0]+'</strong><span>'+h[1]+'</span></div><button class="btn sub mini" onclick="go(\''+h[2]+'\')">'+h[3]+'</button></div>'
 }
-const classicLobbyView=viewDashboard;
+const classicLobbyView=viewDashboardClassic;
 function viewDashboard(){return guideCard()+classicLobbyView()+(tutorialDismissed?'<div style="text-align:right;margin-top:9px"><button class="firstplay-hide" onclick="showTutorial()">처음 시작 안내 다시 보기</button></div>':'')}
 window.hideTutorial=hideTutorial;
 window.showTutorial=showTutorial;
