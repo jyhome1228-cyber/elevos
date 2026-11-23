@@ -326,6 +326,46 @@ a{color:#202020}
 .header-right{display:flex;align-items:center;gap:12px}
 @media(max-width:900px){.elevos-home{grid-template-columns:1fr}.home-right{display:grid;grid-template-columns:1fr 1fr;gap:14px}.home-right>.card{margin:0}}
 @media(max-width:640px){.home-matchup{grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:5px}.home-matchup-side .crest{width:55px!important;height:65px!important}.home-matchup-side strong{font-size:13px}.home-match-actions{flex-direction:column;align-items:stretch}.home-match-actions .btn.sub{flex:1}.home-actions{grid-template-columns:1fr}.home-action{min-height:70px}.home-right{display:block}.home-right>.card{margin-bottom:12px}.home-getting-started{flex-direction:column;align-items:stretch}.home-player strong{font-size:11px}.header-right>small{display:none}}
+
+/* Player-focused squad and transfer market screens */
+.player-screen{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:15px;align-items:start}
+.player-screen .card{margin:0}
+.player-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.player-card{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e2e2;background:#fff;border-radius:8px;color:#1e1e1e;text-align:left;cursor:pointer;min-width:0}
+.player-card:hover,.player-card.active{background:#f4f4f4;border-color:#777}
+.player-card .face-tile{width:65px!important;height:65px!important}
+.player-card .face-fallback svg{width:65px;height:65px}
+.player-card strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-card small{display:block;color:#777;margin-top:5px;font-size:12px}
+.player-card .ovr{font-size:20px;font-weight:700;color:#272727}
+.player-card span:last-child{min-width:0;flex:1}
+.player-profile{display:flex;align-items:center;gap:15px;padding-bottom:15px;border-bottom:1px solid #e6e6e6}
+.player-profile .face-tile{width:108px!important;height:108px!important}
+.player-profile .face-fallback svg{width:108px;height:108px}
+.player-profile h2{font-size:19px;margin:3px 0 7px}
+.player-profile-ovr{font-size:29px;font-weight:750;margin-left:auto}
+.profile-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:15px 0}
+.profile-stats span{background:#f7f7f7;padding:9px 10px;border-radius:6px;font-size:12px;color:#555}
+.profile-stats b{display:block;color:#222;font-size:14px;margin-top:4px}
+.player-profile-list{max-height:460px;overflow:auto;padding-right:8px}
+.player-stat-row{display:grid;grid-template-columns:104px minmax(0,1fr) 28px 44px;gap:9px;align-items:center;padding:7px 0;font-size:13px}
+.player-stat-row .bar{height:6px}
+.player-stat-row button{padding:5px 7px}
+.transfer-toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:15px 0}
+.transfer-toolbar input,.transfer-toolbar select{background:#fff;border:1px solid #dadada;border-radius:7px;padding:10px;color:#222;font-size:13px}
+.transfer-toolbar input{flex:1;min-width:160px}
+.transfer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.transfer-card{border:1px solid #e0e0e0;border-radius:9px;background:#fff;padding:14px}
+.transfer-face{display:flex;align-items:center;gap:13px}
+.transfer-face .face-tile{width:78px!important;height:78px!important}
+.transfer-face .face-fallback svg{width:78px;height:78px}
+.transfer-face strong{font-size:14px;display:block;margin:0 0 7px}
+.transfer-face small{font-size:12px;color:#777;display:block}
+.transfer-club{display:flex;align-items:center;gap:8px;font-size:12px;color:#666;margin:12px 0;padding-top:12px;border-top:1px solid #ededed}
+.transfer-club .crest{width:24px!important;height:29px!important}
+.transfer-card .row{font-size:13px}
+@media(max-width:1120px){.player-screen{grid-template-columns:1fr}.player-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.transfer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.player-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.transfer-grid{grid-template-columns:1fr}.player-card .face-tile{width:52px!important;height:52px!important}.player-card .face-fallback svg{width:52px;height:52px}.player-card strong{font-size:12px}.player-profile{gap:10px}.player-profile .face-tile{width:80px!important;height:80px!important}.player-profile .face-fallback svg{width:80px;height:80px}.player-stat-row{grid-template-columns:86px minmax(0,1fr) 25px 41px;gap:5px}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -903,7 +943,7 @@ function recruitYouthPlayer(){
  const id=Math.max(...players.map(p=>p.id))+1;
  const base=Math.max(45,Math.min(75,Math.round(own().rating-9+rand(-6,6))));
  const p={id,club:manager,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(17,21),level:1,xp:0,pts:0,potential:Math.min(120,base+rand(15,32)),stats:{pace:Math.min(95,base+rand(-5,6)),shoot:Math.min(95,base+rand(-5,6)),pass:Math.min(95,base+rand(-5,6)),defend:Math.min(95,base+rand(-5,6)),physical:Math.min(95,base+rand(-5,6))}};
- playerBio(p);players.push(p);return p.name+' ('+p.pos+') 영입 완료';
+ playerBio(p);p.nameEn=p.name;if(displayLanguage==='ko')p.name=playerKorean(p.nameEn);players.push(p);return p.name+' ('+p.pos+') 영입 완료';
 }
 function claimReward(option){
  if(!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
@@ -990,6 +1030,34 @@ function viewDashboard(){
  '<section class="card"><div class="home-heading"><h2>구단 소식</h2><span class="tag">NEWS</span></div><div class="home-news"><strong>다음 경기 준비</strong><p>'+(next?'전술을 확인하고 '+txt(away.id===manager?home.name:away.name)+'과(와) 경기를 진행하세요.':'다음 시즌을 준비하세요.')+'</p></div><div class="home-news"><strong>선수 육성</strong><p>경기 경험치를 모아 세부 능력치를 최대 120까지 성장시킬 수 있어요.</p></div><div class="home-news"><strong>경기 후 보상</strong><p>'+(pendingReward?.club===manager?'선택하지 않은 추가 보상이 남아 있어요.':'경기를 끝내면 3가지 추가 보상 중 하나를 고를 수 있어요.')+'</p></div></section></aside>';
  return intro+'<div class="elevos-home">'+main+side+'</div><div class="home-bottom">'+classicDock()+'</div>';
 }
+
+
+/* Squad and transfer cards. Same original growth and purchase logic. */
+let marketPosition='ALL',marketSearch='';
+function viewSquad(){
+ if(manager===null)return viewStart();
+ const squad=myPlayers().slice().sort((a,b)=>overall(b)-overall(a));
+ if(!squad.length)return '<div class="card">소속 선수가 없습니다.</div>';
+ if(selectedPlayer===null||!squad.some(p=>p.id===selectedPlayer))selectedPlayer=squad[0].id;
+ const p=squad.find(p=>p.id===selectedPlayer),d=detailed(p);playerBio(p);
+ const roster='<section class="card"><div class="row"><div><div class="eyebrow">MY SQUAD</div><h2 style="margin:6px 0">선수단 · '+squad.length+'명</h2></div><span class="tag">선수를 선택하세요</span></div><div class="player-grid">'+squad.map(x=>'<button class="player-card '+(x.id===selectedPlayer?'active':'')+'" onclick="selectPlayer('+x.id+')">'+avatar(x,65)+'<span><strong>'+txt(x.name)+'</strong><small>'+x.pos+' · LV.'+x.level+'</small><span class="ovr">'+overall(x)+'</span></span></button>').join('')+'</div></section>';
+ const profile='<section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="player-profile">'+avatar(p,108)+'<div><h2>'+txt(p.name)+'</h2><p class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</p><span class="tag">잔여 '+p.pts+' PT</span></div><div class="player-profile-ovr">'+overall(p)+'</div></div>'+
+ '<div class="profile-stats"><span>국적<b>'+txt(p.nationality)+'</b></span><span>주발<b>'+txt(p.foot)+'</b></span><span>신체<b>'+p.height+'cm · '+p.weight+'kg</b></span><span>경험치<b>'+p.xp+' / 100 XP</b></span></div>'+
+ '<p class="muted small">능력치 상한 120 · 레벨업 시 3포인트 · 원하는 스탯을 +1씩 올리세요.</p><div class="player-profile-list">'+Object.entries(ATTRIBUTE_GROUPS).map(([group,attrs])=>'<div class="statgroup">'+group+'</div>'+attrs.map(([key,label])=>'<div class="player-stat-row"><span>'+label+'</span><div class="bar"><i style="width:'+Math.min(100,d[key]/120*100)+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=120?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'</div></section>';
+ return '<div class="player-screen">'+roster+profile+'</div>';
+}
+function setMarketPosition(v){marketPosition=v;render()}
+function applyMarketSearch(){marketSearch=(document.getElementById('market-query')?.value||'').trim().toLowerCase();render()}
+function viewMarket(){
+ if(manager===null)return viewStart();
+ const candidates=players.filter(p=>p.club!==manager&&(marketPosition==='ALL'||p.pos===marketPosition)&&(!marketSearch||p.name.toLowerCase().includes(marketSearch)||(p.nameEn||'').toLowerCase().includes(marketSearch)))
+ .sort((a,b)=>overall(b)-overall(a)).slice(0,24);
+ return '<section class="card"><div class="row"><div><div class="eyebrow">TRANSFER MARKET</div><h2 style="margin:6px 0">이적시장</h2></div><span class="tag">보유 예산 '+Math.round(own().cash/1000000)+'M</span></div><p class="muted small">필요한 포지션의 선수를 찾아 팀을 강화하세요. 선택한 선수의 이름과 능력치는 이적 후에도 유지됩니다.</p>'+
+ '<div class="transfer-toolbar"><input id="market-query" placeholder="선수 이름 검색" value="'+txt(marketSearch).replaceAll('"','&quot;')+'" onkeydown="if(event.key===\'Enter\')applyMarketSearch()"><select onchange="setMarketPosition(this.value)">'+['ALL','GK','CB','RB','LB','CDM','CM','CAM','LW','RW','ST'].map(x=>'<option value="'+x+'" '+(marketPosition===x?'selected':'')+'>'+(x==='ALL'?'전체 포지션':x)+'</option>').join('')+'</select><button class="btn" onclick="applyMarketSearch()">검색</button></div>'+
+ '<div class="transfer-grid">'+candidates.map(p=>{const fee=Math.max(1,Math.round((overall(p)-50)*1.2))*1000000;return '<article class="transfer-card"><div class="transfer-face">'+avatar(p,78)+'<div style="min-width:0"><strong>'+txt(p.name)+'</strong><small>'+p.pos+' · '+p.age+'세</small><small>능력치 '+overall(p)+'</small></div></div><div class="transfer-club">'+shield(clubs[p.club])+'<span>'+txt(clubs[p.club].name)+'</span></div><div class="row"><strong>이적료 '+Math.round(fee/1000000)+'M</strong><button class="btn mini" '+(fee>own().cash?'disabled':'')+' onclick="buy('+p.id+','+fee+')">'+(fee>own().cash?'예산 부족':'영입')+'</button></div></article>'}).join('')+'</div>'+
+ (candidates.length?'':'<div class="notice">검색 조건에 맞는 선수가 없습니다.</div>')+'</section>'
+}
+window.setMarketPosition=setMarketPosition;window.applyMarketSearch=applyMarketSearch;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
