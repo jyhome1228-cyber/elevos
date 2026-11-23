@@ -366,7 +366,13 @@ a{color:#202020}
 .transfer-card .row{font-size:13px}
 @media(max-width:1120px){.player-screen{grid-template-columns:1fr}.player-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.transfer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.player-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.transfer-grid{grid-template-columns:1fr}.player-card .face-tile{width:52px!important;height:52px!important}.player-card .face-fallback svg{width:52px;height:52px}.player-card strong{font-size:12px}.player-profile{gap:10px}.player-profile .face-tile{width:80px!important;height:80px!important}.player-profile .face-fallback svg{width:80px;height:80px}.player-stat-row{grid-template-columns:86px minmax(0,1fr) 25px 41px;gap:5px}}
-</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
+
+/* Sterling game currency — wallet is player-owned, not real money */
+.wallet-header{display:flex;align-items:center;gap:10px;border:1px solid #dedede;border-radius:7px;padding:8px 13px;background:#fafafa;white-space:nowrap}
+.wallet-caption{font-size:12px;color:#777}
+.wallet-header strong{font-size:17px;color:#171717;font-weight:750;font-variant-numeric:tabular-nums}
+@media(max-width:620px){.wallet-header{padding:7px 9px;gap:6px}.wallet-caption{display:none}.wallet-header strong{font-size:15px}.header-right{gap:7px}.name-lang-button{font-size:11px}}
+</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
 const LEAGUES=[["잉글랜드","Crown Division",1,["Northbridge Athletic","Westford Union","Kingsport Borough","Eastmere City","Redmont Rovers","Ashbourne Vale","Southvale Athletic","Whitestone FC","Marshfield Albion","Harbourgate Town","Oakminster FC","Greyhaven Athletic"]],["잉글랜드","Crown Championship",2,["Brackenfield United","Larkspur Town","Moorcastle FC","Riverstone Athletic","Thornwick Rovers","Copperhill City","Wellsbury FC","Eastcliff Union","Stanford Vale","Bellhaven Town","Cedarbridge FC","Highmoor Athletic"]],["이탈리아","Prima Divisione",1,["Valdoro Calcio","Portovento AC","Monteverde 1924","Bellacosta FC","Rivaforte Calcio","San Lucente","Castelnero AS","Citta Aurelia","Pietramare FC","Rosalba Calcio","Lagoferro 1912","Novacielo AC"]],["이탈리아","Seconda Divisione",2,["Verdemare Calcio","Borgo Alto FC","Torregrande AC","Castelbianco","Lunaforte Calcio","Portosole FC","San Verano","Arcomonte AC","Valnera 1910","Bellafonte","Rivagrigia FC","Montelago Calcio"]],["프랑스","Élite Division",1,["Montelac Sporting","Valcerne Olympique","Rivemont FC","Belcour Athletic","Saint Veraine","Azurienne SC","Lavernay Union","Grandelle FC","Port Celeste","Aubrecourt","Merival Sporting","Fontelune FC"]],["프랑스","Division Nationale",2,["Bellemont FC","Saint Calais","Rocheclair SC","Marivelle Union","Valdorne Athletic","Boisfleur FC","Lacour Olympique","Montprel FC","Azurville SC","Champbrune","Vernet Sporting","Portelle FC"]],["독일","Adler Liga",1,["Eisenwald SV","Nordfels 04","Grunhafen SC","Blauheim 09","Rosenbruck FC","Silberstadt 07","Waldkirch Union","Westtal 08","Kronfeld Athletic","Ostgarten SV","Falkenau FC","Hohenried 06"]],["독일","Adler Liga Zwei",2,["Bergfeld 05","Kaltenbruck SV","Hinterwald FC","Grunfels 11","Stahlgarten SC","Westerhof 03","Birkstadt Union","Rheindorf 08","Oberthal SV","Sonnenbruck 04","Adlersee FC","Neustadt Blau"]],["스페인","División Sol",1,["Costa Brava Norte","Monteluz CF","Puerto Dorado","Valle Claro FC","Real Solviera","Atletico Verdena","Roca Blanca","Marazul Union","Rio Fuerte CF","Costa Serena","Villadoro FC","San Estrella"]],["포르투갈","Liga Atlântica",1,["Porto Claro","Estrela do Vale","Marinha Verde","Atlético Moura","Costa Nova FC","Braga Alta","Vila Serena","Rio Dourado","Montesul SC","Alvorada FC","Santo Lago","Uniao do Norte"]],["네덜란드","Oranje Divisie",1,["Noorderdam FC","Rijnhaven Athletic","Zuidmeer SC","Veldstad United","Havenburg 04","Oostveen FC","Westermeer","Tulpenhof SV","De Groene Stad","Dijkdam FC","Bergveen Union","Kustwijk 09"]],["벨기에","Royal Division",1,["Royal Bravelle","Antwerp Vale","Noordhaven FC","Sainte Marenne","Brugge Heights","Wallonne Athletic","Royal Evermont","Belfort City","Rivelle Sporting","East Flanders FC","Montbel Union","Zilverbeek"]]];
@@ -391,7 +397,7 @@ function go(p){if(manager===null&&p!=='start'&&p!=='league')return;page=p;render
 function chooseLeague(li){selectedLeague=li;render()}
 function chooseClub(id){manager=id;page='dashboard';save();render()}
 function txt(t){return String(t).replaceAll('&','&amp;').replaceAll('<','&lt;')}
-function render(){nav();document.getElementById('season').textContent='시즌 '+season+'–'+String((season+1)%100).padStart(2,'0')+' · '+(round+1)+'라운드';const titles={start:'감독 커리어 시작',dashboard:'구단 대시보드',squad:'선수단 · 선수 육성',tactics:'전술 설정',match:'경기 센터',league:'리그 순위',market:'이적시장'};document.getElementById('heading').textContent=titles[page];document.getElementById('subtitle').textContent=manager?'내 구단 · '+own().name+' · '+LEAGUES[own().league][1]:'8개국 12개 리그 · 144개 구단 · 3,312명 가상 선수';const langButton=document.getElementById('language-switch');if(langButton)langButton.textContent=displayLanguage==='ko'?'이름 표시: 한국어':'Names: English';const el=document.getElementById('main');el.innerHTML=({start:viewStart,dashboard:viewDashboard,squad:viewSquad,tactics:viewTactics,match:viewMatch,league:viewLeague,market:viewMarket}[page])();if(page!=='dashboard'&&manager!==null)el.innerHTML=contextualGuide()+el.innerHTML}
+function render(){nav();document.getElementById('season').textContent='시즌 '+season+'–'+String((season+1)%100).padStart(2,'0')+' · '+(round+1)+'라운드';const titles={start:'감독 커리어 시작',dashboard:'구단 대시보드',squad:'선수단 · 선수 육성',tactics:'전술 설정',match:'경기 센터',league:'리그 순위',market:'이적시장'};document.getElementById('heading').textContent=titles[page];document.getElementById('subtitle').textContent=manager?'내 구단 · '+own().name+' · '+LEAGUES[own().league][1]:'8개국 12개 리그 · 144개 구단 · 3,312명 가상 선수';const langButton=document.getElementById('language-switch');if(langButton)langButton.textContent=displayLanguage==='ko'?'이름 표시: 한국어':'Names: English';const el=document.getElementById('main');el.innerHTML=({start:viewStart,dashboard:viewDashboard,squad:viewSquad,tactics:viewTactics,match:viewMatch,league:viewLeague,market:viewMarket}[page])();if(page!=='dashboard'&&manager!==null)el.innerHTML=contextualGuide()+el.innerHTML;renderWallet()}
 function leaguesChips(){return '<div class="chips">'+LEAGUES.map((l,i)=>'<button class="chip '+(selectedLeague===i?'on':'')+'" onclick="chooseLeague('+i+')">'+COUNTRY_FLAGS[l[0]]+' '+l[0]+' '+l[2]+'부</button>').join('')+'</div>'}
 function viewStart(){return '<section class="card"><h2>리그와 구단 선택</h2><div class="muted small">리그와 구단은 고정된 가상 세계이며 선수 이름과 능력치는 최초 생성 시 무작위로 설정됩니다.</div>'+leaguesChips()+'<div class="row" style="margin:17px 0"><h3>'+LEAGUES[selectedLeague][1]+'</h3><span class="muted small">12개 구단 · '+(LEAGUES[selectedLeague][2]===2?'승격 가능':'강등 가능')+'</span></div><div class="clubs">'+clubs.filter(c=>c.league===selectedLeague).map(c=>'<button class="club" onclick="chooseClub('+c.id+')">'+shield(c)+'<span><span class="clubname">'+txt(c.name)+'</span><small>팀 전력 '+c.rating+' · 예산 '+Math.round(c.cash/1000000)+'M</small></span></button>').join('')+'</div></section>'+(manager?'<button class="btn sub" onclick="go(\'dashboard\')">현재 커리어 계속하기</button>':'')}
 function viewDashboard(){if(manager===null)return viewStart();const c=own(),p=points[manager];return '<div class="grid"><section class="card"><div class="eyebrow">MY CLUB</div><div class="row" style="margin:12px 0">'+shield(c)+'<h3>'+c.name+'</h3></div><div class="muted small">'+LEAGUES[c.league][1]+'</div></section><section class="card"><div class="eyebrow">SEASON POINTS</div><div class="value">'+(p.w*3+p.d)+'</div><div class="muted small">'+p.w+'승 · '+p.d+'무 · '+p.l+'패</div></section><section class="card"><div class="eyebrow">TRANSFER BUDGET</div><div class="value">'+Math.round(c.cash/1000000)+'M</div><div class="muted small">게임 내 가상 자금</div></section></div><section class="card"><div class="row"><div><h2>다음 경기</h2><div class="muted small">'+(round+1)+'라운드 · '+LEAGUES[c.league][1]+'</div></div><button class="btn" onclick="go(\'match\')">경기 센터</button></div><div style="margin-top:25px;font-size:22px;text-align:center">'+nextOpponent()+'</div></section><div class="grid two"><section class="card"><h2>선수단 현황</h2><div class="value">23명</div><p class="muted small">가상 선수 육성, 경험치·레벨·스탯 포인트 배분</p><button class="btn sub" onclick="go(\'squad\')">선수단 관리</button></section><section class="card"><h2>리그 진행</h2><div class="value">'+round+' / 22</div><p class="muted small">홈·원정 2회전, 시즌 종료 시 승격·강등</p><button class="btn sub" onclick="go(\'league\')">리그 순위</button></section></div>'}
@@ -711,8 +717,8 @@ function playRound(){
   p.xp+=xp;if(isStarter){totalXP+=xp;lineupOut.push({id:p.id,rating:matchRating(p,rand(-6,8)/10),xp})}
   while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}
  }
- const money=(isWin?2.5:isDraw?1.3:.7),pts=isWin?3:isDraw?1:0;
- club.cash+=money*1000000;
+ const money=(isWin?80:isDraw?45:25),pts=isWin?3:isDraw?1:0;
+ walletGBP+=money;
  lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts};
  round++;scheduleRound=Math.min(round,21);matchTab='result';pendingReward={club:manager,season:y,round:week};
  if(round>=22){finishSeason();scheduleRound=0}
@@ -774,7 +780,7 @@ function viewDashboardClassic(){
  const games=fixtures[c.league]?.[round]||[],m=games.find(pair=>pair.includes(manager));
  const home=m?clubs[m[0]]:null,away=m?clubs[m[1]]:null;
  const tiles=clubs.filter(cl=>cl.league===c.league);
- const left='<div class="classic-left"><section class="card"><div class="eyebrow">CLUB INFORMATION</div><div class="club-info-head">'+shield(c)+'<div><strong>'+txt(c.name)+'</strong><small>'+txt(l[1])+'</small></div></div><div class="lobby-list"><span>감독</span><strong>'+txt(coachName||'감독')+'</strong></div><div class="lobby-list"><span>리그 순위</span><strong>'+rank+'위 / '+ranked.length+'팀</strong></div><div class="lobby-list"><span>전적</span><strong>'+p.w+'승 '+p.d+'무 '+p.l+'패</strong></div><div class="lobby-list"><span>승점</span><strong>'+(p.w*3+p.d)+'점</strong></div><div class="lobby-list"><span>선수단</span><strong>'+myPlayers().length+'명</strong></div><div class="lobby-list"><span>구단 전력</span><strong>'+Math.round(teamPower(manager))+'</strong></div><div class="lobby-list"><span>이적 예산</span><strong>'+Math.round(c.cash/1000000)+'M</strong></div><button class="btn sub" style="width:100%;margin-top:14px" onclick="go(\'squad\')">선수단 관리</button></section><section class="card"><div class="section-heading"><h2>경기 보상</h2></div><div class="lobby-list"><span>최근 결과</span><strong>'+(lastMatch&&lastMatch.club===manager?lastMatch.outcome:'첫 경기 대기')+'</strong></div><div class="lobby-list"><span>최근 보상</span><strong>'+(lastMatch&&lastMatch.club===manager?lastMatch.money.toFixed(1)+'M':'—')+'</strong></div><button class="btn sub" style="width:100%;margin-top:12px" onclick="chooseMatchTab(\'rewards\');go(\'match\')">보상 확인</button></section></div>';
+ const left='<div class="classic-left"><section class="card"><div class="eyebrow">CLUB INFORMATION</div><div class="club-info-head">'+shield(c)+'<div><strong>'+txt(c.name)+'</strong><small>'+txt(l[1])+'</small></div></div><div class="lobby-list"><span>감독</span><strong>'+txt(coachName||'감독')+'</strong></div><div class="lobby-list"><span>리그 순위</span><strong>'+rank+'위 / '+ranked.length+'팀</strong></div><div class="lobby-list"><span>전적</span><strong>'+p.w+'승 '+p.d+'무 '+p.l+'패</strong></div><div class="lobby-list"><span>승점</span><strong>'+(p.w*3+p.d)+'점</strong></div><div class="lobby-list"><span>선수단</span><strong>'+myPlayers().length+'명</strong></div><div class="lobby-list"><span>구단 전력</span><strong>'+Math.round(teamPower(manager))+'</strong></div><div class="lobby-list"><span>이적 예산</span><strong>'+Math.round(c.cash/1000000)+'M</strong></div><button class="btn sub" style="width:100%;margin-top:14px" onclick="go(\'squad\')">선수단 관리</button></section><section class="card"><div class="section-heading"><h2>경기 보상</h2></div><div class="lobby-list"><span>최근 결과</span><strong>'+(lastMatch&&lastMatch.club===manager?lastMatch.outcome:'첫 경기 대기')+'</strong></div><div class="lobby-list"><span>최근 보상</span><strong>'+(lastMatch&&lastMatch.club===manager?formatGBP(lastMatch.money):'—')+'</strong></div><button class="btn sub" style="width:100%;margin-top:12px" onclick="chooseMatchTab(\'rewards\');go(\'match\')">보상 확인</button></section></div>';
  const focus=m?'<div class="featured-fixture"><div class="featured-side">'+shield(home)+'<span>'+txt(home.name)+'</span></div><span class="featured-vs">VS</span><div class="featured-side away"><span>'+txt(away.name)+'</span>'+shield(away)+'</div></div>':'<div class="notice">이번 시즌 경기가 모두 종료되었습니다.</div>';
  const middle='<div class="classic-middle"><section class="card"><div class="section-heading"><div><div class="eyebrow">LEAGUE SCHEDULE</div><h2 style="margin:6px 0 0">'+txt(l[1])+' · '+Math.min(round+1,22)+'라운드</h2></div><span class="tag">시즌 '+season+'–'+(season+1)+'</span></div><div class="match-progress"><span style="width:'+Math.min(100,round/22*100)+'%"></span></div>'+focus+'<div class="section-heading"><h2>참가 구단</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><div class="club-grid">'+tiles.map(team=>'<button class="'+(team.id===manager?'selected':'')+'" onclick="showTeamInLobby('+team.id+')">'+shield(team)+'<span>'+txt(team.name)+'</span><small>'+ (team.id===manager?'내 구단':'전력 '+team.rating)+'</small></button>').join('')+'</div><button class="btn" style="width:100%;margin-top:15px" onclick="go(\'match\')">다음 경기 진행</button></section></div>';
  const opponent=m?clubs[m[0]===manager?m[1]:m[0]]:null;
@@ -928,7 +934,7 @@ function save(){
 }
 function rewardChoices(){
  return '<section class="card"><div class="row"><h2 style="margin:0">경기 후 추가 보상 선택</h2><span class="tag">3장 중 1장</span></div><p class="muted small">기본 경기머니와 경험치는 이미 지급됐습니다. 아래에서 추가 보상 한 가지를 받을 수 있습니다.</p><div class="reward-choice-grid">'+[
-  ['LP','추가 게임머니','2M','팀 운영 자금 +2M'],
+  ['£','추가 게임머니','£100','보유 금액 +£100'],
   ['XP','훈련 경험치','80 XP','가장 높은 능력치의 보유 선수에게 +80 XP'],
   ['P','유망주 영입','새 선수 1명','가상의 신인 선수 1명 영입']
  ].map((x,i)=>'<div class="reward-choice"><span class="reward-symbol">'+x[0]+'</span><strong>'+x[1]+'</strong><small>'+x[3]+'</small><button class="btn" onclick="claimReward('+i+')">선택하기</button></div>').join('')+'</div></section>';
@@ -940,7 +946,7 @@ function awardTrainingXP(){
  return p.name+' 훈련 경험치 +80';
 }
 function recruitYouthPlayer(){
- if(myPlayers().length>=30){own().cash+=2000000;return '선수단이 가득 차 게임머니 2M으로 대체 지급'}
+ if(myPlayers().length>=30){walletGBP+=100;return '선수단 정원 초과로 £100을 대신 지급'}
  const pos=['ST','CM','CB','LW','RB','GK'][rand(0,5)];
  const id=Math.max(...players.map(p=>p.id))+1;
  const base=Math.max(45,Math.min(75,Math.round(own().rating-9+rand(-6,6))));
@@ -950,7 +956,7 @@ function recruitYouthPlayer(){
 function claimReward(option){
  if(!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
  let description;
- if(option===0){own().cash+=2000000;description='추가 게임머니 2M 지급'}
+ if(option===0){walletGBP+=100;description='추가 게임머니 £100 지급'}
  else if(option===1)description=awardTrainingXP();
  else description=recruitYouthPlayer();
  latestReward={club:manager,season:pendingReward.season,round:pendingReward.round,description};
@@ -1056,10 +1062,34 @@ function viewMarket(){
  .sort((a,b)=>overall(b)-overall(a)).slice(0,24);
  return '<section class="card"><div class="row"><div><div class="eyebrow">TRANSFER MARKET</div><h2 style="margin:6px 0">이적시장</h2></div><span class="tag">보유 예산 '+Math.round(own().cash/1000000)+'M</span></div><p class="muted small">필요한 포지션의 선수를 찾아 팀을 강화하세요. 선택한 선수의 이름과 능력치는 이적 후에도 유지됩니다.</p>'+
  '<div class="transfer-toolbar"><input id="market-query" placeholder="선수 이름 검색" value="'+txt(marketSearch).replaceAll('"','&quot;')+'" onkeydown="if(event.key===\'Enter\')applyMarketSearch()"><select onchange="setMarketPosition(this.value)">'+['ALL','GK','CB','RB','LB','CDM','CM','CAM','LW','RW','ST'].map(x=>'<option value="'+x+'" '+(marketPosition===x?'selected':'')+'>'+(x==='ALL'?'전체 포지션':x)+'</option>').join('')+'</select><button class="btn" onclick="applyMarketSearch()">검색</button></div>'+
- '<div class="transfer-grid">'+candidates.map(p=>{const fee=Math.max(1,Math.round((overall(p)-50)*1.2))*1000000;return '<article class="transfer-card"><div class="transfer-face">'+avatar(p,78)+'<div style="min-width:0"><strong>'+txt(p.name)+'</strong><small>'+p.pos+' · '+p.age+'세</small><small>능력치 '+overall(p)+'</small></div></div><div class="transfer-club">'+shield(clubs[p.club])+'<span>'+txt(clubs[p.club].name)+'</span></div><div class="row"><strong>이적료 '+Math.round(fee/1000000)+'M</strong><button class="btn mini" '+(fee>own().cash?'disabled':'')+' onclick="buy('+p.id+','+fee+')">'+(fee>own().cash?'예산 부족':'영입')+'</button></div></article>'}).join('')+'</div>'+
+ '<div class="transfer-grid">'+candidates.map(p=>{const fee=transferFeeGBP(p);return '<article class="transfer-card"><div class="transfer-face">'+avatar(p,78)+'<div style="min-width:0"><strong>'+txt(p.name)+'</strong><small>'+p.pos+' · '+p.age+'세</small><small>능력치 '+overall(p)+'</small></div></div><div class="transfer-club">'+shield(clubs[p.club])+'<span>'+txt(clubs[p.club].name)+'</span></div><div class="row"><strong>이적료 '+Math.round(fee/1000000)+'M</strong><button class="btn mini" '+(fee>walletGBP?'disabled':'')+' onclick="buy('+p.id+','+fee+')">'+(fee>walletGBP?'예산 부족':'영입')+'</button></div></article>'}).join('')+'</div>'+
  (candidates.length?'':'<div class="notice">검색 조건에 맞는 선수가 없습니다.</div>')+'</section>'
 }
 window.setMarketPosition=setMarketPosition;window.applyMarketSearch=applyMarketSearch;
+
+
+/* Game wallet: a one-time £1,000 starting balance.
+ * Older saves receive the new wallet on first upgrade; they do not receive a repeat bonus.
+ * Club cash remains legacy data and does not control the player wallet.
+ */
+const GBP_START=1000;
+let walletGBP=(saved&&Number.isFinite(saved.walletGBP))?Math.max(0,Math.floor(saved.walletGBP)):GBP_START;
+const formatGBP=n=>'£'+Math.max(0,Math.round(Number(n)||0)).toLocaleString('en-GB');
+function transferFeeGBP(p){return Math.max(45,Math.round((overall(p)-50)*9))}
+function renderWallet(){const node=document.getElementById('wallet-value');if(node)node.textContent=formatGBP(walletGBP)}
+function buy(id,quotedFee){
+ if(manager===null)return;
+ const p=players.find(q=>q.id===id&&q.club!==manager);
+ if(!p)return;
+ const fee=transferFeeGBP(p);
+ if(walletGBP<fee){alert('보유 파운드가 부족합니다.');return}
+ if(myPlayers().length>=30){alert('선수단 최대 인원은 30명입니다.');return}
+ walletGBP-=fee;p.club=manager;save();render();
+}
+function save(){
+ try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP}))}
+ catch(e){console.warn('저장 실패',e)}
+}
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
