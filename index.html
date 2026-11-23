@@ -95,6 +95,42 @@ function viewTactics(){let lineup=currentLineup(),slots=FORMATIONS[formation];le
 function viewSquad(){let arr=myPlayers().slice().sort((a,b)=>overall(b)-overall(a));if(!arr.length)return '<section class="card">등록 선수가 없습니다.</section>';if(selectedPlayer===null||!arr.some(p=>p.id===selectedPlayer))selectedPlayer=arr[0].id;let p=players.find(x=>x.id===selectedPlayer),d=detailed(p);return '<div class="grid two"><section class="card"><h2>선수단</h2><div class="tablewrap"><table><thead><tr><th>선수명</th><th>포지션</th><th>나이</th><th>OVR</th><th>LV</th></tr></thead><tbody>'+arr.map(x=>'<tr onclick="selectPlayer('+x.id+')" style="cursor:pointer;'+(x.id===p.id?'background:#25392b':'')+'"><td><div style="display:flex;align-items:center;gap:9px">'+avatar(x,34)+'<span>'+txt(x.name)+'</span></div></td><td>'+x.pos+'</td><td>'+x.age+'</td><td>'+overall(x)+'</td><td>'+x.level+'</td></tr>').join('')+'</tbody></table></div></section><section class="card"><div class="eyebrow">PLAYER DEVELOPMENT</div><div class="row" style="margin-top:10px"><div style="display:flex;align-items:center;gap:13px">'+avatar(p,74)+'<div><h2>'+txt(p.name)+'</h2><div class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</div></div></div><div class="value">'+overall(p)+'</div></div><div class="row" style="margin:15px 0"><span class="muted small">경험치 '+p.xp+'/100 XP</span><span class="tag">잔여 육성 포인트 '+p.pts+' PT</span></div><div class="bar"><i style="width:'+p.xp+'%"></i></div>'+Object.entries(ATTRIBUTE_GROUPS).map(([group,stats])=>'<div class="statgroup">'+group+'</div>'+stats.map(([key,label])=>'<div class="stat"><label>'+label+'</label><div class="bar"><i style="width:'+d[key]+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=99?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+'<p class="muted small">능력치 상한 99 · 레벨업 시 3 PT · OVR은 포지션별 주요 능력치로 계산</p></section></div>'}
 function upgrade(key){let p=players.find(x=>x.id===selectedPlayer);if(!p||p.pts<=0||!Object.values(ATTRIBUTE_GROUPS).flat().some(v=>v[0]===key))return;let d=detailed(p);if(d[key]>=99)return;p.pts--;d[key]++;save();render()}
 function viewMatch(){let starters=manager?currentLineup().filter(x=>x!==null).length:0;return '<section class="card"><div class="eyebrow">MATCH CENTRE · ROUND '+(round+1)+'</div><h2 style="margin:12px 0">'+nextOpponent()+'</h2><div class="lineup-stats"><span>포메이션 '+({433:'4-3-3',4231:'4-2-3-1',442:'4-4-2',352:'3-5-2',343:'3-4-3'}[formation])+'</span><span>선발 '+starters+'명</span><span>팀 경기력 '+Math.round(teamPower(manager))+'</span></div><p class="muted small">선발 선수의 세부 능력치, 포지션 적합도, 전술 운영과 홈 이점을 반영합니다. 현재 경기 표현은 텍스트 기반입니다.</p><button class="btn" '+(round>=22||starters!==11?'disabled':'')+' onclick="playRound()">경기 진행</button>'+(matchLog?'<div style="margin-top:20px" class="notice">'+matchLog+'</div>':'')+'</section><section class="card"><h2>전술 변경</h2><p class="muted small">경기 전에 선발과 포메이션을 변경할 수 있습니다. 출전 선수에게 더 많은 경험치가 지급됩니다.</p><button class="btn sub" onclick="go(\'tactics\')">선발 · 전술 설정</button></section>'}
+
+/* League management and player profile enhancements */
+const LEAGUE_RULES=LEAGUES.map((l,i)=>({country:l[0],name:l[1],tier:l[2],size:12,rounds:22,promotion:l[2]===2?2:0,relegation:[0,2,4,6].includes(i)?2:0}));
+function playerBio(p){
+ if(!p.nationality){const c=clubs.find(x=>x.id===p.club),other=LEAGUES[(p.id*13+7)%LEAGUES.length][0];p.nationality=p.id%4===0?other:c.country}
+ if(!p.height)p.height=(p.pos==='GK'?185:168)+(p.id*7%16);
+ if(!p.weight)p.weight=62+(p.id*11%28);
+ if(!p.foot)p.foot=p.id%5===0?'왼발':'오른발';
+ if(!p.contractUntil)p.contractUntil=season+1+p.id%4;
+ return p;
+}
+for(const p of players)playerBio(p);
+function viewLeague(){
+ const l=LEAGUES[selectedLeague],rule=LEAGUE_RULES[selectedLeague],table=standing(selectedLeague),selectedRound=Math.min(round,21);
+ const matches=fixtures[selectedLeague][selectedRound]||[];
+ return '<section class="card"><div class="row"><h2>리그 편성 및 순위</h2><span class="tag">'+l[0]+' · '+l[2]+'부</span></div>'+leaguesChips()+
+ '<p class="muted small">'+l[1]+' · 12개 가상 구단 · 홈/원정 22라운드 · '+(rule.promotion?'상위 2팀 승격':rule.relegation?'하위 2팀 강등':'독립 1부 리그')+'</p>'+
+ '<div class="tablewrap"><table><thead><tr><th>순위</th><th>구단</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득점</th><th>실점</th><th>득실</th><th>승점</th></tr></thead><tbody>'+
+ table.map((c,i)=>{let p=points[c.id];let color=(rule.promotion&&i<2)||(rule.relegation&&i>=table.length-2)?'background:#243a2c':c.id===manager?'background:#304733':'';return '<tr style="'+color+'"><td>'+(i+1)+'</td><td>'+txt(c.name)+'</td><td>'+p.p+'</td><td>'+p.w+'</td><td>'+p.d+'</td><td>'+p.l+'</td><td>'+p.gf+'</td><td>'+p.ga+'</td><td>'+((p.gf-p.ga)>0?'+':'')+(p.gf-p.ga)+'</td><td><strong>'+(p.w*3+p.d)+'</strong></td></tr>'}).join('')+'</tbody></table></div></section>'+
+ '<div class="grid two"><section class="card"><h2>경기 일정 · '+(selectedRound+1)+'라운드</h2><p class="muted small">각 팀은 상대 팀과 홈·원정으로 두 번 경기합니다.</p><div class="tablewrap"><table><tbody>'+
+ matches.map(([a,b])=>'<tr><td>'+txt(clubs[a].name)+'</td><td>vs</td><td>'+txt(clubs[b].name)+'</td></tr>').join('')+
+ '</tbody></table></div></section><section class="card"><h2>리그 시스템</h2><p class="muted small">8개국 · 12개 리그 · 총 144개 가상 구단</p><p class="muted small">잉글랜드·이탈리아·프랑스·독일: 1·2부 리그와 시즌 종료 승강제</p><p class="muted small">스페인·포르투갈·네덜란드·벨기에: 1부 리그</p><p class="muted small">현재 게임은 12개 구단·22라운드 프로토타입입니다. 실제 국가별 리그 규모로의 확장은 별도 작업 대상입니다.</p></section></div>'
+}
+function viewSquad(){
+ let arr=myPlayers().slice().sort((a,b)=>overall(b)-overall(a);
+ if(!arr.length)return '<section class="card">등록 선수가 없습니다.</section>';
+ if(selectedPlayer===null||!arr.some(p=>p.id===selectedPlayer))selectedPlayer=arr[0].id;
+ let p=playerBio(players.find(x=>x.id===selectedPlayer)),d=detailed(p);
+ return '<div class="grid two"><section class="card"><h2>선수단</h2><div class="tablewrap"><table><thead><tr><th>선수명</th><th>포지션</th><th>나이</th><th>OVR</th><th>LV</th></tr></thead><tbody>'+
+ arr.map(x=>'<tr onclick="selectPlayer('+x.id+')" style="cursor:pointer;'+(x.id===p.id?'background:#25392b':'')+'"><td><div style="display:flex;align-items:center;gap:9px">'+avatar(x,34)+'<span>'+txt(x.name)+'</span></div></td><td>'+x.pos+'</td><td>'+x.age+'</td><td>'+overall(x)+'</td><td>'+x.level+'</td></tr>').join('')+'</tbody></table></div></section>'+
+ '<section class="card"><div class="eyebrow">PLAYER PROFILE & DEVELOPMENT</div><div class="row" style="margin-top:10px"><div style="display:flex;align-items:center;gap:13px">'+avatar(p,74)+'<div><h2>'+txt(p.name)+'</h2><div class="muted small">'+p.pos+' · '+p.age+'세 · LV.'+p.level+'</div></div></div><div class="value">'+overall(p)+'</div></div>'+
+ '<div class="lineup-stats"><span>국적 '+p.nationality+'</span><span>'+p.height+' cm · '+p.weight+' kg</span><span>'+p.foot+'</span><span>계약 '+p.contractUntil+'년</span></div>'+
+ '<div class="row" style="margin:15px 0"><span class="muted small">경험치 '+p.xp+'/100 XP</span><span class="tag">잔여 육성 포인트 '+p.pts+' PT</span></div><div class="bar"><i style="width:'+p.xp+'%"></i></div>'+
+ Object.entries(ATTRIBUTE_GROUPS).map(([group,stats])=>'<div class="statgroup">'+group+'</div>'+stats.map(([key,label])=>'<div class="stat"><label>'+label+'</label><div class="bar"><i style="width:'+d[key]+'%"></i></div><strong>'+d[key]+'</strong><button class="btn mini" '+(p.pts<=0||d[key]>=99?'disabled':'')+' onclick="upgrade(\''+key+'\')">+1</button></div>').join('')).join('')+
+ '<p class="muted small">능력치 상한 99 · 레벨업 시 3 PT · OVR은 포지션별 주요 능력치로 계산</p></section></div>'
+}
 window.setSlot=setSlot;window.resetLineup=resetLineup;
 if(saved&&saved.version===1){for(const p of players)detailed(p);save()}
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
