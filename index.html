@@ -186,6 +186,16 @@ a{color:#202020}
 .reward-item strong{display:block;font-size:22px;margin:12px 0 4px}
 .reward-item span{font-size:12px;color:#777}
 @media(max-width:740px){.match-summary{grid-template-columns:1fr}.reward-grid{grid-template-columns:1fr 1fr}.fixture-row{grid-template-columns:1fr 54px 1fr;font-size:12px}.scoreboard-number{font-size:27px}.scoreboard-team{font-size:12px}}
+
+.recent-results{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.recent-result{border:1px solid #e0e0e0;background:#fafafa;border-radius:8px;padding:10px 12px;min-width:130px;flex:1}
+.recent-result span{display:block;color:#666;font-size:11px;margin-bottom:5px}
+.recent-result strong{font-size:14px;color:#222}
+.lobby-news button{border:0;padding:0;background:transparent;color:#333;text-align:left;cursor:pointer;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.news-modal-overlay{position:fixed;z-index:40;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px}
+.news-modal{width:min(540px,100%);background:#fff;border-radius:12px;padding:28px;box-shadow:0 20px 60px #0003;color:#222}
+.news-modal h2{margin:12px 0;font-size:21px}
+.news-modal p{font-size:15px;line-height:1.75;color:#555}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -547,6 +557,40 @@ function viewLeague(){
 }
 
 window.setScheduleRound=setScheduleRound;window.chooseMatchTab=chooseMatchTab;
+
+function showNews(type){
+ if(!manager)return;
+ const c=own(),r=points[manager],last=lastMatch?.club===manager?lastMatch:null;
+ const messages={
+ fixture:['다음 경기 안내','이번 라운드의 상대와 경기 일정이 확정되었습니다. 포메이션과 선발 11명, 선수단의 능력치를 확인한 뒤 경기를 진행하세요.'],
+ league:['리그 경쟁 현황',txt(c.name)+'의 현재 성적은 '+r.w+'승 '+r.d+'무 '+r.l+'패, 승점 '+(r.w*3+r.d)+'점입니다. 정규 시즌 성적에 따라 우승과 승격·강등이 결정됩니다.'],
+ player:['선수 육성 소식','경기에 출전한 선수는 경험치를 획득합니다. 레벨이 올라가면 스탯 포인트를 사용해 원하는 능력치를 최대 120까지 올릴 수 있습니다.'],
+ result:['최근 경기 결과',last?clubs[last.home].name+' '+last.homeGoals+' : '+last.awayGoals+' '+clubs[last.away].name+' — '+last.outcome+'. 경기 결과 화면에서 선수 평점과 보상을 확인할 수 있습니다.':'첫 경기를 진행하면 결과와 보상 정보가 표시됩니다.']
+ };
+ const item=messages[type]||messages.fixture;
+ const modal=document.createElement('div');modal.className='news-modal-overlay';modal.id='elevos-news-modal';
+ modal.innerHTML='<section class="news-modal" role="dialog" aria-modal="true"><div class="row"><span class="eyebrow">ELEVOS NEWS</span><button class="btn sub mini" id="news-close">닫기</button></div><h2>'+item[0]+'</h2><p>'+item[1]+'</p></section>';
+ document.body.appendChild(modal);
+ document.getElementById('news-close').onclick=()=>modal.remove();
+ modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()});
+}
+function recentMatchCards(){
+ if(!manager)return'';
+ let items=[];
+ for(let i=round-1;i>=0&&items.length<3;i--){
+  let games=fixtureAt(own().league,i),my=games.find(g=>g.a===manager||g.b===manager);
+  if(my&&my.score)items.push('<div class="recent-result"><span>'+season+' 시즌 · '+(i+1)+'라운드</span><strong>'+txt(clubs[my.a].name)+' '+my.score[0]+' : '+my.score[1]+' '+txt(clubs[my.b].name)+'</strong></div>');
+ }
+ return items.length?'<section class="card"><div class="row"><h2 style="margin:0">최근 경기 결과</h2><button class="btn sub mini" onclick="go(\'league\')">경기 일정</button></div><div class="recent-results">'+items.join('')+'</div></section>':'';
+}
+const originalViewDashboard=viewDashboard;
+function viewDashboard(){
+ const html=originalViewDashboard();
+ if(!manager)return html;
+ return html+recentMatchCards()
+}
+window.showNews=showNews;
+
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
 </script></body></html>
