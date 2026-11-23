@@ -196,6 +196,48 @@ a{color:#202020}
 .news-modal{width:min(540px,100%);background:#fff;border-radius:12px;padding:28px;box-shadow:0 20px 60px #0003;color:#222}
 .news-modal h2{margin:12px 0;font-size:21px}
 .news-modal p{font-size:15px;line-height:1.75;color:#555}
+
+/* ELEVOS classic lobby — reference-inspired arrangement, restrained grayscale */
+.classic-lobby{display:grid;grid-template-columns:220px minmax(0,1fr) 280px;gap:12px;align-items:start;font-size:14px}
+.classic-lobby .card{padding:16px;margin:0 0 12px;border-radius:7px;border-color:#d8d8d8}
+.classic-lobby .eyebrow{font-size:11px;letter-spacing:.04em;color:#888!important}
+.classic-lobby h2{font-size:16px;margin:0 0 10px;font-weight:700}
+.classic-lobby .crest{filter:grayscale(1);width:45px;height:52px;flex:none}
+.classic-lobby .club-info-head{display:flex;align-items:center;gap:11px;margin:12px 0 15px}
+.classic-lobby .club-info-head strong{font-size:16px;display:block}
+.classic-lobby .club-info-head small{display:block;color:#777;font-size:12px}
+.classic-lobby .lobby-list{padding:9px 0;font-size:13px}
+.classic-lobby .lobby-list strong{font-size:13px}
+.classic-lobby .section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:13px}
+.classic-lobby .section-heading h2{margin:0}
+.classic-lobby .featured-fixture{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;border:1px solid #e4e4e4;background:#f8f8f8;border-radius:6px;margin-bottom:12px}
+.classic-lobby .featured-side{display:flex;flex:1;min-width:0;align-items:center;gap:9px;font-weight:700;font-size:13px}
+.classic-lobby .featured-side.away{justify-content:flex-end;text-align:right}
+.classic-lobby .featured-side .crest{width:39px;height:45px}
+.classic-lobby .featured-vs{font-weight:700;color:#666}
+.classic-lobby .match-progress{height:5px;background:#ededed;border-radius:4px;margin:11px 0 13px;overflow:hidden}
+.classic-lobby .match-progress span{display:block;height:100%;background:#404040}
+.classic-lobby .club-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.classic-lobby .club-grid button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#fafafa;border:1px solid #e4e4e4;border-radius:6px;min-height:97px;padding:9px 4px;color:#252525;cursor:pointer}
+.classic-lobby .club-grid button:hover,.classic-lobby .club-grid button.selected{border-color:#777;background:#efefef}
+.classic-lobby .club-grid .crest{width:37px;height:43px;font-size:11px}
+.classic-lobby .club-grid span{font-size:11px;font-weight:650;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;width:100%;text-align:center}
+.classic-lobby .club-grid small{font-size:10px;color:#777}
+.classic-lobby .news-entry{border-bottom:1px solid #e8e8e8;padding:12px 0}
+.classic-lobby .news-entry:first-of-type{padding-top:0}
+.classic-lobby .news-entry strong{font-size:13px;display:block;margin-bottom:6px}
+.classic-lobby .news-entry p{font-size:12px;color:#707070;line-height:1.6;margin:0}
+.classic-lobby .news-entry button{background:transparent;border:0;padding:7px 0 0;color:#111;font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.classic-lobby .btn{font-size:13px;padding:11px 13px}
+.classic-lobby .right-compact-note{font-size:12px;color:#777;line-height:1.6}
+.classic-dock{margin-top:12px;display:flex;gap:4px;align-items:stretch;padding:9px;border:1px solid #d9d9d9;background:#f5f5f5;border-radius:7px;overflow-x:auto}
+.classic-dock button{flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 7px;border-radius:6px;border:1px solid transparent;background:transparent;color:#383838;cursor:pointer;font-size:12px;font-weight:650;white-space:nowrap}
+.classic-dock button:hover{background:#fff;border-color:#d7d7d7}
+.classic-dock button.active{background:#1c1c1c;color:#fff}
+.classic-dock .dock-icon{font-size:20px;line-height:1}
+.classic-lobby .sidebar{display:none}
+@media(max-width:1100px){.classic-lobby{grid-template-columns:210px minmax(0,1fr)}.classic-right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}.classic-right .card{margin:0}}
+@media(max-width:700px){.classic-lobby{grid-template-columns:1fr}.classic-right{display:block;grid-column:auto}.classic-right .card{margin-bottom:12px}.classic-lobby .club-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.classic-lobby .featured-side{font-size:12px}.classic-dock button{min-width:85px}}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -590,6 +632,28 @@ function viewDashboard(){
  return html+recentMatchCards()
 }
 window.showNews=showNews;
+
+
+/* One-screen football game lobby, based on classic three-panel structure. */
+function classicDock(){
+ const items=[['dashboard','⌂','대시보드'],['squad','♟','선수단'],['tactics','▦','전술'],['match','▶','경기진행'],['league','▤','리그일정'],['market','⇄','이적시장']];
+ return '<nav class="classic-dock" aria-label="게임 바로가기">'+items.map(([id,icon,label])=>'<button class="'+(page===id?'active':'')+'" onclick="go(\''+id+'\')"><span class="dock-icon" aria-hidden="true">'+icon+'</span>'+label+'</button>').join('')+'</nav>'
+}
+function viewDashboard(){
+ if(manager===null)return viewStart();
+ const c=own(),l=LEAGUES[c.league],p=points[manager],ranked=standing(c.league),rank=ranked.findIndex(x=>x.id===manager)+1;
+ const games=fixtures[c.league]?.[round]||[],m=games.find(pair=>pair.includes(manager));
+ const home=m?clubs[m[0]]:null,away=m?clubs[m[1]]:null;
+ const tiles=clubs.filter(cl=>cl.league===c.league);
+ const left='<div class="classic-left"><section class="card"><div class="eyebrow">CLUB INFORMATION</div><div class="club-info-head">'+shield(c)+'<div><strong>'+txt(c.name)+'</strong><small>'+txt(l[1])+'</small></div></div><div class="lobby-list"><span>감독</span><strong>'+txt(coachName||'감독')+'</strong></div><div class="lobby-list"><span>리그 순위</span><strong>'+rank+'위 / '+ranked.length+'팀</strong></div><div class="lobby-list"><span>전적</span><strong>'+p.w+'승 '+p.d+'무 '+p.l+'패</strong></div><div class="lobby-list"><span>승점</span><strong>'+(p.w*3+p.d)+'점</strong></div><div class="lobby-list"><span>선수단</span><strong>'+myPlayers().length+'명</strong></div><div class="lobby-list"><span>구단 전력</span><strong>'+Math.round(teamPower(manager))+'</strong></div><div class="lobby-list"><span>이적 예산</span><strong>'+Math.round(c.cash/1000000)+'M</strong></div><button class="btn sub" style="width:100%;margin-top:14px" onclick="go(\'squad\')">선수단 관리</button></section><section class="card"><div class="section-heading"><h2>경기 보상</h2></div><div class="lobby-list"><span>최근 결과</span><strong>'+(lastMatch&&lastMatch.club===manager?lastMatch.outcome:'첫 경기 대기')+'</strong></div><div class="lobby-list"><span>최근 보상</span><strong>'+(lastMatch&&lastMatch.club===manager?lastMatch.money.toFixed(1)+'M':'—')+'</strong></div><button class="btn sub" style="width:100%;margin-top:12px" onclick="chooseMatchTab(\'rewards\');go(\'match\')">보상 확인</button></section></div>';
+ const focus=m?'<div class="featured-fixture"><div class="featured-side">'+shield(home)+'<span>'+txt(home.name)+'</span></div><span class="featured-vs">VS</span><div class="featured-side away"><span>'+txt(away.name)+'</span>'+shield(away)+'</div></div>':'<div class="notice">이번 시즌 경기가 모두 종료되었습니다.</div>';
+ const middle='<div class="classic-middle"><section class="card"><div class="section-heading"><div><div class="eyebrow">LEAGUE SCHEDULE</div><h2 style="margin:6px 0 0">'+txt(l[1])+' · '+Math.min(round+1,22)+'라운드</h2></div><span class="tag">시즌 '+season+'–'+(season+1)+'</span></div><div class="match-progress"><span style="width:'+Math.min(100,round/22*100)+'%"></span></div>'+focus+'<div class="section-heading"><h2>참가 구단</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><div class="club-grid">'+tiles.map(team=>'<button class="'+(team.id===manager?'selected':'')+'" onclick="showTeamInLobby('+team.id+')">'+shield(team)+'<span>'+txt(team.name)+'</span><small>'+ (team.id===manager?'내 구단':'전력 '+team.rating)+'</small></button>').join('')+'</div><button class="btn" style="width:100%;margin-top:15px" onclick="go(\'match\')">다음 경기 진행</button></section></div>';
+ const opponent=m?clubs[m[0]===manager?m[1]:m[0]]:null;
+ const news='<div class="classic-right"><section class="card"><div class="section-heading"><h2>FOOTBALL NEWS</h2><span class="tag">NEWS</span></div><div class="news-entry"><strong>이번 라운드 경기 안내</strong><p>'+(opponent?txt(c.name)+'의 다음 상대는 '+txt(opponent.name)+'입니다.':'이번 시즌 리그 일정을 마쳤습니다.')+'</p><button onclick="showNews(\'fixture\')">자세히 보기</button></div><div class="news-entry"><strong>리그 '+rank+'위 기록 중</strong><p>'+p.w+'승 '+p.d+'무 '+p.l+'패 · 승점 '+(p.w*3+p.d)+'점. 구단의 시즌 목표에 도전하세요.</p><button onclick="showNews(\'league\')">자세히 보기</button></div><div class="news-entry"><strong>선수 육성 안내</strong><p>경기 경험치로 성장하고 스탯을 최대 120까지 육성할 수 있습니다.</p><button onclick="showNews(\'player\')">자세히 보기</button></div></section><section class="card"><h2>시즌 정보</h2><div class="lobby-list"><span>리그</span><strong>'+txt(l[1])+'</strong></div><div class="lobby-list"><span>현재 라운드</span><strong>'+Math.min(round+1,22)+' / 22</strong></div><div class="lobby-list"><span>남은 경기</span><strong>'+Math.max(0,22-round)+'</strong></div><p class="right-compact-note">경기 진행과 선수 육성, 이적시장은 하단 메뉴에서 바로 이동할 수 있습니다.</p></section></div>';
+ return '<div class="classic-lobby">'+left+middle+news+'</div>'+classicDock()
+}
+function showTeamInLobby(id){const c=clubs.find(x=>x.id===id);if(!c)return;const panel=document.getElementById('elevos-team-dialog');if(panel)panel.remove();const modal=document.createElement('div');modal.className='news-modal-overlay';modal.id='elevos-team-dialog';let starters=players.filter(p=>p.club===c.id).sort((a,b)=>overall(b)-overall(a)).slice(0,5);modal.innerHTML='<section class="news-modal" role="dialog" aria-modal="true"><div class="row"><div class="club-info-head">'+shield(c)+'<div><h2>'+txt(c.name)+'</h2><p class="muted small">'+txt(LEAGUES[c.league][1])+'</p></div></div><button class="btn sub mini" id="team-close">닫기</button></div><div class="lobby-list"><span>구단 전력</span><strong>'+c.rating+'</strong></div><h3 style="margin-top:14px">주요 선수</h3>'+starters.map(p=>'<div class="lobby-list"><span>'+txt(p.name)+' · '+p.pos+'</span><strong>'+overall(p)+'</strong></div>').join('')+'</section>';document.body.appendChild(modal);document.getElementById('team-close').onclick=()=>modal.remove();modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()})}
+window.showTeamInLobby=showTeamInLobby;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
