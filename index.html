@@ -435,6 +435,41 @@ a{color:#202020}
 .sim-status{border:1px solid #ddd;border-radius:6px;padding:7px 11px;display:inline-block;font-size:12px;color:#555;background:#fafafa}
 @keyframes sim-pop{from{opacity:.25;transform:translate(-50%,-45%) scale(.86)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @media(max-width:640px){.sim-pawn{width:24px!important;height:24px!important;font-size:10px!important}.sim-major-event .event-title{font-size:23px}.sim-major-event{padding:16px 10px}}
+
+/* ELEVOS match management and rewards */
+.sim-coach-panel{border:1px solid #dedede;border-radius:9px;padding:15px;margin-top:12px;background:#fafafa}
+.sim-coach-panel h3{font-size:15px;margin:0 0 10px}
+.sim-coach-panel .coach-action{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sim-coach-panel select{background:#fff;color:#222;border:1px solid #ccc;border-radius:6px;min-width:0;padding:9px;font-size:13px;flex:1}
+.sim-coach-panel .coach-action .btn{font-size:12px}
+.sim-coach-panel .coaching-note{font-size:12px;color:#666;line-height:1.5}
+.sim-tactics-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.sim-tactics-choices button{border:1px solid #ccc;background:#fff;color:#222;padding:10px 6px;border-radius:6px;font-size:12px;cursor:pointer}
+.sim-tactics-choices button.selected{background:#222;color:#fff}
+.sim-impact-strip{display:flex;gap:9px;flex-wrap:wrap;font-size:12px;margin:11px 0}
+.sim-impact-strip span{border:1px solid #ddd;border-radius:5px;background:#fafafa;padding:6px 9px}
+.sim-subrecent{border-top:1px solid #e5e5e5;margin-top:12px;padding-top:10px;font-size:12px;color:#444}
+.match-complete{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 12px 26px;border-bottom:1px solid #e8e8e8}
+.match-complete .fulltime{font-size:11px;font-weight:800;letter-spacing:.18em;color:#777}
+.match-complete .match-full-score{font-size:58px;line-height:1.3;font-weight:850;letter-spacing:-.045em}
+.match-complete .fulltime-clubs{display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:10px;width:100%;max-width:700px;margin-top:18px}
+.match-complete .fulltime-club{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:15px;font-weight:650}
+.match-complete .fulltime-club .crest{width:65px!important;height:75px!important}
+.match-complete .result-badge{display:inline-block;padding:8px 15px;border-radius:30px;background:#222;color:#fff;font-size:12px;margin-top:15px}
+.match-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:17px}
+.match-result-box{background:#fafafa;border:1px solid #e4e4e4;border-radius:9px;padding:19px}
+.match-result-box h3{font-size:16px;margin:0 0 12px}
+.result-statline{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e9e9e9;padding:9px 0;font-size:13px;gap:10px}
+.result-statline strong{font-size:17px}
+.reward-stage-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:17px 0 10px}
+.reward-stage-head h2{font-size:19px;margin:0}
+.reward-choice{transition:transform .17s,border-color .17s,box-shadow .17s;cursor:pointer}
+.reward-choice:hover{transform:translateY(-5px);border-color:#777;box-shadow:0 10px 25px #0001}
+.reward-choice .reward-symbol{font-size:24px;width:57px;height:57px;border-color:#bbb;background:#f3f3f3}
+.reward-choice strong{font-size:17px}
+.reward-selected{border:1px solid #d6d6d6;background:#f5f5f5;border-radius:9px;padding:22px;text-align:center;margin-top:15px;font-size:17px;font-weight:700}
+.match-continue{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+@media(max-width:700px){.match-result-grid{grid-template-columns:1fr}.match-complete .match-full-score{font-size:42px}.match-complete .fulltime-clubs{grid-template-columns:1fr 60px 1fr}.match-complete .fulltime-club{font-size:12px}.sim-tactics-choices{grid-template-columns:repeat(3,1fr)}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -771,7 +806,7 @@ function playRound(){
   }
   matchResults[fixtureKey(y,li,week)]=recorded;
  }
- const lineupOut=[],starterSet=new Set(starting),isWin=ownScore&&(manager===ownScore.home?ownScore.homeGoals>ownScore.awayGoals:ownScore.awayGoals>ownScore.homeGoals),isDraw=ownScore&&ownScore.homeGoals===ownScore.awayGoals;
+ const lineupOut=[],starterSet=new Set(simFinalOverride?.participants||starting),isWin=ownScore&&(manager===ownScore.home?ownScore.homeGoals>ownScore.awayGoals:ownScore.awayGoals>ownScore.homeGoals),isDraw=ownScore&&ownScore.homeGoals===ownScore.awayGoals;
  let totalXP=0;
  for(const p of myPlayers()){
   const isStarter=starterSet.has(p.id);
@@ -781,7 +816,7 @@ function playRound(){
  }
  const money=(isWin?80:isDraw?45:25),pts=isWin?3:isDraw?1:0;
  walletGBP+=money;
- lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts};
+ lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts,events:simFinalOverride?.events||[],substitutions:simFinalOverride?.substitutions||[],instruction:simFinalOverride?.instruction||tactic};
  round++;scheduleRound=Math.min(round,21);matchTab='result';pendingReward={club:manager,season:y,round:week};simFinalOverride=null;simState=null;
  if(round>=22){finishSeason();scheduleRound=0}
  save();page='match';render()
@@ -1205,13 +1240,13 @@ function startSimulation(){
  const pair=matchPair(),s=currentLineup();
  if(!pair||s.filter(Boolean).length!==11)return;
  pauseSimulation();
- simState={club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeGoals:0,awayGoals:0,yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
+ simState={activeLineup:s.slice(),participants:s.slice(),substitutions:[],formation,instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeGoals:0,awayGoals:0,yellowCards:0,redCards:0,majorEvent:null,log:[{minute:0,type:'info',text:'킥오프! 양 팀이 경기장에 입장했습니다.'}],halftime:false,ball:{x:50,y:50},stamina:100};
  matchTab='live';page='match';save();render();runSimulation();
 }
 
 function randomMatchActor(attackingHome){
  const clubId=attackingHome?simState.home:simState.away;
- const selected=clubId===manager?currentLineup().map(id=>players.find(p=>p.id===id)).filter(Boolean):
+ const selected=clubId===manager?simPlayerIds().map(id=>players.find(p=>p.id===id)).filter(Boolean):
  players.filter(p=>p.club===clubId&&p.pos!=='GK').sort((a,b)=>overall(b)-overall(a)).slice(0,10);
  const eligible=selected.filter(p=>p.pos!=='GK');
  return eligible.length?eligible[Math.floor(Math.random()*eligible.length)]:null;
@@ -1221,7 +1256,7 @@ function showableMajorEvent(){
  return e&&simState.minute-e.minute<=2?e:null;
 }
 function minuteEvent(){
- const h=clubs[simState.home],a=clubs[simState.away],hp=teamPower(h.id),ap=teamPower(a.id);
+ const h=clubs[simState.home],a=clubs[simState.away],hp=h.id===manager?simTeamPower():teamPower(h.id),ap=a.id===manager?simTeamPower():teamPower(a.id);
  const homeAdv=hp+2+(h.id===manager?tacticModifier():0),awayAdv=ap+(a.id===manager?tacticModifier():0);
  const homeChance=Math.max(.20,Math.min(.80,homeAdv/(homeAdv+awayAdv)));
  const isHome=Math.random()<homeChance,attacker=isHome?h:a;
@@ -1244,6 +1279,8 @@ function minuteEvent(){
  else if(roll<.30){type='defense';message=playerName+'의 패스가 상대 수비에 차단됐습니다.'}
  else message=attacker.name+'이(가) 중원에서 패스를 전개합니다.';
  if(title)simState.majorEvent={minute:m,type,title,detail:message};
+ if(!simState.events)simState.events=[];
+ if(['goal','yellow','red','shot'].includes(type))simState.events.push({minute:m,type,team:attacker.id,playerId:actor?.id??null,text:message});
  simState.log.unshift({minute:m,type,text:message});
  simState.log=simState.log.slice(0,95);
 }
@@ -1279,19 +1316,19 @@ function stepSimulation(){
 function commitSimulation(){
  if(!simState||simState.minute!==90||simState.club!==manager)return;
  pauseSimulation();
- simFinalOverride={homeGoals:simState.homeGoals,awayGoals:simState.awayGoals};
+ simFinalOverride={homeGoals:simState.homeGoals,awayGoals:simState.awayGoals,events:(simState.events||[]).slice(),participants:[...new Set(simState.participants||simPlayerIds())],substitutions:(simState.substitutions||[]).slice(),instruction:simState.instruction};
  playRound();
 }
 function viewMatchSimulationWrapper(){
  if(!simState||simState.club!==manager)return viewMatch();
  const m=simState,home=clubs[m.home],away=clubs[m.away],mins=m.minute;
- const myHome=m.home===manager,slots=FORMATIONS[formation],lineup=currentLineup();
+ const myHome=m.home===manager,slots=FORMATIONS[m.formation||formation],lineup=simPlayerIds();
  const homeDots=slots.map((slot,i)=>{let p=players.find(q=>q.id===lineup[i]),x=myHome?slot.y:100-slot.y,y=slot.x;return '<div class="sim-pawn" style="left:'+x+'%;top:'+y+'%">'+(p?i+1:'?')+'</div>'}).join('');
  const awayDots=slots.map((slot,i)=>'<div class="sim-pawn away" style="left:'+(myHome?100-slot.y:slot.y)+'%;top:'+slot.x+'%">'+(i+1)+'</div>').join('');
  const major=showableMajorEvent();
  const overlay=major?'<div class="sim-major-event '+major.type+'" aria-live="polite"><div class="event-title">'+major.title+'</div><div class="event-detail">'+txt(major.detail)+'</div><div class="event-minute">'+major.minute+"'"+'</div></div>':'';
  const button=mins===90?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'경기 자동 진행 중':'경기 일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'계속 진행')+'</button><button class="btn sub" onclick="stepSimulation()">+1분 진행</button>';
- return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+mins+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/90*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 하프타임 후에도 이어집니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(e.type==='goal'?'goal':'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div></aside></div>';
+ return '<div class="sim-layout"><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">리그 '+(m.round+1)+'라운드</h2></div><div class="sim-timer">'+mins+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+(mins/90*100)+'%"></span></div><div class="sim-field">'+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 시작 즉시 자동 진행되며 45분 하프타임 후에도 이어집니다. 골·경고·퇴장 시 경기장에 큰 알림이 나타납니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(e=>'<div class="sim-line '+(e.type==='goal'?'goal':'')+'"><strong>'+e.minute+"'"+'</strong>'+txt(e.text)+'</div>').join('')+'</div>'+simCoachingPanel()+'</aside></div>';
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState}))}
@@ -1299,6 +1336,58 @@ function save(){
 }
 window.tacticsDragStart=tacticsDragStart;window.tacticsDragOver=tacticsDragOver;window.tacticsDrop=tacticsDrop;
 window.startSimulation=startSimulation;window.runSimulation=runSimulation;window.pauseSimulation=pauseSimulation;window.stepSimulation=stepSimulation;window.commitSimulation=commitSimulation;
+
+
+/* On-pitch instructions and substitutions persist with the simulated match. */
+let simSubIn=0,simSubOut=0;
+function chooseSimPlayer(type,id){if(type==='in')simSubIn=Number(id);else simSubOut=Number(id)}
+function simPlayerIds(){
+ if(!simState)return [];
+ return Array.isArray(simState.activeLineup)?simState.activeLineup:currentLineup().slice();
+}
+function updateSimTactic(v){
+ if(!simState||simState.club!==manager||!['balanced','attack','defend'].includes(v))return;
+ simState.instruction=v;tactic=v;
+ simState.log.unshift({minute:simState.minute,type:'tactic',text:'전술 지시 변경: '+({balanced:'균형',attack:'공격 강화',defend:'수비 강화'}[v])});
+ save();render();
+}
+function substituteSimPlayer(){
+ if(!simState||simState.club!==manager||simState.minute>=90)return;
+ const inId=Number(document.getElementById('sim-sub-in')?.value??simSubIn);
+ const outId=Number(document.getElementById('sim-sub-out')?.value??simSubOut);
+ const lineup=simPlayerIds(),outIndex=lineup.indexOf(outId),squad=myPlayers();
+ if((simState.substitutions||[]).length>=5)return;
+ if(outIndex<0||inId===outId||lineup.includes(inId)||!squad.some(p=>p.id===inId))return;
+ lineup[outIndex]=inId;
+ simState.activeLineup=lineup;
+ if(!Array.isArray(simState.participants))simState.participants=[];
+ simState.participants.push(inId);
+ const outbound=players.find(p=>p.id===outId),inbound=players.find(p=>p.id===inId);
+ if(!simState.substitutions)simState.substitutions=[];
+ simState.substitutions.push({minute:simState.minute,out:outId,in:inId});
+ simState.log.unshift({minute:simState.minute,type:'sub',text:'선수 교체: '+(outbound?.name||'선수')+' OUT / '+(inbound?.name||'선수')+' IN'});
+ save();render();
+}
+function simTeamPower(){
+ const ids=simPlayerIds(),slots=FORMATIONS[simState.formation||formation];
+ let total=0,count=0;
+ ids.forEach((id,i)=>{const p=players.find(x=>x.id===id);if(p&&slots[i]){total+=overall(p)*positionFit(p,slots[i].r);count++}});
+ return count?own().rating*.27+(total/11)*.73:teamPower(manager);
+}
+function simCoachingPanel(){
+ if(!simState)return '';
+ const ids=simPlayerIds(),selected=new Set(ids),available=myPlayers().filter(p=>!selected.has(p.id));
+ const outs=ids.map(id=>players.find(p=>p.id===id)).filter(Boolean);
+ const subs=simState.substitutions||[];
+ const instruction=simState.instruction||'balanced';
+ return '<div class="sim-coach-panel"><h3>경기 중 전술 지시</h3><div class="sim-tactics-choices">'+[
+ ['defend','수비 강화'],['balanced','균형 유지'],['attack','공격 강화']
+ ].map(([v,label])=>'<button class="'+(instruction===v?'selected':'')+'" onclick="updateSimTactic(\''+v+'\')">'+label+'</button>').join('')+'</div><h3>선수 교체 <span style="color:#888;font-size:12px">('+subs.length+'/5)</span></h3>'+
+ '<div class="coach-action"><select id="sim-sub-out" aria-label="교체 아웃">'+outs.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select><span>⇄</span><select id="sim-sub-in" aria-label="교체 인">'+available.map(p=>'<option value="'+p.id+'">'+txt(p.name)+' · '+p.pos+'</option>').join('')+'</select></div>'+
+ '<button class="btn" style="width:100%" '+(subs.length>=5||!available.length?'disabled':'')+' onclick="substituteSimPlayer()">선수 교체 확정</button><p class="coaching-note">선수 교체와 전술 지시는 이후 경기 이벤트 확률에 반영됩니다. 최대 5명 교체할 수 있습니다.</p>'+
+ (subs.length?'<div class="sim-subrecent">'+subs.slice(-2).map(x=>x.minute+"' 교체 "+txt(players.find(p=>p.id===x.in)?.name||'선수')).join(' · ')+'</div>':'')+'</div>';
+}
+window.updateSimTactic=updateSimTactic;window.substituteSimPlayer=substituteSimPlayer;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 updateDisplayLanguage(displayLanguage);
