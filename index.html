@@ -269,6 +269,14 @@ a{color:#202020}
 .crest-identity.crest-small{width:29px!important;height:34px!important}
 .fixture-row .crest-identity{width:33px;height:39px}
 .tablewrap .crest-identity{width:29px;height:34px}
+
+/* Three-card reward selection */
+.reward-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:15px 0}
+.reward-choice{background:#fff;border:1px solid #d9d9d9;border-radius:9px;padding:19px 12px;text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;gap:9px;justify-content:center;color:#222}
+.reward-choice .reward-symbol{display:grid;place-items:center;width:46px;height:46px;border:1px solid #aaa;border-radius:50%;font-size:21px;font-weight:700}
+.reward-choice strong{font-size:17px}.reward-choice small{font-size:12px;color:#666;line-height:1.5}
+.reward-choice .btn{margin-top:4px;min-width:115px}
+@media(max-width:650px){.reward-choice-grid{grid-template-columns:1fr}}
 </style></head><body><header><div class="logo">ELEVOS.</div><small>FOOTBALL MANAGEMENT SIMULATION</small></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -575,7 +583,7 @@ function fixtureListHTML(li,r){
 function chooseMatchTab(t){matchTab=t;render()}
 function matchPair(){return (fixtures[own().league]?.[round]||[]).find(g=>g.includes(manager))}
 function matchRating(p,bonus=0){return Math.max(4,Math.min(10,Math.round((5.3+(overall(p)-65)*.038+bonus)*10)/10))}
-function viewMatch(){
+function viewMatchCore(){
  if(manager===null)return viewStart();
  const m=matchPair(),squad=currentLineup().map(id=>players.find(p=>p.id===id)),slots=FORMATIONS[formation],ready=squad.every(Boolean);
  const current=lastMatch&&lastMatch.club===manager?lastMatch:null,canNext=round<22;
@@ -616,7 +624,7 @@ function playRound(){
  const money=(isWin?2.5:isDraw?1.3:.7),pts=isWin?3:isDraw?1:0;
  club.cash+=money*1000000;
  lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts};
- round++;scheduleRound=Math.min(round,21);matchTab='result';
+ round++;scheduleRound=Math.min(round,21);matchTab='result';pendingReward={club:manager,season:y,round:week};
  if(round>=22){finishSeason();scheduleRound=0}
  save();page='match';render()
 }
@@ -817,6 +825,57 @@ function shield(c){
  +'<g transform="translate(40 42)" style="color:'+b.secondary+'">'+emblemSymbol(b.symbol)+'</g>'
  +'<text x="40" y="76" text-anchor="middle" font-size="15" font-weight="800" font-family="Arial,sans-serif" letter-spacing="-.4" fill="'+b.secondary+'">'+b.initials+'</text></svg></span>';
 }
+
+
+/* One optional bonus selection per played match (base LP and XP already granted). */
+let pendingReward=saved?.pendingReward||null;
+let latestReward=saved?.latestReward||null;
+function save(){
+ try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward}))}
+ catch(e){console.warn('저장 실패',e)}
+}
+function rewardChoices(){
+ return '<section class="card"><div class="row"><h2 style="margin:0">경기 후 추가 보상 선택</h2><span class="tag">3장 중 1장</span></div><p class="muted small">기본 경기머니와 경험치는 이미 지급됐습니다. 아래에서 추가 보상 한 가지를 받을 수 있습니다.</p><div class="reward-choice-grid">'+[
+  ['LP','추가 게임머니','2M','팀 운영 자금 +2M'],
+  ['XP','훈련 경험치','80 XP','가장 높은 능력치의 보유 선수에게 +80 XP'],
+  ['P','유망주 영입','새 선수 1명','가상의 신인 선수 1명 영입']
+ ].map((x,i)=>'<div class="reward-choice"><span class="reward-symbol">'+x[0]+'</span><strong>'+x[1]+'</strong><small>'+x[3]+'</small><button class="btn" onclick="claimReward('+i+')">선택하기</button></div>').join('')+'</div></section>';
+}
+function awardTrainingXP(){
+ const p=myPlayers().slice().sort((a,b)=>overall(b)-overall(a))[0];if(!p)return '보유 선수가 없습니다';
+ p.xp+=80;
+ while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}
+ return p.name+' 훈련 경험치 +80';
+}
+function recruitYouthPlayer(){
+ if(myPlayers().length>=30){own().cash+=2000000;return '선수단이 가득 차 게임머니 2M으로 대체 지급'}
+ const pos=['ST','CM','CB','LW','RB','GK'][rand(0,5)];
+ const id=Math.max(...players.map(p=>p.id))+1;
+ const base=Math.max(45,Math.min(75,Math.round(own().rating-9+rand(-6,6))));
+ const p={id,club:manager,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(17,21),level:1,xp:0,pts:0,potential:Math.min(120,base+rand(15,32)),stats:{pace:Math.min(95,base+rand(-5,6)),shoot:Math.min(95,base+rand(-5,6)),pass:Math.min(95,base+rand(-5,6)),defend:Math.min(95,base+rand(-5,6)),physical:Math.min(95,base+rand(-5,6))}};
+ playerBio(p);players.push(p);return p.name+' ('+p.pos+') 영입 완료';
+}
+function claimReward(option){
+ if(!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
+ let description;
+ if(option===0){own().cash+=2000000;description='추가 게임머니 2M 지급'}
+ else if(option===1)description=awardTrainingXP();
+ else description=recruitYouthPlayer();
+ latestReward={club:manager,season:pendingReward.season,round:pendingReward.round,description};
+ pendingReward=null;matchTab='rewards';save();render();
+}
+function viewMatch(){
+ let html=viewMatchCore();
+ if(!manager)return html;
+ if(matchTab==='result'&&pendingReward?.club===manager)
+  html+='<div class="card"><div class="row"><div><h2>경기 후 보상</h2><p class="muted small">선수 성장과 구단 운영을 위한 추가 보상 1개를 선택하세요.</p></div><button class="btn" onclick="chooseMatchTab(\'rewards\')">보상 선택하기</button></div></div>';
+ if(matchTab==='rewards'){
+  if(pendingReward?.club===manager)html+=rewardChoices();
+  else if(latestReward?.club===manager)html+='<div class="notice">보상 획득 완료 — '+txt(latestReward.description)+'</div>';
+ }
+ return html;
+}
+window.claimReward=claimReward;
 
 window.go=go;window.chooseLeague=chooseLeague;window.chooseClub=chooseClub;window.selectPlayer=selectPlayer;window.upgrade=upgrade;window.setFormation=setFormation;window.setTactic=setTactic;window.setPressure=setPressure;window.playRound=playRound;window.buy=buy;
 render();
