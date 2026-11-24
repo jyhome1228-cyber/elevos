@@ -1764,7 +1764,7 @@ function avatar(p,size=42){
  const red=p.redSpecial===true,legend=p.legendSpecial===true,h=Math.imul(p.id+1,2654435761)>>>0,tile=legend?p.legendFaceIndex:red?redEliteFaceIndex(p):Number.isInteger(p.identityFace)?p.identityFace:h%(FACE_SHEETS.length*12),extra=red&&!legend&&tile>=24,rows=legend||extra?6:3,sheet=Math.floor(tile/12),slot=legend?tile:extra?tile-24:tile%12,col=slot%4,row=Math.floor(slot/4),src=legend?LEGEND_SHEET:extra?RED_EXTRA_SHEET:(red?RED_ELITE_FACE_SHEETS:FACE_SHEETS)[sheet];
  return '<span class="face-tile'+(red?' red-elite-face':'')+'" style="width:'+size+'px;height:'+size+'px" title="'+(red?'RED ELITE 전용 선수 얼굴':'가상 선수 얼굴')+'">'
   +'<span class="face-fallback">'+svgAvatarFallback(p,size)+'</span>'
-  +'<img draggable="false" loading="lazy" decoding="async" alt="" src="'+src+'" style="position:absolute;width:400%;height:300%;max-width:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
+  +'<img draggable="false" loading="lazy" decoding="async" alt="" src="'+src+'" style="position:absolute;width:400%;height:'+rows*100+'%;max-width:none;max-height:none;left:-'+(col*100)+'%;top:-'+(row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
   +'</span>'
 }
 
