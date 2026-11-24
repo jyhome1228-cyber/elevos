@@ -1145,6 +1145,13 @@ html body #main .home-match-actions .btn{font-size:15px!important;min-height:50p
 .cup-exit-identity{display:flex;align-items:center;gap:14px}.cup-exit-identity .crest{width:56px!important;height:64px!important}.cup-exit-identity h2{margin:5px 0;font-size:20px!important}.cup-exit-identity span{font-size:12px;color:#c5cbd5}
 .cup-exit-money{display:flex;gap:18px;align-items:center;text-align:right}.cup-exit-money small,.cup-exit-money b{display:block}.cup-exit-money small{font-size:11px;margin-bottom:5px}.cup-exit-money b{font-size:19px;color:#e8edf4}.cup-exit-money>div:last-child{border-left:1px solid #5c626e;padding-left:16px}.cup-exit-money>div:last-child b{color:#e5c581;font-size:23px}
 @media(max-width:760px){html body #nav.sidebar .nav,html body .game-module-tabs button{font-size:13px}.cup-exit-banner{flex-wrap:wrap}.cup-exit-money{width:100%;justify-content:space-between;gap:8px;text-align:left}.cup-exit-money b{font-size:16px}.cup-exit-money>div:last-child b{font-size:19px}.cup-exit-money>div:last-child{padding-left:8px}}
+</style><style id="elevos-pack-ui-fix">
+html body #nav.sidebar,html body .game-module-tabs{border:0!important;border-bottom:1px solid #778493!important;background:transparent!important;padding:0 0 0 1px!important;border-radius:0!important;box-shadow:none!important}
+html body .game-module-tabs{background:#181d25!important;padding-top:5px!important}
+html body #nav.sidebar .nav,html body .game-module-tabs button{min-height:40px}
+.pack-inventory{padding:18px}.pack-inventory-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.pack-inventory-head h3{margin:0 0 6px;font-size:16px!important}.pack-inventory-head span,.pack-inventory-foot span{font-size:12px;color:#b9c5d3}.pack-inventory-head>strong{font-size:24px}.pack-inventory-head>strong small{font-size:12px;color:#b9c5d3}
+.pack-tier-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.pack-tier-slot{min-width:0;display:flex;flex-direction:column;align-items:center;gap:9px;padding:12px;background:linear-gradient(160deg,#293340,#1b212a);border:1px solid #414b59;border-top:2px solid var(--tier-color);border-radius:4px}.pack-tier-slot.owned{border-color:var(--tier-color)}.pack-tier-head{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px;color:var(--tier-color)}.pack-tier-head b{color:#e9edf2}.pack-tier-art{height:148px;display:grid;place-items:center}.pack-tier-art .pack-art{width:100px;height:130px}.pack-tier-slot.empty .pack-tier-art{opacity:.42}.pack-tier-slot>strong{font-size:15px}.pack-tier-slot>small{font-size:11px;color:#bdc8d5}.pack-tier-slot .btn{width:100%;margin-top:5px;min-height:40px!important;font-size:13px!important;padding:8px!important}.pack-tier-slot.owned .btn{min-height:48px!important}.pack-tier-slot.empty .btn{opacity:.65!important;color:#bfc9d6!important}.pack-inventory-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;border-top:1px solid #414b59;padding-top:12px}.pack-reveal .btn{min-height:46px!important}
+@media(max-width:1000px){.pack-tier-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:620px){.pack-inventory{padding:12px}.pack-tier-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pack-tier-art{height:110px}.pack-tier-art .pack-art{width:78px;height:100px}.pack-inventory-head,.pack-inventory-foot{flex-wrap:wrap}}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><button id="cloud-account" class="name-lang-button" onclick="window.ElevosCloud?.open()">계정</button><div id="client-coach" class="client-coach"></div><button id="client-gifts" class="client-gifts" onclick="openCoachGifts()" hidden>선물함 <b id="client-gift-count">0</b></button><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row client-page-heading"><div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1275,7 +1282,7 @@ function viewMatch(){let starters=manager?currentLineup().filter(x=>x!==null).le
 /* League management and player profile enhancements */
 const LEAGUE_RULES=LEAGUES.map((l,i)=>({country:l[0],name:l[1],tier:l[2],size:12,rounds:22,promotion:l[2]===2?2:0,relegation:[0,2,4,6].includes(i)?2:0}));
 function playerBio(p){
- if(!p.nationality){const c=clubs.find(x=>x.id===p.club),other=LEAGUES[(p.id*13+7)%LEAGUES.length][0];p.nationality=p.id%4===0?other:c.country}
+ if(!p.nationality){const c=clubs.find(x=>x.id===p.club),other=LEAGUES[(p.id*13+7)%LEAGUES.length][0];p.nationality=p.id%4===0?other:(c?.country||other)}
  if(!p.height)p.height=(p.pos==='GK'?185:168)+(p.id*7%16);
  if(!p.weight)p.weight=62+(p.id*11%28);
  if(!p.foot)p.foot=p.id%5===0?'왼발':'오른발';
@@ -1810,13 +1817,30 @@ function viewCoach(){
  return '<section class="card coach-profile"><div class="coach-profile-level">'+rewardAsset('growth')+'<div><div class="eyebrow">MANAGER LEVEL</div><h2>LV. '+p.level+'</h2><strong>'+txt(coachName||'감독')+'</strong></div></div><div class="row"><span>다음 레벨까지</span><b>'+p.played+' / '+need+' 경기</b></div><div class="coach-meter"><i style="width:'+100*p.played/need+'%"></i></div><p class="muted small">누적 완료 경기 '+p.total+'경기</p><div class="coach-name-edit"><input id="coach-nickname" maxlength="20" placeholder="닉네임 입력" value="'+txt(coachName).replace(/"/g,'&quot;')+'"><button class="btn" onclick="saveCoachNickname()">닉네임 변경</button></div></section>';
 }
 function openCoachPack(id){
- const index=coachPacks.findIndex(p=>p.id===id);if(index<0)return;const pack=coachPacks[index],tier=pack.tier;
- const pos=['ST','CM','CB','LW','RB','GK'][rand(0,5)],pid=Math.max(0,...players.map(p=>p.id),...youthVault.map(p=>p.id),...coachCards.map(p=>p.id))+1;
- const target=rand(tier,tier===90?99:tier+9),p={id:pid,club:null,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(18,29),level:1,xp:0,pts:0,potential:Math.min(120,target+rand(5,15)),stats:{pace:target,shoot:target,pass:target,defend:target,physical:target},enhancementLevel:1};
- playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);
- const d=detailed(p),keys=OVR_KEYS[p.pos]||OVR_KEYS.CM;for(const k of keys)d[k]=target;
- p.packTier=tier;coachCards.push(p);coachPacks.splice(index,1);save();render();
- cardSelected=p.id;render();showPackReveal(p);
+ if(manager===null)return;
+ const index=coachPacks.findIndex(p=>p.id===id);if(index<0)return;
+ const pack=coachPacks[index],tier=Number(pack.tier);
+ if(!PACK_INFO[tier]){showGameDialog('개봉 불가',[['안내','선수팩 등급을 확인하세요.']]);return}
+ let p;
+ try{
+  const pos=['ST','CM','CB','LW','RB','GK'][rand(0,5)],pid=Math.max(0,...players.map(p=>p.id),...youthVault.map(p=>p.id),...coachCards.map(p=>p.id))+1;
+  const target=rand(tier,tier===90?99:tier+9);
+  p={id:pid,club:null,name:first[rand(0,first.length-1)]+' '+last[rand(0,last.length-1)],pos,age:rand(18,29),level:1,xp:0,pts:0,potential:Math.min(120,target+rand(5,15)),stats:{pace:target,shoot:target,pass:target,defend:target,physical:target},enhancementLevel:1};
+  playerBio(p);p.nameEn=p.name;applyCuratedAsianName(p);p.name=localizedPlayerName(p);
+  const d=detailed(p),keys=OVR_KEYS[p.pos]||OVR_KEYS.CM;for(const k of keys)d[k]=target;
+  p.packTier=tier;
+ }catch(e){console.error('선수팩 생성 실패',e);showGameDialog('선수팩 개봉 실패',[['안내','선수팩은 소모되지 않았습니다.']]);return}
+ coachCards.push(p);coachPacks.splice(index,1);
+ try{
+  save();
+  const persisted=JSON.parse(localStorage.getItem(saveKey)||'null');
+  if(!persisted?.coachCards?.some(x=>x.id===p.id)||persisted?.coachPacks?.some(x=>x.id===id))throw Error('저장 실패');
+ }catch(e){
+  coachCards=coachCards.filter(x=>x.id!==p.id);coachPacks.splice(index,0,pack);
+  console.error(e);showGameDialog('저장 실패',[['안내','선수팩을 유지했습니다. 브라우저 저장 공간을 확인하세요.']]);return;
+ }
+ cardSelected=p.id;cardTab='cards';cardSearch='';cardPosition='ALL';
+ try{render();showPackReveal(p)}catch(e){console.error(e);showGameDialog('선수 카드 획득',[['선수',p.name],['종합 능력치',String(overall(p))],['안내','선수 카드 보관함에 저장되었습니다.']])}
 }
 const PACK_INFO={50:{name:'일반',color:'#aeb6c1',price:100},60:{name:'고급',color:'#88b59b',price:250},70:{name:'희귀',color:'#8aafd9',price:500},80:{name:'특급',color:'#bb9ad8',price:1000},90:{name:'최상급',color:'#e1bf75',price:2500}};
 let cardTab='cards',cardSort='ovr',cardSelected=null,cardSearch='',cardPosition='ALL',recycleIds=[],shopTab='packs';
@@ -1833,7 +1857,7 @@ function viewCoachCards(){
  const tabs='<div class="game-module-tabs"><button class="'+(cardTab==='cards'?'on':'')+'" onclick="setCardTab(\'cards\')">보유 카드 ('+coachCards.length+')</button><button class="'+(cardTab==='packs'?'on':'')+'" onclick="setCardTab(\'packs\')">미개봉 팩 ('+coachPacks.length+')</button><button class="'+(cardTab==='recycle'?'on':'')+'" onclick="setCardTab(\'recycle\')">재활용</button><button class="'+(cardTab==='items'?'on':'')+'" onclick="setCardTab(\'items\')">보유 아이템</button><button onclick="go(\'shop\')">아이템 상점</button></div>';
  const details=p?'<div class="inventory-detail">'+avatar(p,90)+'<div><strong>'+txt(p.name)+'</strong><span>'+txt(p.pos)+' · '+p.age+'세</span><b style="color:'+PACK_INFO[p.packTier]?.color+'">'+overall(p)+' OVR</b>'+enhancementLabel(p)+'</div></div><div class="inventory-attributes">'+Object.entries(p.stats||{}).map(([k,v])=>'<div><span>'+({pace:'속력',shoot:'슈팅',pass:'패스',defend:'수비',physical:'피지컬'}[k]||k)+'</span><b>'+v+'</b></div>').join('')+'</div><button class="btn" onclick="registerStoredCard('+p.id+')">선수단 등록</button>'+storedCardActions(p):'<div class="module-empty">선택된 선수 카드 없음</div>';
  const list='<div class="inventory-toolbar"><span>보유 카드 '+coachCards.length+'장</span><input id="card-search" placeholder="선수 검색" value="'+txt(cardSearch).replace(/"/g,'&quot;')+'" onchange="setCardSearch(this.value)" onkeydown="if(event.key===\'Enter\')setCardSearch(this.value)"><select onchange="setCardPosition(this.value)">'+['ALL','GK','CB','LB','RB','CDM','CM','CAM','LM','RM','LW','RW','ST','CF'].map(v=>'<option value="'+v+'" '+(cardPosition===v?'selected':'')+'>'+(v==='ALL'?'전체 POS':v)+'</option>').join('')+'</select><select onchange="setCardSort(this.value)"><option value="ovr" '+(cardSort==='ovr'?'selected':'')+'>능력치순</option><option value="name" '+(cardSort==='name'?'selected':'')+'>이름순</option><option value="pos" '+(cardSort==='pos'?'selected':'')+'>포지션순</option></select></div><div class="tablewrap inventory-table"><table><thead><tr><th>등급</th><th>선수</th><th>POS</th><th>OVR</th><th>강화</th><th>LV</th></tr></thead><tbody>'+sorted.map(x=>'<tr class="'+(p?.id===x.id?'selected':'')+'" onclick="selectStoredCard('+x.id+')"><td><span class="pack-grade" style="color:'+PACK_INFO[x.packTier]?.color+'">'+x.packTier+'+ '+(x.locked?'🔒':'')+'</span></td><td><div class="inventory-player">'+avatar(x,32)+'<b>'+txt(x.name)+'</b></div></td><td>'+txt(x.pos)+'</td><td><b>'+overall(x)+'</b></td><td>'+enhancementLabel(x)+'</td><td>'+x.level+'</td></tr>').join('')+'</tbody></table>'+(!sorted.length?'<div class="module-empty">보유 카드가 없습니다.</div>':'')+'</div>';
- const packs='<div class="inventory-pack-grid">'+(coachPacks.map((x,i)=>'<article class="inventory-pack"><div>'+packArt(x.tier)+'</div><div><strong>'+x.tier+'+ 선수팩</strong><small>'+PACK_INFO[x.tier]?.name+' · 선수 1명</small><button class="btn mini" onclick="openCoachPackByIndex('+i+')">개봉하기</button></div></article>').join('')||'<div class="module-empty">미개봉 선수팩이 없습니다.</div>')+'</div>';
+ const packs=packInventoryModule();
  return '<section class="game-module"><div class="module-title"><h2>선수 카드 보관함</h2><span>'+coachCards.length+'장 · '+coachPacks.length+'팩</span></div>'+tabs+(cardTab==='packs'?packs:cardTab==='recycle'?recycleModule():cardTab==='items'?ownedItemsModule():'<div class="inventory-workspace"><aside class="inventory-preview"><h3>선수 정보</h3>'+details+'</aside><div>'+list+'</div></div>')+'</section>';
 }
 function registerStoredCard(id){
@@ -1883,7 +1907,13 @@ function viewItemShop(){
  return '<section class="game-module"><div class="module-title"><h2>아이템 상점</h2><span>'+formatGBP(walletGBP)+'</span></div><div class="game-module-tabs"><button class="'+(shopTab==='packs'?'on':'')+'" onclick="setShopTab(\'packs\')">선수팩</button><button class="'+(shopTab==='items'?'on':'')+'" onclick="setShopTab(\'items\')">육성 아이템</button><button onclick="go(\'cards\')">내 보관함</button></div><div class="shop-products">'+(shopTab==='packs'?packs:items)+'</div></section>';
 }
 window.setCardTab=setCardTab;window.setCardSort=setCardSort;window.selectStoredCard=selectStoredCard;window.registerStoredCard=registerStoredCard;window.buyItemPack=buyItemPack;
-function openCoachPackByIndex(i){const p=coachPacks[i];if(p){cardTab='cards';openCoachPack(p.id)}}
+function openCoachPackByIndex(i){const p=coachPacks[i];if(p)openCoachPack(p.id)}
+function openCoachPackTier(tier){const p=coachPacks.find(x=>Number(x.tier)===tier);if(p)openCoachPack(p.id)}
+function packInventoryModule(){
+ const count=coachPacks.length;
+ return '<div class="pack-inventory"><div class="pack-inventory-head"><div><h3>미개봉 선수팩</h3><span>보유 중인 선수팩을 개봉해 선수를 획득하세요.</span></div><strong>'+count+'<small> 팩 보유</small></strong></div><div class="pack-tier-grid">'+Object.entries(PACK_INFO).map(([key,info])=>{const tier=Number(key),n=coachPacks.filter(x=>Number(x.tier)===tier).length;return '<article class="pack-tier-slot '+(n?'owned':'empty')+'" style="--tier-color:'+info.color+'"><div class="pack-tier-head"><span>'+info.name+'</span><b>'+n+'개</b></div><div class="pack-tier-art">'+packArt(tier)+'</div><strong>'+tier+'+ 선수팩</strong><small>OVR '+tier+'–'+(tier+9)+' · 선수 1명</small><button class="btn '+(n?'cta-primary':'sub')+'" '+(n?'onclick="openCoachPackTier('+tier+')"':'disabled')+'>'+(n?'개봉하기':'보유 없음')+'</button></article>'}).join('')+'</div><div class="pack-inventory-foot"><span>개봉한 선수는 선수 카드 보관함에 저장됩니다.</span><button class="btn sub" onclick="go(\'shop\')">아이템 상점</button></div></div>';
+}
+window.openCoachPackTier=openCoachPackTier;
 window.saveCoachNickname=saveCoachNickname;window.openCoachPackByIndex=openCoachPackByIndex;
 function rewardAsset(kind){
  const wrap=(body)=>'<svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true">'+body+'</svg>';
