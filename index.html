@@ -2320,7 +2320,7 @@ traits:[['.trait-reels','특성 룰렛','같은 특성 3개가 일치하면 획�
 };return (specific[page]||[[h[2],h[0],h[1]]]).filter(x=>{const n=document.querySelector(x[0]);return n&&n.getClientRects().length&&n.getBoundingClientRect().width>0})}
 function openTabHelp36(force=false){
  if(manager===null||page==='dashboard'||document.getElementById('elevos-entry')||simState||document.getElementById('elevos-game-dialog'))return;
- const h=tabHelpData36()[page];if(!h)return;const existing=document.getElementById('tab-help-v36');if(existing&&tabHelpCurrent36===page)return;if(existing)closeTabHelp36();let seen=tabHelpSeen36[page];try{seen=seen||localStorage.getItem(saveKey+':help36:'+page)==='1'}catch(e){}if(seen&&!force)return;
+ const h=tabHelpData36()[page];if(!h)return;const existing=document.getElementById('tab-help-v36');if(existing&&tabHelpCurrent36===page)return;if(existing)closeTabHelp36();let seen=tabHelpSeen36[page];try{seen=seen||localStorage.getItem(saveKey+':help36:'+page)==='1'}catch(e){}if((seen||page==='packs')&&!force)return;
  const steps=tabHelpSteps42(page,h);if(!steps.length)steps.push(['#main .module-title, #main h2',h[0],h[1]]);let index=0;
  tabHelpCurrent36=page;const root=document.createElement('div');root.id='tab-help-v36';root.innerHTML='<div class="tab-help-spot36"></div><section class="tour-panel" role="dialog" aria-modal="true" aria-label="이용 안내"><div class="tour-top"><span>ELEVOS GUIDE</span><span data-count></span></div><h2></h2><p></p><div class="tour-actions"><button class="btn sub mini" data-close>건너뛰기</button><button class="btn sub mini" data-prev>이전</button><button class="btn mini" data-ok>다음</button></div></section>';document.body.appendChild(root);
  const panel=root.querySelector('.tour-panel'),spot=root.querySelector('.tab-help-spot36'),ok=root.querySelector('[data-ok]'),prev=root.querySelector('[data-prev]');
@@ -2528,9 +2528,10 @@ function generatePackPlayer(tier,nextId,forcedTarget=null){
   p.sourcePackTier=tier;p.packTier=Math.min(100,Math.floor(target/10)*10);
  p.redSpecial=target>=110;if(legend){const f=rand(0,23);p.legendFaceIndex=f;p.nameEn=LEGEND_NAMES[f];p.nameKo=LEGEND_KO[f];p.name=localizedPlayerName(p);p.pos=['ST','CB','CM','LW','GK','RB','CDM','RW'][f%8];p.nationality=['잉글랜드','프랑스','독일','이탈리아','스페인','포르투갈','네덜란드','벨기에'][f%8];p.identityKey='legend-26:'+f;p.growthBase=undefined;delete p.detail;const ld=detailed(p);for(const k of Object.keys(ld))ld[k]=Math.min(123,target+rand(-4,4));for(const k of OVR_KEYS[p.pos]||OVR_KEYS.CM)ld[k]=target;}else if(p.redSpecial){p.redFaceIndex=rand(0,47);p.pos=ARCHIVE_POS[p.redFaceIndex%8];delete p.detail;const rd=detailed(p);for(const k of Object.keys(rd))rd[k]=Math.min(120,target+rand(-4,4));for(const k of OVR_KEYS[p.pos]||OVR_KEYS.CM)rd[k]=target;}p.stars=1;p.identityFace=playerFaceKey(p);const sameTier=[...myPlayers(),...coachCards].filter(q=>specialTier(q)===specialTier(p));if(!p.redSpecial&&!legend&&sameTier.length&&Math.random()<.18){const q=sameTier[Math.floor(Math.random()*sameTier.length)];p.name=q.name;p.nameEn=q.nameEn;p.nameKo=q.nameKo;p.portraitPreset=q.portraitPreset;p.pos=q.pos;p.nationality=q.nationality;p.height=q.height;p.weight=q.weight;p.foot=q.foot;p.identityFace=playerFaceKey(q);if(p.redSpecial)p.redFaceIndex=p.identityFace;p.identityKey=playerIdentity(q);delete p.detail;const d=detailed(p);for(const k of OVR_KEYS[p.pos]||OVR_KEYS.CM)d[k]=target;}else p.identityKey=playerIdentity(p);repairFictionalProfile(p);ensurePlayerSkills(p);return p;
 }
-function openCoachPack(id){const pack=coachPacks.find(p=>p.id===id);if(pack)openPackBatch([pack])}
+function packOpeningAllowed43(){if(manager===null)return false;if(simState){showGameDialog('경기 진행 중',[['안내','경기를 종료한 뒤 선수팩을 개봉할 수 있습니다.']]);return false}return true}
+function openCoachPack(id){if(!packOpeningAllowed43())return;const pack=coachPacks.find(p=>p.id===id);if(pack)openPackBatch([pack])}
 function openPackBatch(packs){
- if(manager===null||simState||!packs.length||packs.length>10)return;
+ if(!packOpeningAllowed43()||!packs.length||packs.length>10)return;
  if(new Set(packs.map(p=>p.id)).size!==packs.length||packs.some(p=>!coachPacks.includes(p)||!PACK_INFO[Number(p.tier)]))return;
  const oldCards=coachCards.slice(),oldPacks=coachPacks.slice();let result=[];
  try{
@@ -2539,10 +2540,10 @@ function openPackBatch(packs){
  coachCards.push(...result);coachPacks=coachPacks.filter(p=>!packs.includes(p));save();
  const stored=JSON.parse(readGameCache(saveKey)||'null');if(result.some(p=>!stored?.coachCards?.some(q=>q.id===p.id))||packs.some(p=>stored?.coachPacks?.some(q=>q.id===p.id)))throw Error('저장 실패');
  }catch(e){coachCards=oldCards;coachPacks=oldPacks;console.error(e);showGameDialog('개봉 실패',[['안내','선수팩을 유지했습니다.']]);return}
- missionAdd('pack',result.length);rookieMark39('pack');if(firstLossGuide38?.stage==='packs')firstLossGuide38.stage='cards';save();cardSelected=result[0].id;cardTab='packs';page='packs';cardSearch='';cardPosition='ALL';render();showBatchReveal(result);
+ missionAdd('pack',result.length);rookieMark39('pack');if(firstLossGuide38?.stage==='packs')firstLossGuide38.stage='cards';save();cardSelected=result[0].id;cardTab='packs';page='packs';cardSearch='';cardPosition='ALL';try{render()}catch(e){console.error('개봉 후 화면 갱신 실패',e)}try{closeTabHelp36();showBatchReveal(result)}catch(e){console.error('개봉 연출 실패',e);showGameDialog('선수팩 개봉 완료',[['획득 카드',result.length+'장'],['안내','선수 카드 보관함에서 확인하세요.']])}
 }
-function openFivePacks(tier){const packs=coachPacks.filter(p=>Number(p.tier)===tier).slice(0,5);if(packs.length===5&&!simState)showPackConfirm(tier,packs)}
-function openTenPacks(tier){if(simState)return;const packs=coachPacks.filter(p=>Number(p.tier)===tier).slice(0,10);if(packs.length!==10)return;showPackConfirm(tier,packs)}
+function openFivePacks(tier){const packs=coachPacks.filter(p=>Number(p.tier)===tier).slice(0,5);if(!packOpeningAllowed43())return;if(packs.length===5)showPackConfirm(tier,packs)}
+function openTenPacks(tier){if(!packOpeningAllowed43())return;const packs=coachPacks.filter(p=>Number(p.tier)===tier).slice(0,10);if(packs.length!==10)return;showPackConfirm(tier,packs)}
 function showPackConfirm(tier,packs){
  const info=PACK_INFO[tier];if(!info||!packs.length)return;dismissGameDialog();const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','선수팩 개봉 확인');
  el.innerHTML='<section class="game-dialog-content pack-confirm-v2" style="--pack-accent:'+info.color+'"><div class="pack-confirm-art">'+packArt(tier)+'</div><h2>'+tier+'+ 선수팩 <em>× '+packs.length+'</em></h2><p>선수 카드 '+packs.length+'장을 획득합니다.</p><small>개봉 후 남은 팩 '+(coachPacks.filter(p=>Number(p.tier)===tier).length-packs.length)+'개</small><div class="pack-confirm-actions"><button class="btn sub" data-cancel>취소</button><button class="btn" data-open>'+packs.length+'개 개봉</button></div></section>';document.body.appendChild(el);el.querySelector('[data-cancel]').onclick=()=>el.remove();el.querySelector('[data-open]').onclick=()=>{el.remove();openPackBatch(packs)};el.querySelector('[data-cancel]').focus();
