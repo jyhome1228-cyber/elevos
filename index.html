@@ -3624,11 +3624,39 @@ function weightedMatchPlayer(list,weight){
  const weights=list.map(p=>Math.max(.01,weight(p))),total=weights.reduce((a,b)=>a+b,0);let roll=Math.random()*total;
  for(let i=0;i<list.length;i++){roll-=weights[i];if(roll<0)return list[i]}return list[list.length-1]||null;
 }
+// Match engine 4: context-aware player roles and individual decisions.
+function playerRole82(p,slot){
+ const pos=slot||p.pos, family=ROLE_FAMILY[pos]||'MF',a=k=>matchActionStat(p,k);
+ if(pos==='GK')return 'keeper';
+ if(['LB','RB','LWB','RWB','WB'].includes(pos))return (a('sprint')+a('shortPass'))/2>a('marking')?'overlap':'fullback';
+ if(family==='DF')return a('longPass')>a('tackle')?'ballPlaying':'stopper';
+ if(['LW','RW','LM','RM'].includes(pos))return a('dribble')+a('acceleration')>a('shortPass')+a('vision')?'winger':'wideCreator';
+ if(family==='FW')return a('acceleration')>a('strength')+5?'runner':a('strength')>a('acceleration')+5?'target':a('vision')>a('finishing')?'link':'finisher';
+ if(['CDM','DM'].includes(pos))return a('interception')>=a('vision')?'anchor':'deepCreator';
+ return a('vision')>a('tackle')?'creator':'boxToBox';
+}
+function matchActorWeight82(p,action,team){
+ const m=simState,role=playerRole82(p),q=pitchPoint80(m,p.id,team),ball=m.ball||{x:50,y:50},distance=q?Math.hypot(q.x-ball.x,q.y-ball.y):30,depth=q?(team===m.home?q.x:100-q.x):50,a=k=>matchActionStat(p,k),fitness=playerFitnessFactor(p),family=ROLE_FAMILY[p.pos]||'MF';
+ const close=1/(1+distance/24),pattern=m.attack81?.team===team?m.attack81:null;
+ if(action==='defend')return ({DF:3.2,MF:2.1,FW:.8,GK:.1}[family]||1)*((a('tackle')+a('interception')+a('marking'))/225)*fitness*(.45+2*close)*(role==='anchor'||role==='stopper'?1.25:1);
+ if(action==='pass')return ({MF:2.9,DF:1.8,FW:1.1,GK:.1}[family]||1)*((a('vision')+a('shortPass')+a('firstTouch'))/225)*fitness*(.55+close)*( ['creator','deepCreator','wideCreator','ballPlaying','link'].includes(role)?1.35:1);
+ const bias=pattern?.kind==='cross'?(role==='target'||role==='finisher'?1.5:1):['counter','through'].includes(pattern?.kind)?(role==='runner'||role==='winger'?1.5:1):1;
+ return ({FW:3.8,MF:1.8,DF:.45,GK:.05}[family]||1)*((a('finishing')+a('positioning')+a('shotPower'))/225)*fitness*(.45+depth/85)*(.65+close)*bias;
+}
+function passDecision82(p,receiver,opponent,plan,pattern){
+ if(!p||!receiver||p.id===receiver.id)return {success:false,pressure:0};
+ const m=simState,a=pitchPoint80(m,p.id,p.club),b=pitchPoint80(m,receiver.id,p.club),dist=a&&b?Math.hypot(a.x-b.x,a.y-b.y):20;
+ const rivals=activeMatchPlayers(opponent),points=rivals.map(x=>pitchPoint80(m,x.id,opponent)).filter(Boolean);
+ const nearest=q=>q&&points.length?Math.min(...points.map(x=>Math.hypot(x.x-q.x,x.y-q.y))):25;
+ const press=Math.max(0,1-nearest(a)/16),mark=Math.max(0,1-nearest(b)/13),long=dist>25||pattern.kind==='through'||pattern.kind==='cross';
+ const skill=matchActionStat(p,long?'longPass':'shortPass'),touch=matchActionStat(receiver,'firstTouch'),vision=matchActionStat(p,'vision');
+ const chance=Math.max(.48,Math.min(.96,.88+(skill-65)*.0025+(touch-65)*.0015+(vision-65)*.001-press*.12-mark*.10-Math.max(0,dist-24)*.002));
+ return {success:Math.random()<chance,pressure:press,chance};
+}
 function randomMatchActor(attackingHome,action='attack',exclude=null){
  const clubId=attackingHome?simState.home:simState.away,keeper=activeMatchKeeper(clubId);
- const selected=activeMatchPlayers(clubId).filter(p=>p.id!==exclude);
- const eligible=selected.filter(p=>p.id!==keeper?.id);
- return weightedMatchPlayer(eligible,p=>{const d=detailed(p),role=ROLE_FAMILY[p.pos]||'MF',f=playerFitnessFactor(p);if(action==='defend')return ({DF:4,MF:2,FW:.6,GK:.1}[role]||1)*(d.tackle+d.interception)/150*f;if(action==='pass')return ({MF:4,DF:2,FW:1,GK:.1}[role]||1)*(d.shortPass+d.vision)/150*f;return ({FW:5,MF:2,DF:.5,GK:.1}[role]||1)*(d.finishing+d.positioning)/150*f})||selected[0]||null;
+ const selected=activeMatchPlayers(clubId).filter(p=>p.id!==exclude),eligible=selected.filter(p=>p.id!==keeper?.id);
+ return weightedMatchPlayer(eligible,p=>matchActorWeight82(p,action,clubId))||selected[0]||null;
 }
 function playerMatchStats(id,events){const own=events.filter(e=>e.playerId===id),n=t=>own.filter(e=>e.type===t).length;return {goals:n('goal'),assists:events.filter(e=>e.type==='goal'&&e.assistId===id).length,shots:n('shot')+n('goal'),passes:n('pass'),attacks:n('attack'),saves:n('save'),fouls:n('foul'),yellow:n('yellow'),red:n('red')}}
 function matchImpact(id,events){const x=playerMatchStats(id,events);return x.goals*1.15+x.assists*.85+x.shots*.08+x.passes*.025+x.attacks*.06+x.saves*.4-x.fouls*.12-x.yellow*.4-x.red*1.4}
@@ -3813,7 +3841,7 @@ function minuteEvent(){
  const pattern=attackPattern81(simState,attacker.id,plan,oppPlan,depth);simState.attack81=pattern;
  const quality=Math.max(.4,Math.min(2.2,(homeSide?adjustedHome:adjustedAway)/Math.max(1,homeSide?adjustedAway:adjustedHome)));
  const currentCarrier=activeMatchPlayers(attacker.id).find(p=>p.id===simState.ballCarrier80&&p.pos!=='GK');const actor=(pattern.stage==='chance'&&currentCarrier?currentCarrier:null)||randomMatchActor(homeSide),actorName=actor?.name||attacker.name;
- const defensiveActor=randomMatchActor(!homeSide,'defend');
+ const defensiveActor=randomMatchActor(!homeSide,'defend');const actorRole=actor?playerRole82(actor):'finisher';
  const last=activeMatchPlayers(attacker.id).find(p=>p.id===simState.lastPass79&&p.id!==actor?.id);
  const passer=last||randomMatchActor(homeSide,'pass',actor?.id),assistId=passer&&depth>55&&Math.random()<.72?passer.id:null;
  const d=actor?detailed(actor):null;
@@ -3858,7 +3886,7 @@ function minuteEvent(){
  }else if(roll<eventBase+.027){
   simEvent(defender.id,defensiveActor,'foul',(defensiveActor?.name||defender.name)+' 파울! '+actorName+'에게 프리킥이 주어집니다.','FOUL');
  }else if(roll<eventBase+.027+Math.min(.12,.045*quality*finish)){
-  const onTarget=Math.random()<Math.max(.28,Math.min(.68,.46+(shot-tackle)/220));
+  const onTarget=Math.random()<Math.max(.24,Math.min(.78,.46+(shot-tackle)/220+(actorRole==='finisher'?.045:actorRole==='target'&&pattern.kind==='cross'?.05:0)));
   simEvent(attacker.id,actor,'shot',actorName+(onTarget?'의 유효 슈팅!':'의 슈팅이 골문을 벗어납니다.')+' · '+attackLabel81(pattern.kind),null,{onTarget});
   if(onTarget&&keeper)simEvent(defender.id,keeper,'save',keeper.name+' 선방! '+actorName+'의 슈팅을 막아냈습니다.');
  }else if(roll<.132*quality*create){
@@ -3871,6 +3899,8 @@ function minuteEvent(){
   simEvent(attacker.id,actor,'attack',actorName+({counter:'이(가) 빠르게 역습을 전개합니다.',cross:'이(가) 측면 공간을 파고듭니다.',through:'이(가) 수비 뒷공간으로 침투합니다.',build:'이(가) 중앙에서 연계하며 전진합니다.'}[pattern.kind]||'이(가) 공격을 전개합니다.'),null,{pattern:pattern.kind});
  }else {const current=activeMatchPlayers(attacker.id).find(p=>p.id===simState.ballCarrier80),pass=current||passer||actor,from=pitchPoint80(simState,pass?.id,attacker)||simState.ball,dir=homeSide?1:-1;
  const receiver=weightedMatchPlayer(activeMatchPlayers(attacker.id).filter(p=>p.id!==pass?.id&&p.pos!=='GK'),p=>{const q=pitchPoint80(simState,p.id,attacker);if(!q)return 1;const dx=(q.x-from.x)*dir,dist=Math.hypot(q.x-from.x,q.y-from.y),ideal=pattern.kind==='counter'||pattern.kind==='through'?30:pattern.kind==='cross'?24:12+plan.passing*.18;const role=ROLE_FAMILY[p.pos]||'MF',wide=Math.abs(q.y-50)>20;const bias=pattern.kind==='cross'?(pattern.stage==='build'?(wide?1.8:.7):(role==='FW'?1.9:.65)):pattern.kind==='through'||pattern.kind==='counter'?(role==='FW'?1.8:.8):role==='MF'?1.45:1;return Math.max(.1,1.6-Math.abs(dist-ideal)/45)*(dx>0?1.3:.75)*playerFitnessFactor(p)*bias})||actor;
+ const decision=passDecision82(pass,receiver,defender.id,plan,pattern);
+ if(!decision.success){const interceptor=randomMatchActor(!homeSide,'defend');simState.lastPass79=null;simState.attack81={...pattern,stage:'finished',restart:false};simEvent(defender.id,interceptor,'attack',(interceptor?.name||defender.name)+'이(가) '+(pass?.name||attacker.name)+'의 패스를 차단합니다.',null,{turnover:true,pattern:pattern.kind});moveMatchObjects(!homeSide,'attack');return}
  simState.lastPass79=pass?.id??null;const action=pattern.kind==='cross'&&pattern.stage!=='build'?'크로스':pattern.kind==='through'?'스루패스':pattern.kind==='counter'?'전진 패스':'짧은 패스';simEvent(attacker.id,pass,'pass',(pass?.name||attacker.name)+'이(가) '+(receiver&&receiver.id!==pass?.id?receiver.name:'동료')+'에게 '+action+'를 연결합니다.',null,{receiverId:receiver?.id??null,pattern:pattern.kind});if(pattern.stage==='delivery')simState.attack81={...pattern,stage:'chance'};}
  const eventType=simState.log[0]?.type||'pass';moveMatchObjects(homeSide,eventType);if(['goal','provisional','save','shot','offside','var'].includes(eventType)){simState.lastPass79=null;simState.attack81={...pattern,stage:'finished',restart:false};}
 }
@@ -4491,12 +4521,18 @@ function moveMatchObjects(homeAttack,type){
   m.positions[side]=slots.map((slot,k)=>{
    const role=ROLE_FAMILY[slot.r]||'MF',q=old[k],bx=isHome?100-slot.y:slot.y,by=slot.x;
    if(q.id==null)return q;
+   const player=players.find(z=>z.id===q.id),individual=player?playerRole82(player,slot.r):'none';
    let tx=bx+(m.ball.x-bx)*({GK:.02,DF:.15,MF:.27,FW:.32}[role])+d*(role==='GK'?0:(p.line-50)*.15+(own?5:-3));
    let ty=by+(m.ball.y-by)*(role==='GK'?.08:.17)+(role==='GK'?0:(by-50)*(p.width-50)/125);
    if(own&&role==='FW'){tx+=d*(3+p.tempo*.08);ty+=(by-50)*.12;if(pattern?.kind==='cross'&&pattern.stage!=='build'){tx+=d*8;ty+=(50-by)*.34}if(['through','counter'].includes(pattern?.kind)){tx+=d*7}}
-   if(!own&&pressers.includes(q.id)){tx=q.x+(m.ball.x-q.x)*.55;ty=q.y+(m.ball.y-q.y)*.55}
+   if(own&&individual==='overlap'&&p.width>55){tx+=d*9;ty+=(by-50)*.15}
+   if(own&&individual==='runner'&&pattern?.team===team){tx+=d*6}
+   if(own&&individual==='target'){ty+=(50-by)*.25}
+   if(own&&['creator','deepCreator','link'].includes(individual)){tx-=d*4;ty+=(m.ball.y-by)*.12}
+   if(individual==='anchor'){tx-=d*5;ty+=(50-by)*.18}
+   if(!own&&pressers.includes(q.id)){const intensity=individual==='stopper'||individual==='anchor'?.67:.53;tx=q.x+(m.ball.x-q.x)*intensity;ty=q.y+(m.ball.y-q.y)*intensity}
    if(own&&q.id===carrier&&!shot){tx=m.ball.x;ty=m.ball.y}
-   const step=role==='GK'?3:own&&q.id===carrier?12:role==='DF'?7:10;
+   const speed=player?Math.max(.65,Math.min(1.4,(matchActionStat(player,'sprint')*.65+matchActionStat(player,'acceleration')*.35)/75)):1;const step=(role==='GK'?3:own&&q.id===carrier?12:role==='DF'?7:10)*speed;
    const vx=tx-q.x,vy=ty-q.y,scale=Math.min(1,step/Math.max(.01,Math.hypot(vx,vy)));
    return {id:q.id,x:clamp(q.x+vx*scale),y:clamp(q.y+vy*scale,7,93)};
   });
