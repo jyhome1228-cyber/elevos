@@ -35,6 +35,15 @@ service cloud.firestore {
         allow read, create, update: if owner(uid);
         allow delete: if false;
       }
+      match /activity/{day} {
+        allow get, list: if owner(uid) || admin();
+        allow create, update: if owner(uid)
+          && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && request.resource.data.keys().hasOnly(['lastSeenAt'])
+          && request.resource.data.keys().hasAll(['lastSeenAt'])
+          && request.resource.data.lastSeenAt == request.time;
+        allow delete: if false;
+      }
       match /summary/current {
         allow get: if owner(uid) || admin();
         allow create, update: if owner(uid)
