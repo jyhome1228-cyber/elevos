@@ -1767,8 +1767,8 @@ function avatar(p,size=42){
  const extra=red&&!legend&&tile>=24,large=legend||extra,rows=large?6:3,sheet=Math.floor(tile/12),slot=legend?tile:extra?tile-24:tile%12,col=slot%4,row=Math.floor(slot/4),src=legend?LEGEND_SHEET:extra?RED_EXTRA_SHEET:(red?RED_ELITE_FACE_SHEETS:FACE_SHEETS)[sheet];
  // The generated 24-face sheets are not perfectly registered to a uniform grid.
  // Use a bounded inner crop with row-specific top correction, keeping legacy 12-face sheets unchanged.
- const topInset=large?[0.025,0.10,0.15,0.19,0.22,0.25][row]:0;
- const cropH=large?0.74:1,cropW=large?0.94:1,xInset=(1-cropW)/2;
+ const topInset=extra?[0.015,0.08,0.12,0.15,0.18,0.18][row]:0;
+ const cropH=extra?0.82:1,cropW=extra?0.82:1,xInset=extra?0.09:0;
  const width=400/cropW,height=rows*100/cropH,left=-(col+xInset)*100/cropW,top=-(row+topInset)*100/cropH;
  const label=legend?'LEGEND ELITE 전용 선수 얼굴':red?'RED ELITE 전용 선수 얼굴':'가상 선수 얼굴';
  return '<span class="face-tile'+(red||legend?' red-elite-face':'')+'" style="width:'+size+'px;height:'+size+'px" title="'+label+'">'
