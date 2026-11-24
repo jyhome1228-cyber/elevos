@@ -3931,7 +3931,7 @@ function queueGoal122(home,actor,text,title,assistId,xg,extra={}){
  if(!extra.ownGoal&&!extra.header&&title!=='PENALTY GOAL'&&!shotLocation122(origin,point,home,m.ballCarrier80===actor?.id||m.setPiece85?.kickerId===actor?.id))return false;
  const tail=m.goalTail||(m.goalTail=newGoalTail());if(!goalTailAllowed(m.homeGoals,m.awayGoals,home,tail))return false;
  const to={x:home?100:0,y:46+Math.random()*8};
- queueBallFlight120(m,origin,to,'shot',team,null,null);m.flight120.goal122={home,actorId:actor?.id??null,text,title,assistId,xg,extra};m.ballMotion88='shot';m.phase='shot';m.setPiece85=null;m.pitchFrame80=(m.pitchFrame80||0)+1;ballPulseAt120=0;return true;
+ queueBallFlight120(m,origin,to,'shot',team,null,null);if(title!=='PENALTY GOAL')attachKeeper126(m,team,actor?matchActionStat(actor,'shotPower'):65);m.flight120.goal122={home,actorId:actor?.id??null,text,title,assistId,xg,extra};m.ballMotion88='shot';m.phase='shot';m.setPiece85=null;m.pitchFrame80=(m.pitchFrame80||0)+1;ballPulseAt120=0;return true;
 }
 function scoreConfirmedGoal(homeSide,actor,text,title='GOAL!',assistId=null,xg=null,extra={}){
  if(!simState)return;if(!extra.arrived122)return queueGoal122(homeSide,actor,text,title,assistId,xg,extra);if(!crossedGoal122(simState.ball,homeSide))return false;
@@ -4103,7 +4103,7 @@ function minuteEvent(){
   const lane=passLane111(shotPoint,{x:homeSide?99:1,y:50},defender.id),blocker=lane&&lane.d<6?lane.p:null;const blocked=!!blocker&&Math.random()<.34,woodwork=!blocked&&Math.random()<.075;const onTarget=!blocked&&!woodwork&&Math.random()<Math.max(.24,Math.min(.78,.46+(shot-tackle)/220+(actorRole==='finisher'?.045:actorRole==='target'&&pattern.kind==='cross'?.05:0)));
   if(blocked||woodwork){simEvent(attacker.id,actor,'shot',actorName+'의 슈팅!',null,{onTarget:false,xg:xg83,pattern:pattern.kind,blocked,woodwork});if(blocked){const q=pitchPoint80(simState,blocker.id,defender.id)||shotPoint;if((homeSide?q.x:100-q.x)>88&&Math.random()<.025&&scoreConfirmedGoal(homeSide,null,blocker.name+'의 자책골!','OWN GOAL',null,0,{ownGoal:true,ownGoalPlayerId:blocker.id}))return;simEvent(defender.id,blocker,'block',blocker.name+'이(가) 슈팅을 막아냅니다.',null,{impact:{x:q.x,y:q.y}})}else simEvent(attacker.id,actor,'woodwork','골대 강타! 공이 다시 경기장으로 튕겨 나옵니다.',null);moveMatchObjects(homeSide,blocked?'block':'woodwork');simState.lastPass79=null;simState.attack81={...pattern,stage:'finished',restart:false};return}
   simEvent(attacker.id,actor,'shot',actorName+(onTarget?'의 유효 슈팅!':'의 슈팅이 골문을 벗어납니다.')+' · '+attackLabel81(pattern.kind),null,{onTarget,xg:xg83,pattern:pattern.kind});
-  if(onTarget&&keeper){const held=Math.random()<Math.max(.42,Math.min(.88,.65+(matchActionStat(keeper,'handling')-65)*.005)),corner=!held&&Math.random()<.24;simEvent(defender.id,keeper,'save',keeper.name+(held?'이(가) 공을 잡아냅니다.':corner?'의 선방! 공이 골라인 밖으로 나갑니다.':'이(가) 슈팅을 쳐냅니다.'),null,{held,corner});}
+  if(onTarget){const m=simState,to={x:homeSide?100:0,y:46+Math.random()*8};queueBallFlight120(m,m.ball,to,'shot',attacker.id,null,null);attachKeeper126(m,attacker.id,matchActionStat(actor,'shotPower'));m.flight120.goal122={home:homeSide,actorId:actor?.id??null,text:actorName+' 득점!','title':'GOAL!',assistId,xg:xg83,extra:{}};m.ballMotion88='shot';m.phase='shot';m.pitchFrame80=(m.pitchFrame80||0)+1;ballPulseAt120=0;m.lastPass79=null;return}
  }else if(depth>65&&roll<eventBase+disciplineTotal+(shotGate*Math.max(.18,Math.min(.40,.32*Math.sqrt(quality)*(depth>55?1.12:.82))))+.018){
   simEvent(attacker.id,actor,'offside',actorName+'이(가) 오프사이드 위치에서 공을 받았습니다.');
  }else if(depth>65&&roll<eventBase+disciplineTotal+(shotGate*Math.max(.18,Math.min(.40,.32*Math.sqrt(quality)*(depth>55?1.12:.82))))+.055){
@@ -4854,6 +4854,25 @@ function approachFlight121(m,p,team,target,dt,field){
  const next={id:p.id,x:Math.max(3,Math.min(97,q.x+dx*k)),y:Math.max(4,Math.min(96,q.y+dy*k))};m.positions[side][idx]=next;
  const el=field&&Array.from(field.querySelectorAll('[data-pitch-id]')).find(n=>n.dataset.pitchId===String(p.id));if(el){el.style.setProperty('transition-duration','50ms','important');el.style.left=next.x+'%';el.style.top=next.y+'%'}return next;
 }
+// 10-9: keeper tracks the shooting angle and reacts to the actual ball trajectory.
+function keeperPosition126(depth,ballY,line){const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));return {depth:clamp(4+depth*.065+(line-50)*.025,3,12),y:clamp(50+(ballY-50)*Math.max(.12,.34-depth*.002),39,61)}}
+function keeperReach126(reflex,elapsed){return Math.max(.8,Math.min(2.5,1.05+(reflex-65)*.018+Math.max(0,elapsed-200)*.00035))}
+function keeperOutcome126(handling,power,roll,edge){const catchRate=Math.max(.25,Math.min(.86,.63+(handling-power)*.004));return roll<catchRate?'catch':edge?'corner':'parry'}
+function liveKeeper126(m,f,old,q,dt,field){
+ if(f.kind!=='shot'||!f.keeper126)return null;
+ const k=f.keeper126,team=k.team,p=activeMatchKeeper(team),pos=p&&pitchPoint80(m,p.id,team);if(!pos)return null;
+ const reflex=matchActionStat(p,'reflex'),reaction=Math.max(90,Math.min(310,230-(reflex-65)*2));if(f.elapsed<reaction)return null;
+ const home=team===m.home,goalX=home?4:96,dx=f.to.x-f.from.x,t=Math.abs(dx)<.001?1:Math.max(0,Math.min(1,(goalX-f.from.x)/dx)),target={x:goalX,y:Math.max(37,Math.min(63,f.from.y+(f.to.y-f.from.y)*t))};
+ const next=approachFlight121(m,p,team,target,dt,field)||pos;
+ const hit=segmentContact121(old,q,next),reach=keeperReach126(reflex,f.elapsed);
+ if(hit.d>reach||Math.abs(hit.x-(home?0:100))>13)return null;
+ // One contact per shot; no repeated probability rolls on successive frames.
+ if(k.checked)return null;k.checked=true;
+ const skill=Math.max(.12,Math.min(.93,.70+(reflex-k.power)*.004-hit.d*.12));
+ if(k.roll>skill)return null;
+ return {p,team,point:hit,outcome:keeperOutcome126(matchActionStat(p,'handling'),k.power,k.handlingRoll,Math.abs(hit.y-50)>3&&k.cornerRoll<.42)};
+}
+function attachKeeper126(m,attackingTeam,power){if(!m.flight120)return;const team=attackingTeam===m.home?m.away:m.home;m.flight120.keeper126={team,power:Number(power)||70,roll:Math.random(),handlingRoll:Math.random(),cornerRoll:Math.random(),checked:false}}
 function advanceBallFlight120(m,delta){
  const f=m.flight120;if(!f)return false;const dt=Math.max(0,Math.min(100,delta)),old={...m.ball};
  f.elapsed=Math.min(f.duration,(Number(f.elapsed)||0)+dt);
@@ -4864,10 +4883,11 @@ function advanceBallFlight120(m,delta){
  for(const v of defenders){if(v.d<7){const ahead=ballFlightPoint120(f,Math.min(f.duration,f.elapsed+200));v.q=approachFlight121(m,v.p,enemy,ahead,dt,field)||v.q}const hit=segmentContact121(old,q,v.q),radius=Math.max(.65,Math.min(1.6,matchActionStat(v.p,'interception')/75));if(progress>.08&&(f.kind!=='cross'||progress>.72)&&hit.d<=radius){intercept={p:v.p,team:enemy,point:hit};break}}
  if(intercept)q={x:intercept.point.x,y:intercept.point.y,done:true};
  }
+ const keeperHit=liveKeeper126(m,f,old,q,dt,field);if(keeperHit)q={x:keeperHit.point.x,y:keeperHit.point.y,done:true};
  m.ball={x:q.x,y:q.y};m.ballCarrier80=null;
  if(ball){ball.style.setProperty('--flight111','50ms');ball.style.left=q.x+'%';ball.style.top=q.y+'%';field.querySelectorAll('.ball-owner80').forEach(n=>n.classList.remove('ball-owner80'))}
  if(!q.done)return true;
- m.flight120=null;if(f.goal122){const g=f.goal122,actor=players.find(p=>p.id===g.actorId);if(crossedGoal122(m.ball,g.home)){if(g.extra.review122){m.pendingVAR={kind:'goal',stage:'provisional',reviewAt:Date.now()+650,decisionAt:Date.now()+1350,home:g.home,teamId:f.team,playerId:g.actorId,disallowed:g.extra.disallowed,origin:g.extra.origin,assistId:g.assistId,xg:g.xg};simEvent(f.team,actor,'provisional',(actor?.name||'선수')+' 득점! VAR 확인 전 잠정 골입니다.','GOAL!')}else scoreConfirmedGoal(g.home,actor,g.text,g.title,g.assistId,g.xg,{...g.extra,arrived122:true})}else m.looseBall107={kind:'goalkick',team:g.home?m.away:m.home};m.pitchFrame80=(m.pitchFrame80||0)+1;save();if(page==='match'&&!m.finishPending)refreshLive87();return true}m.possession=intercept?intercept.team:f.team;const point=receiver&&pitchPoint80(m,receiver.id,f.team);
+ m.flight120=null;if(keeperHit){const k=keeperHit;m.possession=k.team;m.attack81=null;m.build124=null;m.lastPass79=null;m.phase='save';m.ballMotion88='shot';if(k.outcome==='catch'){m.ballCarrier80=k.p.id;m.looseBall107=null}else{const target=k.outcome==='corner'?{x:k.team===m.home?0:100,y:q.y<50?12:88}:{x:Math.max(5,Math.min(95,q.x+(k.team===m.home?8:-8))),y:Math.max(8,Math.min(92,q.y+(q.y<50?-9:9)))};queueBallFlight120(m,m.ball,target,'shot',k.team,null,{kind:k.outcome==='corner'?'corner':'rebound',team:k.outcome==='corner'?f.team:k.team})}simEvent(k.team,k.p,'save',k.p.name+(k.outcome==='catch'?'의 캐칭 선방!':k.outcome==='corner'?'의 선방! 공이 골라인 밖으로 나갑니다.':'의 펀칭 선방! 세컨드볼 경합.'),null,{held:k.outcome==='catch',corner:k.outcome==='corner'});if(field)field.querySelectorAll('[data-pitch-id]').forEach(n=>n.style.removeProperty('transition-duration'));m.pitchFrame80=(m.pitchFrame80||0)+1;save();if(page==='match'&&!m.finishPending)refreshLive87();return true}if(f.goal122){const g=f.goal122,actor=players.find(p=>p.id===g.actorId);if(crossedGoal122(m.ball,g.home)){if(g.extra.review122){m.pendingVAR={kind:'goal',stage:'provisional',reviewAt:Date.now()+650,decisionAt:Date.now()+1350,home:g.home,teamId:f.team,playerId:g.actorId,disallowed:g.extra.disallowed,origin:g.extra.origin,assistId:g.assistId,xg:g.xg};simEvent(f.team,actor,'provisional',(actor?.name||'선수')+' 득점! VAR 확인 전 잠정 골입니다.','GOAL!')}else scoreConfirmedGoal(g.home,actor,g.text,g.title,g.assistId,g.xg,{...g.extra,arrived122:true})}else m.looseBall107={kind:'goalkick',team:g.home?m.away:m.home};m.pitchFrame80=(m.pitchFrame80||0)+1;save();if(page==='match'&&!m.finishPending)refreshLive87();return true}m.possession=intercept?intercept.team:f.team;const point=receiver&&pitchPoint80(m,receiver.id,f.team);
  if(intercept){m.ballCarrier80=intercept.p.id;m.looseBall107=null;m.attack81=null;m.lastPass79=null;m.build124=null;m.recovery124=intercept.team;simEvent(intercept.team,intercept.p,'attack',intercept.p.name+'이(가) 패스 경로에서 공을 가로챕니다.',null,{turnover:true,failedPassTeam:f.team,failedPassPlayer:f.passer??null,interception:true});}
  else if(point&&Math.hypot(point.x-q.x,(point.y-q.y)*.65)<=2.5){m.ballCarrier80=receiver.id;m.looseBall107=null;if(passing){m.lastPass79=f.passer??m.lastPass79;const chain=m.build124;if(chain?.team===f.team){chain.passes++;chain.previous=f.passer;chain.last=receiver.id;const depth=f.team===m.home?q.x:100-q.x;if(m.attack81?.team===f.team)m.attack81.stage=buildStage124(depth,chain.passes)}}}
  else{m.looseBall107=f.loose||(f.receiver!=null||passing?{kind:'rebound',team:f.team}:null);if(passing){m.lastPass79=null;m.attack81=null;m.build124=null;simEvent(f.team,null,'info','패스가 연결되지 않아 루즈볼이 발생합니다.')}}
@@ -4942,7 +4962,7 @@ function moveMatchObjects(homeAttack,type){
    const player=players.find(z=>z.id===q.id),individual=player?playerRole82(player,slot.r):'none';
    const baseDepth=isHome?bx:100-bx,ballDepth=shape.depth,wide=['LW','RW','LM','RM','LB','RB','LWB','RWB','WB'].includes(slot.r),fullback=['LB','RB','LWB','RWB','WB'].includes(slot.r),centralBack=role==='DF'&&!fullback;
    let dep=baseDepth+shape.shift,ty=50+(by-50)*shape.width+(m.ball.y-50)*(own?.10:.15);
-   if(role==='GK'){dep=pitchClamp112(5+(ballDepth-50)*.035+(p.line-50)*.025,3,12);ty=pitchClamp112(50+(m.ball.y-50)*.18,39,61)}
+   if(role==='GK'){const target=keeperPosition126(ballDepth,m.ball.y,p.line);dep=target.depth;ty=target.y}
    else if(role==='DF'){dep=pitchClamp112(baseDepth+shape.shift*.85,12,centralBack?58:72);if(own&&fullback&&individual==='overlap'&&ballDepth>42&&p.width>55&&Math.sign(by-50)===Math.sign(m.ball.y-50)){dep+=Math.min(13,(p.width-45)*.22);ty=by<50?11:89}if(!own&&centralBack){ty=50+(by-50)*.78+(m.ball.y-50)*.12}}
    else if(role==='MF'){dep=pitchClamp112(baseDepth+shape.shift,24,79);if(own){const lane=Math.sign(by-50)||((k%2)?1:-1);const support=ballDepth+(individual==='anchor'?-15:individual==='deepCreator'?-10:individual==='creator'?5:9);dep=dep*.55+support*.45;ty=ty*.65+pitchClamp112(m.ball.y+lane*17,9,91)*.35;if(individual==='anchor')dep=Math.min(dep,ballDepth-7)}else{dep-=3}}
    else if(role==='FW'){dep=baseDepth+shape.shift+(own?5+(p.tempo-50)*.10+(p.mode==='attack'?4:p.mode==='defend'?-4:0):-5);if(own){if(individual==='runner'||pattern?.kind==='through')dep+=7;if(individual==='link')dep-=8;if(pattern?.kind==='cross'&&!wide)ty=ty*.6+20;if(wide&&pattern?.kind==='cross')ty=by<50?10:90;dep=Math.min(dep,Math.max(50,shape.offside-1.5))}}
