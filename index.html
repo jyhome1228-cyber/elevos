@@ -906,15 +906,14 @@ html body .sim-log-text>div{height:auto!important;max-height:none!important;over
 .match-fitness-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.match-fitness-row small{color:#bbc5d1}.match-fitness-row b{text-align:right}.match-fitness-row em{background:#67a987}
 @media(max-width:760px){.match-fitness-grid{grid-template-columns:1fr}.match-analysis-teams>span{font-size:11px}}
 </style><style>
-html body .sim-event-overlay-fixed{top:auto;left:var(--flash-x,50%);bottom:var(--flash-bottom,24px);width:min(420px,var(--flash-width,85vw));box-sizing:border-box;padding:12px 16px;display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:12px;row-gap:3px;text-align:left;border-radius:5px;animation:match-flash-compact 2s ease-out forwards;box-shadow:0 6px 24px #0006}
-html body .sim-event-overlay-fixed .sim-flash-crest{grid-column:1;grid-row:1/4;width:38px!important;height:48px!important;margin:0;align-self:center}
-html body .sim-event-overlay-fixed .sim-flash-crest .crest{width:36px!important;height:44px!important}
-html body .sim-event-overlay-fixed .event-team{grid-column:2;font-size:11px;margin:0;line-height:1.3}
-html body .sim-event-overlay-fixed .event-title{grid-column:2;font-size:19px;line-height:1.15}
-html body .sim-event-overlay-fixed .event-detail{grid-column:2;font-size:12px;line-height:1.4;margin:0;padding:0;border:0;overflow-wrap:anywhere}
-html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest)){grid-template-columns:1fr}
-html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest))>*{grid-column:1}
-@keyframes match-flash-compact{0%{opacity:0;transform:translate(-50%,8px)}12%,83%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
+html body .sim-event-overlay-fixed{top:auto;left:var(--flash-x,50%);bottom:var(--flash-bottom,24px);width:min(520px,var(--flash-width,85vw));box-sizing:border-box;padding:26px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;animation:match-flash-centered 2s ease-out forwards;box-shadow:0 15px 45px #0005}
+html body .sim-event-overlay-fixed .sim-flash-crest{width:70px!important;height:78px!important;margin:0 auto 12px;display:grid;place-items:center}
+html body .sim-event-overlay-fixed .sim-flash-crest .crest{width:68px!important;height:74px!important}
+html body .sim-event-overlay-fixed .event-team{font-size:14px;font-weight:700;margin:0 0 12px;line-height:1.3}
+html body .sim-event-overlay-fixed .event-title{font-size:36px;font-weight:900;line-height:1.15}
+html body .sim-event-overlay-fixed .event-detail{font-size:16px;line-height:1.5;margin:9px 0 0;padding:0;border:0;overflow-wrap:anywhere}
+@media(max-width:760px){html body .sim-event-overlay-fixed{padding:16px 12px}html body .sim-event-overlay-fixed .sim-flash-crest{width:48px!important;height:54px!important;margin-bottom:6px}html body .sim-event-overlay-fixed .sim-flash-crest .crest{width:46px!important;height:52px!important}html body .sim-event-overlay-fixed .event-team{font-size:13px;margin-bottom:6px}html body .sim-event-overlay-fixed .event-title{font-size:28px}html body .sim-event-overlay-fixed .event-detail{font-size:14px}}
+@keyframes match-flash-centered{0%{opacity:0;transform:translate(-50%,6px) scale(.95)}12%,83%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,0) scale(1)}}
 </style><style>
 header .elevos-home-logo{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important;cursor:pointer;text-align:left}
 header .elevos-home-logo:hover{opacity:.8}header .elevos-home-logo:focus-visible{outline:2px solid #aeb8c6;outline-offset:5px}
@@ -1842,8 +1841,11 @@ function displaySimEventOnce(event){
   el.style.visibility='visible';
   el.style.setProperty('--flash-x',rect.left+rect.width/2+'px');
   el.style.setProperty('--flash-width',Math.max(0,rect.width-24)+'px');
-  el.style.setProperty('--flash-bottom',Math.max(12,viewport-rect.bottom+12)+'px');
-  if(rect.top+el.offsetHeight+24>Math.min(rect.bottom,viewport))el.style.visibility='hidden';
+  const visibleTop=Math.max(rect.top,0),visibleBottom=Math.min(rect.bottom,viewport);
+  const height=el.offsetHeight;
+  const top=Math.max(visibleTop+8,Math.min(rect.top+(rect.height-height)/2+18,visibleBottom-height-8));
+  el.style.setProperty('--flash-bottom',Math.max(0,viewport-top-height)+'px');
+  if(visibleBottom-visibleTop<height+16)el.style.visibility='hidden';
   requestAnimationFrame(positionFlash);
  };
  if(field)positionFlash();else el.remove();
