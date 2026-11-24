@@ -3923,8 +3923,18 @@ function kickoffAfterGoal89(m){
  m.flight120=null;m.velocity119={};m.limits119={};m.ballCarrier80=kicker;m.pitchFrame80=(m.pitchFrame80||0)+1;m.goalRestart89=null;m.looseBall107=null;m.kickoffTeam89=team;
  simEvent(team,null,'info',clubs[team].name+'의 중앙 킥오프로 경기를 재개합니다.',null);
 }
+function shotLocation122(ball,point,home,hasBall){if(!ball||!point||!hasBall)return 0;const gap=Math.hypot(point.x-ball.x,(point.y-ball.y)*.65),distance=Math.hypot((home?100-point.x:point.x)*1.05,(point.y-50)*.68);if(gap>3)return 0;return distance<=16?1:distance<=25?.95:distance<=32?.48:distance<=40?.05:0}
+function crossedGoal122(ball,home){return !!ball&&(home?ball.x>=99:ball.x<=1)&&ball.y>=45.5&&ball.y<=54.5}
+function queueGoal122(home,actor,text,title,assistId,xg,extra={}){
+ const m=simState;if(!m||m.flight120)return false;const team=home?m.home:m.away,origin={...m.ball};
+ const point=actor&&pitchPoint80(m,actor.id,team);
+ if(!extra.ownGoal&&!extra.header&&title!=='PENALTY GOAL'&&!shotLocation122(origin,point,home,m.ballCarrier80===actor?.id||m.setPiece85?.kickerId===actor?.id))return false;
+ const tail=m.goalTail||(m.goalTail=newGoalTail());if(!goalTailAllowed(m.homeGoals,m.awayGoals,home,tail))return false;
+ const to={x:home?100:0,y:46+Math.random()*8};
+ queueBallFlight120(m,origin,to,'shot',team,null,null);m.flight120.goal122={home,actorId:actor?.id??null,text,title,assistId,xg,extra};m.ballMotion88='shot';m.phase='shot';m.setPiece85=null;m.pitchFrame80=(m.pitchFrame80||0)+1;ballPulseAt120=0;return true;
+}
 function scoreConfirmedGoal(homeSide,actor,text,title='GOAL!',assistId=null,xg=null,extra={}){
- if(!simState)return;const tail=simState.goalTail||(simState.goalTail=newGoalTail());if(!goalTailAllowed(simState.homeGoals,simState.awayGoals,homeSide,tail))return false;
+ if(!simState)return;if(!extra.arrived122)return queueGoal122(homeSide,actor,text,title,assistId,xg,extra);if(!crossedGoal122(simState.ball,homeSide))return false;
  if(homeSide)simState.homeGoals++;else simState.awayGoals++;
  const teamId=homeSide?simState.home:simState.away;
  const assister=assistId!=null&&assistId!==actor?.id?activeMatchPlayers(teamId).find(p=>p.id===assistId):null;
@@ -3941,7 +3951,7 @@ function resolveVAR(){
    simEvent(team.id,actor,'cancel',team.name+'의 득점이 오프사이드로 취소됐습니다.','GOAL CANCELLED');
    simEvent(team.id,actor,'offside','VAR 최종 판정: 오프사이드, 득점 취소');varRestart113(p);
   }else{
-   scoreConfirmedGoal(p.home,actor,team.name+' 득점 인정! VAR 확인 완료.','GOAL!',p.assistId,p.xg);
+   scoreConfirmedGoal(p.home,actor,team.name+' 득점 인정! VAR 확인 완료.','GOAL!',p.assistId,p.xg,{arrived122:true});
   }
  }else if(p.kind==='penalty'){
   if(p.disallowed){simState.setPiece85=null;simEvent(team.id,actor,'cancel','VAR 판정: 페널티킥 취소, 경기를 재개합니다.','NO PENALTY');varRestart113(p)}
@@ -4020,7 +4030,7 @@ function minuteEvent(){
  const d=actor?detailed(actor):null;
  const keeper=activeMatchKeeper(defender.id),kd=keeper?detailed(keeper):null,def=defensiveActor?detailed(defensiveActor):null;const boost=p=>p?(enhancementLevel(p)-1)*1.5:0;const stat=matchActionStat;const shot=d?(stat(actor,'finishing')+stat(actor,'positioning')+stat(actor,'shotPower'))/3:60,stop=kd?(stat(keeper,'reflex')+stat(keeper,'handling')+stat(keeper,'gkPosition'))/3:50,tackle=def?(stat(defensiveActor,'tackle')+stat(defensiveActor,'marking')+stat(defensiveActor,'interception'))/3:50;const finish=Math.max(.35,Math.min(2.8,Math.exp((shot-(stop*.65+tackle*.35))/48)));
  const pd=passer?detailed(passer):d;const create=Math.max(.6,Math.min(1.65,pd?(stat(passer||actor,'shortPass')+stat(passer||actor,'vision')+stat(passer||actor,'firstTouch'))/225:1));
- const shotPoint=simState.possession===attacker.id?(simState.ball||{x:50,y:50}):{x:homeSide?32:68,y:50};const shotDistance=Math.hypot((homeSide?100-shotPoint.x:shotPoint.x)*1.05,(shotPoint.y-50)*.68);const shotGate=actor?.pos==='GK'?0:shotDistance<=16?1:shotDistance<=25?.95:shotDistance<=32?.48:shotDistance<=40?.05:0;
+ const shotPoint=simState.possession===attacker.id?(simState.ball||{x:50,y:50}):{x:homeSide?32:68,y:50};const shotDistance=Math.hypot((homeSide?100-shotPoint.x:shotPoint.x)*1.05,(shotPoint.y-50)*.68);const shotGate=actor?.pos==='GK'?0:shotLocation122(shotPoint,actor&&pitchPoint80(simState,actor.id,attacker.id),homeSide,simState.ballCarrier80===actor?.id&&simState.possession===attacker.id);
  const disciplineScale=Math.max(.75,Math.min(1.6,.85+(oppPlan.pressure-40)*.009+(defensiveActor?(100-playerFitness(defensiveActor))*.004:0)));const yellowRate=.027*disciplineScale,redRate=.0011*disciplineScale,foulRate=.095*disciplineScale,disciplineTotal=yellowRate+redRate+foulRate;
  const roll=Math.random();
  const injuryTarget=randomMatchActor(Math.random()<.5);
@@ -4036,7 +4046,7 @@ function minuteEvent(){
  const target=weightedMatchPlayer(activeMatchPlayers(attacker.id).filter(p=>p.id!==taker?.id&&p.pos!=='GK'),p=>{const q=pitchPoint80(simState,p.id,attacker),dep=q?(homeSide?q.x:100-q.x):50;return Math.max(.1,dep/50)*(matchActionStat(p,'strength')+matchActionStat(p,'positioning'))/150})||actor;
  const marker=nearestBallPlayer107(defender.id)||randomMatchActor(!homeSide,'defend'),delivery=taker?(matchActionStat(taker,'longPass')+matchActionStat(taker,'vision'))/2:65,contest=target?(matchActionStat(target,'strength')+matchActionStat(target,'positioning'))/2:65,defense=marker?(matchActionStat(marker,'marking')+matchActionStat(marker,'strength'))/2:65;
  const direct=restart.kind==='freekick'&&shotDistance<=32&&Math.random()<.45;
- if(direct){const xg=chanceValue83(depth,'freekick'),prob=Math.max(.025,Math.min(.25,.13+(matchActionStat(taker,'shotPower')+matchActionStat(taker,'finishing')-2*stop)/350-(shotDistance-20)*.004));if(Math.random()<prob)scoreConfirmedGoal(homeSide,taker,(taker?.name||attacker.name)+'의 직접 프리킥 득점!','GOAL!',null,xg);else{const onTarget=Math.random()<.45;simEvent(attacker.id,taker,'shot','직접 프리킥 슈팅',null,{onTarget,xg,pattern:'freekick'});if(onTarget&&keeper)simEvent(defender.id,keeper,'save',keeper.name+' 프리킥 선방!')}simState.attack81={...pattern,restart:false,stage:'finished'};simState.lastPass79=null;moveMatchObjects(homeSide,simState.log[0]?.type||'shot');return}
+ if(direct){const xg=chanceValue83(depth,'freekick'),prob=Math.max(.025,Math.min(.25,.13+(matchActionStat(taker,'shotPower')+matchActionStat(taker,'finishing')-2*stop)/350-(shotDistance-20)*.004));if(Math.random()<prob)scoreConfirmedGoal(homeSide,taker,(taker?.name||attacker.name)+'의 직접 프리킥 득점!','GOAL!',null,xg);else{const onTarget=Math.random()<.45;simEvent(attacker.id,taker,'shot','직접 프리킥 슈팅',null,{onTarget,xg,pattern:'freekick'});if(onTarget&&keeper)simEvent(defender.id,keeper,'save',keeper.name+' 프리킥 선방!')}simState.attack81={...pattern,restart:false,stage:'finished'};simState.lastPass79=null;if(!simState.flight120)moveMatchObjects(homeSide,simState.log[0]?.type||'shot');return}
  const win=Math.random()<Math.max(.25,Math.min(.82,.58+(delivery+contest-defense-65)/220));
  if(!win&&marker){simEvent(defender.id,marker,'attack',marker.name+'이(가) 문전 경합에서 공을 걷어냅니다.',null,{turnover:true,failedPassTeam:attacker.id,failedPassPlayer:taker?.id??null,pattern:restart.kind});simState.attack81={...pattern,restart:false,stage:'finished'};simState.lastPass79=null;moveMatchObjects(!homeSide,'attack');return}
  if(restart.kind==='corner'&&target&&Math.random()<.50){simEvent(attacker.id,target,'aerial',target.name+'이(가) 공중볼 경합에서 헤딩을 시도합니다.',null);const q=pitchPoint80(simState,target.id,attacker);if(q&&(homeSide?q.x:100-q.x)>78&&Math.random()<Math.max(.045,Math.min(.24,.12+(contest-defense)/220))){simState.previousBall={...simState.ball};simState.ball={x:q.x,y:q.y};if(scoreConfirmedGoal(homeSide,target,target.name+' 코너킥 헤딩 득점!','GOAL!',taker?.id,.16,{pattern:'corner',header:true}))return}}
@@ -4044,8 +4054,7 @@ function minuteEvent(){
  }
  if(roll<goalChance){
   if(Math.random()<.19){
-   simState.pendingVAR={kind:'goal',stage:'provisional',reviewAt:Date.now()+650,decisionAt:Date.now()+1350,home:homeSide,teamId:attacker.id,playerId:actor?.id??null,disallowed:Math.random()<.30,origin:{...simState.ball},assistId,xg:xg83};
-   simEvent(attacker.id,actor,'provisional',actorName+' 득점! VAR 확인 전 잠정 골입니다.','GOAL!');
+   queueGoal122(homeSide,actor,actorName+' 득점!','GOAL!',assistId,xg83,{review122:true,disallowed:Math.random()<.30,origin:{...simState.ball}});
   }else scoreConfirmedGoal(homeSide,actor,actorName+' 득점! '+attackLabel81(pattern.kind)+'에서 만들어진 기회를 마무리합니다.','GOAL!',assistId,xg83);
  }else if(roll<eventBase){
   simState.pendingVAR={kind:'penalty',stage:'penalty',decisionAt:Date.now()+600,home:homeSide,teamId:attacker.id,playerId:actor?.id??null,disallowed:Math.random()<.28,origin:{...simState.ball},conversion:Math.max(.55,Math.min(.93,.72+(finish-1)*.17))};
@@ -4090,7 +4099,7 @@ function minuteEvent(){
  if(!decision.success){const target=receiver&&pitchPoint80(simState,receiver.id,attacker.id);if(target){simState.passMiss121={x:Math.max(3,Math.min(97,target.x+(Math.random()-.5)*12)),y:Math.max(4,Math.min(96,target.y+(Math.random()<.5?-1:1)*(5+Math.random()*7)))};}simState.lastPass79=null;simEvent(attacker.id,pass,'pass',(pass?.name||attacker.name)+'의 패스 시도',null,{receiverId:receiver?.id??null,pattern:pattern.kind,misplaced:true});moveMatchObjects(homeSide,'pass');return}
 
  simState.lastPass79=pass?.id??null;const action=pattern.kind==='cross'&&pattern.stage!=='build'?'크로스':pattern.kind==='through'?'스루패스':pattern.kind==='counter'?'전진 패스':'짧은 패스';simEvent(attacker.id,pass,'pass',(pass?.name||attacker.name)+'이(가) '+(receiver&&receiver.id!==pass?.id?receiver.name:'동료')+'에게 '+action+'를 시도합니다.',null,{receiverId:receiver?.id??null,pattern:pattern.kind});if(pattern.stage==='delivery')simState.attack81={...pattern,stage:'chance'};}
- const eventType=simState.log[0]?.type||'pass';moveMatchObjects(homeSide,simState.attack81?.restart&&['yellow','red','injury','sub'].includes(eventType)?'freekick':eventType);if(['goal','provisional','save','shot','offside','var'].includes(eventType)){simState.lastPass79=null;simState.attack81={...pattern,stage:'finished',restart:false};}
+ if(simState.flight120)return;const eventType=simState.log[0]?.type||'pass';moveMatchObjects(homeSide,simState.attack81?.restart&&['yellow','red','injury','sub'].includes(eventType)?'freekick':eventType);if(['goal','provisional','save','shot','offside','var'].includes(eventType)){simState.lastPass79=null;simState.attack81={...pattern,stage:'finished',restart:false};}
 }
 function validateCarrier115(m){if(m.ballCarrier80!=null&&!activeMatchPlayers(m.possession).some(p=>p.id===m.ballCarrier80)){m.ballCarrier80=null;if(!m.goalRestart89&&!m.pendingVAR&&!m.pendingPenalty&&!m.looseBall107)m.looseBall107={kind:'rebound',team:m.possession}}}
 function advanceMinute(){
@@ -4136,7 +4145,7 @@ function advanceMinute(){
   // Do not finalize until VAR review has a ruling. Extend one minute if necessary.
   simState.secondAdded=(simState.secondAdded||0)+1;
  }
- if(simState.minute>=simTotalMinutes()&&!simState.flight120){
+ if(simState.minute>=simTotalMinutes()&&!simState.flight120&&!simState.pendingVAR&&!simState.pendingPenalty){
   const justOccurred=simState.majorEvent&&simState.majorEvent.minute===simMinuteLabel(simState.minute);
   clearPitchNotices116(false);simEvent(null,null,'info','경기 종료! 최종 스코어가 확정됐습니다.',justOccurred&&document.getElementById('elevos-sim-flash')?null:'FULL TIME');
   if(simTicker!==null){clearInterval(simTicker);simTicker=null}
@@ -4226,7 +4235,7 @@ function commitSimulation(force=false){
  if(document.getElementById('elevos-entry')||document.getElementById('game-logout-progress'))return;
  if(!simState||simState.minute!==simTotalMinutes()||simState.club!==manager)return;
  if(simState.finishPending&&!force&&Date.now()<(simState.finishAt||0))return;
- if(simState.pendingVAR||simState.pendingPenalty)return;
+ if(simState.flight120||simState.pendingVAR||simState.pendingPenalty)return;
  if(simState.competition&&simState.competition!=='league'&&simState.homeGoals===simState.awayGoals&&!simState.shootout?.done){startShootout();return}
  if(finishTimeout!==null){clearTimeout(finishTimeout);finishTimeout=null}
  clearPitchNotices116();pauseSimulation();
@@ -4830,7 +4839,7 @@ function advanceBallFlight120(m,delta){
  m.ball={x:q.x,y:q.y};m.ballCarrier80=null;
  if(ball){ball.style.setProperty('--flight111','50ms');ball.style.left=q.x+'%';ball.style.top=q.y+'%';field.querySelectorAll('.ball-owner80').forEach(n=>n.classList.remove('ball-owner80'))}
  if(!q.done)return true;
- m.flight120=null;m.possession=intercept?intercept.team:f.team;const point=receiver&&pitchPoint80(m,receiver.id,f.team);
+ m.flight120=null;if(f.goal122){const g=f.goal122,actor=players.find(p=>p.id===g.actorId);if(crossedGoal122(m.ball,g.home)){if(g.extra.review122){m.pendingVAR={kind:'goal',stage:'provisional',reviewAt:Date.now()+650,decisionAt:Date.now()+1350,home:g.home,teamId:f.team,playerId:g.actorId,disallowed:g.extra.disallowed,origin:g.extra.origin,assistId:g.assistId,xg:g.xg};simEvent(f.team,actor,'provisional',(actor?.name||'선수')+' 득점! VAR 확인 전 잠정 골입니다.','GOAL!')}else scoreConfirmedGoal(g.home,actor,g.text,g.title,g.assistId,g.xg,{...g.extra,arrived122:true})}else m.looseBall107={kind:'goalkick',team:g.home?m.away:m.home};m.pitchFrame80=(m.pitchFrame80||0)+1;save();if(page==='match'&&!m.finishPending)refreshLive87();return true}m.possession=intercept?intercept.team:f.team;const point=receiver&&pitchPoint80(m,receiver.id,f.team);
  if(intercept){m.ballCarrier80=intercept.p.id;m.looseBall107=null;m.attack81=null;m.lastPass79=null;simEvent(intercept.team,intercept.p,'attack',intercept.p.name+'이(가) 패스 경로에서 공을 가로챕니다.',null,{turnover:true,failedPassTeam:f.team,failedPassPlayer:f.passer??null,interception:true});}
  else if(point&&Math.hypot(point.x-q.x,(point.y-q.y)*.65)<=2.5){m.ballCarrier80=receiver.id;m.looseBall107=null;if(passing)m.lastPass79=f.passer??m.lastPass79}
  else{m.looseBall107=f.loose||(f.receiver!=null||passing?{kind:'rebound',team:f.team}:null);if(passing){m.lastPass79=null;m.attack81=null;simEvent(f.team,null,'info','패스가 연결되지 않아 루즈볼이 발생합니다.')}}
@@ -5416,7 +5425,7 @@ function finishPenaltyKick(p,chosen){
  const target=side?(chosen||directions[Math.floor(Math.random()*3)]):directions[Math.floor(Math.random()*3)];
  const keeper=side?directions[Math.floor(Math.random()*3)]:(chosen||directions[Math.floor(Math.random()*3)]);
  const skillEdge=(matchActionStat(kicker,'finishing')-matchActionStat(keeperPlayer,'reflex'))*.0025;const chance=Math.max(.15,Math.min(.95,(target===keeper?Math.max(.16,p.conversion*.62):Math.max(.65,p.conversion))+skillEdge)),kickStart89={...(simState.ball||{x:p.home?89:11,y:50})};
- if(Math.random()<chance&&scoreConfirmedGoal(p.home,kicker,(kicker?.name||clubs[p.teamId].name)+' 페널티킥 성공!','PENALTY GOAL')){}
+ if(Math.random()<chance&&scoreConfirmedGoal(p.home,kicker,(kicker?.name||clubs[p.teamId].name)+' 페널티킥 성공!','PENALTY GOAL')){simState.pendingPenalty=null;save();return}
  else if(keeperPlayer&&Math.random()<.82){simEvent(p.teamId,kicker,'shot',(kicker?.name||clubs[p.teamId].name)+' 페널티킥 유효 슈팅',null,{onTarget:true,xg:.76});simEvent(defendingTeam,keeperPlayer,'save',keeperPlayer.name+' 선방! '+(kicker?.name||clubs[p.teamId].name)+'의 페널티킥을 막았습니다.','PENALTY SAVED')}
  else simEvent(p.teamId,kicker,'shot',(kicker?.name||clubs[p.teamId].name)+' 페널티킥 실축!','PENALTY MISSED',{onTarget:false,xg:.76});
  const resultType=simState.log[0]?.type||'shot',m=simState,oldBall=kickStart89,oldPositions={home:(m.positions?.home||[]).map(q=>({...q})),away:(m.positions?.away||[]).map(q=>({...q}))};
