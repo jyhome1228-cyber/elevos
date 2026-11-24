@@ -1213,6 +1213,21 @@ html body .advanced-enhancement{position:fixed;inset:0;z-index:10000;display:gri
 .advanced-sparks{position:absolute;inset:0;pointer-events:none}.advanced-sparks i{position:absolute;left:50%;top:36%;width:5px;height:5px;border-radius:50%;background:var(--energy);box-shadow:0 0 8px var(--energy);animation:advanced-spark 1.2s var(--delay) ease-out both}.failure .advanced-sparks i{display:none}.failure .advanced-portrait{animation:advanced-fail .45s ease-out}.success .advanced-portrait,.protected .advanced-portrait{animation:advanced-arrive .65s ease-out}
 @keyframes advanced-fill{from{width:0}to{width:100%}}@keyframes advanced-charge{from{transform:scale(1.35);opacity:.2}to{transform:scale(.82);opacity:.85}}@keyframes advanced-fuel{0%,30%{opacity:1;transform:translateY(0)}100%{opacity:.12;transform:translateY(-20px) scale(.6)}}@keyframes advanced-spark{from{transform:rotate(var(--angle)) translateX(50px);opacity:0}25%{opacity:1}to{transform:rotate(var(--angle)) translateX(155px);opacity:0}}@keyframes advanced-arrive{from{transform:scale(.88)}to{transform:scale(1)}}@keyframes advanced-fail{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @media(prefers-reduced-motion:reduce){.advanced-shell *{animation:none!important}.advanced-sparks{display:none}}
+</style><style id="elevos-advanced-polish">
+html body .advanced-shell{width:min(440px,94vw);padding:22px 24px;border-radius:7px}
+html body .advanced-shell .advanced-kicker{margin-bottom:8px;letter-spacing:.12em}
+html body .advanced-stage{padding:12px 0 6px;gap:9px}
+html body .advanced-orbit{width:184px;height:184px;margin-left:-92px;opacity:.42;top:0}
+html body .advanced-shell.success .advanced-orbit{border-color:#d8ba78;box-shadow:0 0 32px #d8ba7838,inset 0 0 20px #d8ba7818}
+html body .advanced-shell .advanced-level b{min-width:52px;background:linear-gradient(180deg,#303946,#222a35)}
+html body .advanced-shell.success .advanced-level b:last-child{background:linear-gradient(150deg,#76603d,#3a3025);color:#ffe0a0;border-color:#d7b779}
+html body .advanced-shell h2{font-size:25px;color:var(--energy)!important;margin:12px 0 5px;letter-spacing:-.035em}
+.advanced-odds-label{font-size:12px;color:#b9c5d3;margin-top:8px}.advanced-odds-label b{color:#e4eaf2;margin-left:5px}
+html body .advanced-stats{gap:5px;margin:14px 0}.advanced-stats>div{padding:10px 8px;border-radius:3px;background:#202833}.advanced-stats b{font-size:15px}.advanced-stats small{font-size:12px}
+html body .advanced-confirm{background:linear-gradient(180deg,#eef2f7,#c7d1df)!important;color:#141b24!important;border:1px solid #d9e1eb!important;border-radius:4px!important;box-shadow:inset 0 -2px #9caabd;font-weight:750}
+html body .advanced-shell.success .advanced-portrait:after{content:"";position:absolute;inset:0;border-radius:5px;pointer-events:none;background:linear-gradient(120deg,transparent 32%,#fff6 49%,transparent 66%);animation:advanced-shine .9s ease-out both}
+@keyframes advanced-shine{from{clip-path:inset(0 100% 0 0);opacity:.8}to{clip-path:inset(0 0 0 100%);opacity:0}}
+@media(prefers-reduced-motion:reduce){html body .advanced-shell.success .advanced-portrait:after{animation:none;display:none}}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><button id="cloud-account" class="name-lang-button" onclick="window.ElevosCloud?.open()">계정</button><div id="client-coach" class="client-coach"></div><button id="client-gifts" class="client-gifts" onclick="openCoachGifts()" hidden>선물함 <b id="client-gift-count">0</b></button><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row client-page-heading"><div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -3038,7 +3053,7 @@ function recoverFitnessAfterMatch(starterIds){
 
 
 const ENHANCE_COST={2:30,3:45,4:70,5:110,6:160,7:240,8:340,9:470,10:650};
-const ENHANCE_CHANCE={2:1,3:.95,4:.85,5:.72,6:.56,7:.40,8:.27,9:.15,10:.08};
+const ENHANCE_CHANCE={2:.95,3:.90,4:.80,5:.67,6:.51,7:.35,8:.22,9:.10,10:.03};
 let enhancementBusy=false;
 function enhancementLevel(p){return Math.min(10,Math.max(1,Number(p?.enhancementLevel)||1))}
 function enhancementTier(p){return enhancementLevel(p)>=8?'gold':enhancementLevel(p)>=5?'silver':'bronze'}
@@ -3127,7 +3142,7 @@ function showAdvancedEnhancement(p,r){
  setTimeout(()=>{
   if(!el.isConnected){enhancementBusy=false;return}
   const state=r.success?'success':r.use?'protected':'failure',resultLevel=enhancementLevel(p);
-  el.innerHTML='<div class="advanced-shell '+state+'"><div class="advanced-kicker">ENHANCEMENT RESULT</div><div class="advanced-stage"><div class="advanced-orbit"></div><div class="advanced-sparks">'+sparks+'</div>'+portrait+'<div class="advanced-level"><b>+'+r.level+'</b><span>→</span><b>+'+resultLevel+'</b></div></div><h2 role="status">'+(r.success?'강화 성공!':r.use?'강화 실패 · 등급 보호':'강화 실패')+'</h2><div class="advanced-result-meta">'+(r.success?'고급 강화에 성공했습니다.':r.use?'보호권으로 기존 강화 등급을 유지했습니다.':'강화 등급이 1단계 하락했습니다.')+'</div><div class="advanced-stats"><div><small>종합 능력치</small><b>'+r.before+' → '+overall(p)+'</b></div><div><small>강화 비용</small><b>'+formatGBP(r.cost)+'</b></div><div><small>재료 소모</small><b>'+r.materials.length+'장</b></div><div><small>보호권</small><b>'+(r.use?'1개 사용':'미사용')+'</b></div></div><button class="btn advanced-confirm" onclick="closeAdvancedEnhancement()">확인</button></div>';
+  el.innerHTML='<div class="advanced-shell '+state+'"><div class="advanced-kicker">ENHANCEMENT RESULT</div><div class="advanced-stage"><div class="advanced-orbit"></div><div class="advanced-sparks">'+sparks+'</div>'+portrait+'<div class="advanced-level"><b>+'+r.level+'</b><span>→</span><b>+'+resultLevel+'</b></div></div><h2 role="status">'+(r.success?'강화 성공!':r.use?'강화 실패 · 등급 보호':'강화 실패')+'</h2><div class="advanced-result-meta">'+(r.success?'목표 강화 등급 달성':r.use?'보호권으로 기존 강화 등급 유지':'강화 등급 1단계 하락')+'</div><div class="advanced-odds-label">적용 성공률 <b>'+Math.round(r.chance*100)+'%</b></div><div class="advanced-stats"><div><small>종합 능력치</small><b>'+r.before+' → '+overall(p)+'</b></div><div><small>강화 비용</small><b>'+formatGBP(r.cost)+'</b></div><div><small>재료 소모</small><b>'+r.materials.length+'장</b></div><div><small>보호권</small><b>'+(r.use?'1개 사용':'미사용')+'</b></div></div><button class="btn advanced-confirm" onclick="closeAdvancedEnhancement()">확인</button></div>';
   el.querySelector('button')?.focus();
  },reduce?0:2200);
 }
