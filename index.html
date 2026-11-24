@@ -905,6 +905,16 @@ html body .sim-log-text>div{height:auto!important;max-height:none!important;over
 .match-fitness-row{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(24px,44px) 34px;gap:5px;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid #343b46}
 .match-fitness-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.match-fitness-row small{color:#bbc5d1}.match-fitness-row b{text-align:right}.match-fitness-row em{background:#67a987}
 @media(max-width:760px){.match-fitness-grid{grid-template-columns:1fr}.match-analysis-teams>span{font-size:11px}}
+</style><style>
+html body .sim-event-overlay-fixed{top:auto;left:var(--flash-x,50%);bottom:var(--flash-bottom,24px);width:min(420px,var(--flash-width,85vw));box-sizing:border-box;padding:12px 16px;display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:12px;row-gap:3px;text-align:left;border-radius:5px;animation:match-flash-compact 2s ease-out forwards;box-shadow:0 6px 24px #0006}
+html body .sim-event-overlay-fixed .sim-flash-crest{grid-column:1;grid-row:1/4;width:38px!important;height:48px!important;margin:0;align-self:center}
+html body .sim-event-overlay-fixed .sim-flash-crest .crest{width:36px!important;height:44px!important}
+html body .sim-event-overlay-fixed .event-team{grid-column:2;font-size:11px;margin:0;line-height:1.3}
+html body .sim-event-overlay-fixed .event-title{grid-column:2;font-size:19px;line-height:1.15}
+html body .sim-event-overlay-fixed .event-detail{grid-column:2;font-size:12px;line-height:1.4;margin:0;padding:0;border:0;overflow-wrap:anywhere}
+html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest)){grid-template-columns:1fr}
+html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest))>*{grid-column:1}
+@keyframes match-flash-compact{0%{opacity:0;transform:translate(-50%,8px)}12%,83%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1785,6 +1795,22 @@ function displaySimEventOnce(event){
   const teamLine=document.createElement('div');teamLine.className='event-team';teamLine.textContent=team.name;el.appendChild(teamLine);
  }
  el.appendChild(h);el.appendChild(d);document.body.appendChild(el);
+ const field=document.querySelector('.sim-layout-triple .sim-field');
+ const positionFlash=()=>{
+  if(!el.isConnected)return;
+  const currentField=document.querySelector('.sim-layout-triple .sim-field');
+  if(!currentField){el.remove();return}
+  const rect=currentField.getBoundingClientRect();
+  const viewport=window.innerHeight;
+  if(rect.bottom<0||rect.top>viewport){el.style.visibility='hidden';requestAnimationFrame(positionFlash);return}
+  el.style.visibility='visible';
+  el.style.setProperty('--flash-x',rect.left+rect.width/2+'px');
+  el.style.setProperty('--flash-width',Math.max(0,rect.width-24)+'px');
+  el.style.setProperty('--flash-bottom',Math.max(12,viewport-rect.bottom+12)+'px');
+  if(rect.top+el.offsetHeight+24>Math.min(rect.bottom,viewport))el.style.visibility='hidden';
+  requestAnimationFrame(positionFlash);
+ };
+ if(field)positionFlash();else el.remove();
  const id=event.id;
  simEventTimeout=setTimeout(()=>{
   const current=document.getElementById('elevos-sim-flash');
