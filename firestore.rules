@@ -85,6 +85,30 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
       allow list, update, delete: if false;
     }
+    function validPost() {
+      return request.resource.data.keys().hasOnly(['category','title','body','author','published','createdAt','updatedAt'])
+        && request.resource.data.keys().hasAll(['category','title','body','author','published','createdAt','updatedAt'])
+        && request.resource.data.category in ['events','notice','community','guide']
+        && request.resource.data.title is string && request.resource.data.title.size() >= 1 && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string && request.resource.data.body.size() >= 1 && request.resource.data.body.size() <= 10000
+        && request.resource.data.author is string && request.resource.data.author.size() <= 50
+        && request.resource.data.published is bool
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /publicPosts/{postId} {
+      allow get, list: if admin() || resource.data.published == true;
+      allow create: if validPost() && request.resource.data.createdAt == request.time
+        && ((admin() && request.resource.data.author == 'ELEVOS 운영팀')
+          || (request.auth != null
+            && request.resource.data.category == 'community'
+            && request.resource.data.published == false
+            && request.resource.data.author == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username));
+      allow update: if admin() && validPost()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.author == resource.data.author
+        && request.resource.data.category == resource.data.category;
+      allow delete: if admin();
+    }
     match /{document=**} { allow read, write: if false; }
   }
 }
