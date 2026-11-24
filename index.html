@@ -4143,6 +4143,7 @@ window.ElevosLocal={
  get guestKey(){return guestSaveKey},
  snapshot(){save();persistCareerArchive();return {save:JSON.parse(localStorage.getItem(saveKey)||'null'),archive:JSON.parse(localStorage.getItem(archiveStorageKey)||'null')}},
  guestSnapshot(){return {save:JSON.parse(localStorage.getItem(guestSaveKey)||'null'),archive:JSON.parse(localStorage.getItem(guestSaveKey+':archive:v3')||'null')}},
+ restoreGuest(data){if(simState||cloudLocalUid)throw Error('게스트 모드에서 경기 종료 후 복원하세요.');const key=guestSaveKey,archiveKey=key+':archive:v3',oldSave=localStorage.getItem(key),oldArchive=localStorage.getItem(archiveKey);try{localStorage.setItem(key,JSON.stringify(data.save));localStorage.setItem(archiveKey,JSON.stringify(data.archive));}catch(e){if(oldSave===null)localStorage.removeItem(key);else localStorage.setItem(key,oldSave);if(oldArchive===null)localStorage.removeItem(archiveKey);else localStorage.setItem(archiveKey,oldArchive);throw e}sessionStorage.removeItem('elevos-active-uid');location.reload()},
  switchAccount(uid,data){
   if(simState)throw Error('경기 종료 후 계정을 변경하세요.');
   if(uid&&data){const key=guestSaveKey+':uid:'+uid;localStorage.setItem(key,JSON.stringify(data.save));localStorage.setItem(key+':archive:v3',JSON.stringify(data.archive||{matches:{},seasons:{},cups:{},leagueScores:{}}))}
