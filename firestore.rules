@@ -44,6 +44,23 @@ service cloud.firestore {
           && request.resource.data.lastSeenAt == request.time;
         allow delete: if false;
       }
+      match /summary/play {
+        allow get: if owner(uid) || admin();
+        allow create, update: if owner(uid)
+          && request.resource.data.keys().hasOnly(['matches','wallet','squad','cards','packs','supply','beta1','beta2','collection','updatedAt'])
+          && request.resource.data.keys().hasAll(['matches','wallet','squad','cards','packs','supply','beta1','beta2','collection','updatedAt'])
+          && request.resource.data.matches is int && request.resource.data.matches >= 0
+          && request.resource.data.wallet is number && request.resource.data.wallet >= 0 && request.resource.data.wallet <= 1000000000000000
+          && request.resource.data.squad is int && request.resource.data.squad >= 0
+          && request.resource.data.cards is int && request.resource.data.cards >= 0
+          && request.resource.data.packs is int && request.resource.data.packs >= 0
+          && request.resource.data.supply in ['absent','pending','claimed']
+          && request.resource.data.beta1 in ['absent','pending','claimed']
+          && request.resource.data.beta2 in ['absent','pending','claimed']
+          && request.resource.data.collection in ['absent','pending','claimed']
+          && request.resource.data.updatedAt == request.time;
+        allow list, delete: if false;
+      }
       match /summary/current {
         allow get: if owner(uid) || admin();
         allow create, update: if owner(uid)
