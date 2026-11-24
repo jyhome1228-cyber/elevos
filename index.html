@@ -3984,7 +3984,11 @@ function matchScoreBalance(powerRatio,shotEdge,lead,ownGoals,final=false){
 }
 function matchTacticalFactors(team){const plan=matchPlan79(team),mode=plan.mode,press=Math.max(-1,Math.min(1,(plan.pressure-50)/50)),active=activeMatchPlayers(team),fitness=active.length?active.reduce((s,p)=>s+playerFitness(p),0)/active.length:70;const effect=press*(fitness>=70?.06:.025)+(team===manager?facilityLevel('analysis')*.005:0),t=plan,w=(t.width-50)/50,l=(t.line-50)/50,tempo=(t.tempo-50)/50,pass=(t.passing-50)/50;return {attack:(mode==='attack'?1.20:mode==='defend'?.82:1)*(1+effect)*(1+w*.035+l*.025+tempo*.045+pass*.025),defense:(mode==='defend'?1.20:mode==='attack'?.85:1)*(1+effect)*(1-w*.025-l*.045-tempo*.025-pass*.02)}}
 function growthMatchFactor109(p,k){const age=Number(p.age)||25,level=Math.max(1,Math.min(50,Number(p.level)||1)),prime=age>=24&&age<=30?.015:0,physical=['sprint','acceleration','stamina'].includes(k),decline=physical?Math.max(0,age-32)*.006:0;return Math.max(.92,1+Math.min(.06,(level-1)*.0012)+prime-decline)}
-function matchActionStat(p,k){if(!p)return 50;const raw=finalLeagueLive()?finalMatchStat(p,k):effectiveStat(p,k)*(p.club===manager?1+condition40(p)[1]:1),ids=teamMatchLineup(p.club),m=simState,shape=p.club===manager?m.formation:p.club===m.home?m.homeFormation:m.awayFormation,slot=(FORMATIONS[shape]||FORMATIONS['433'])[ids.indexOf(p.id)],fit=slot?positionFit(p,slot.r):1;return raw*(.72+.28*fit)*(.78+.22*playerFitness(p)/100)*growthMatchFactor109(p,k)}
+// 10-11: differentiated fatigue, positional fit and workload-based stamina.
+function fitnessImpact128(fitness,k){const f=Math.max(0,Math.min(100,fitness))/100;const weight=['sprint','acceleration','dribble','strength'].includes(k)?.46:['finishing','shotPower','tackle','interception','reflex'].includes(k)?.32:['shortPass','longPass','firstTouch','handling'].includes(k)?.25:.18;return 1-weight*(1-f)}
+function fatigueCost128(stamina,pressure,tempo,role,work,late){const endurance=Math.max(.48,Math.min(1.18,1.12-(stamina-50)*.009));const intensity=Math.max(.65,Math.min(1.6,1+(pressure-50)*.006+(tempo-50)*.004));return (.25+Math.min(6,Math.max(0,work))*.043)*endurance*intensity*(role==='GK'?.42:role==='MF'?1.12:1)*(late?1.10:1)}
+function updateMatchFatigue128(m){for(const team of [m.home,m.away]){const plan=matchPlan79(team);for(const p of activeMatchPlayers(team)){const v=m.velocity119?.[p.id]||{},work=Math.hypot(v.vx||0,(v.vy||0)*.65)+(m.ballCarrier80===p.id?1:0)+(m.defense125?.[team]?.primary===p.id?1:0);p.fitness=Math.max(10,playerFitness(p)-fatigueCost128(effectiveStat(p,'stamina'),plan.pressure,plan.tempo,ROLE_FAMILY[p.pos]||'MF',work,m.minute>70));}}}
+function matchActionStat(p,k){if(!p)return 50;const raw=finalLeagueLive()?finalMatchStat(p,k):effectiveStat(p,k)*(p.club===manager?1+condition40(p)[1]:1),ids=teamMatchLineup(p.club),m=simState,shape=p.club===manager?m.formation:p.club===m.home?m.homeFormation:m.awayFormation,slot=(FORMATIONS[shape]||FORMATIONS['433'])[ids.indexOf(p.id)],fit=slot?positionFit(p,slot.r):1;return raw*(.50+.50*fit)*fitnessImpact128(playerFitness(p),k)*growthMatchFactor109(p,k)}
 function matchPlan79(id){
  if(id===manager)return {...advancedTactics(),pressure:Number(pressure)||50,...(simState.liveTactics90||{}),mode:simState.instruction||tactic};
  const m=simState,lead=id===m.home?m.homeGoals-m.awayGoals:m.awayGoals-m.homeGoals,late=m.minute>60,style=(Number(id)||0)%3;
@@ -4054,7 +4058,7 @@ function minuteEvent(){
  const disciplineScale=Math.max(.75,Math.min(1.6,.85+(oppPlan.pressure-40)*.009+(defensiveActor?(100-playerFitness(defensiveActor))*.004:0)));const defenderPoint=defensiveActor&&pitchPoint80(simState,defensiveActor.id,defender.id),contact=defenderPoint?Math.hypot(defenderPoint.x-simState.ball.x,(defenderPoint.y-simState.ball.y)*.65):100,contactFactor=contact<=3.5?1:contact<=6?.45:0;const yellowRate=.027*disciplineScale*contactFactor,redRate=.0011*disciplineScale*contactFactor,foulRate=.095*disciplineScale*contactFactor,disciplineTotal=yellowRate+redRate+foulRate;
  const roll=Math.random();
  const injuryTarget=randomMatchActor(Math.random()<.5);
- const endurance=injuryTarget?detailed(injuryTarget).stamina:70;
+ const endurance=injuryTarget?effectiveStat(injuryTarget,'stamina'):70;
  const fatigue=injuryTarget?(100-playerFitness(injuryTarget))/100:0;
  const injuryRisk=(.0018+fatigue*.008+Math.max(0,75-endurance)*.00004)*(injuryTarget?.club===manager?1-facilityLevel('medical')*.03:1);
  if(roll>1-injuryRisk&&injuryTarget){matchInjuryEvent(injuryTarget.club,injuryTarget);return}
@@ -4147,7 +4151,7 @@ function advanceMinute(){
  }
  if(simState.minute>0&&simState.minute%2===0&&simState.extraAction115!==simState.minute){simState.extraAction115=simState.minute;simState.lastTickAt=Date.now();minuteEvent();validateCarrier115(simState);save();if(!simBatchMode&&page==='match')refreshLive87();return}
  simState.minute++;
- for(const id of [simState.home,simState.away])for(const p of activeMatchPlayers(id)){const plan=matchPlan79(id),intensity=Math.max(.55,1+(plan.pressure-50)/125+(plan.mode==='attack'?.12:0)+(plan.tempo-50)/250);p.fitness=Math.max(15,playerFitness(p)-Math.max(.05,.24-detailed(p).stamina*.0015)*intensity)}
+ updateMatchFatigue128(simState);
  simState.lastTickAt=Date.now();
  if(!simState.pendingVAR)scheduleAutoSubstitutions();
  const possessionBefore83=simState.possession;
@@ -4158,7 +4162,7 @@ function advanceMinute(){
  const broadcast=matchBroadcastData(simState);if(elapsed>=70+simAddedFirst()&&!broadcast.announced){broadcast.announced=true;simEvent(null,null,'attendance','오늘 경기장을 찾아주신 관중은 '+broadcast.attendance.toLocaleString('ko-KR')+'명입니다. 함께해 주셔서 감사합니다!',null,{attendance:broadcast.attendance});if(!simBatchMode&&page==='match')showAttendanceBanner(broadcast.attendance)}
  if(elapsed===45)simEvent(null,null,'info','전반 추가시간 '+simAddedFirst()+'분이 주어졌습니다!','ADDED TIME +'+simAddedFirst());
  if(elapsed===half){
-  simState.halftimeUntil=Date.now()+650;
+  for(const team of [simState.home,simState.away])for(const p of activeMatchPlayers(team))p.fitness=Math.min(100,playerFitness(p)+4);simState.halftimeUntil=Date.now()+650;
   simEvent(null,null,'info','전반 종료. 잠시 후 후반전이 시작됩니다.','HALF TIME');
  }
  if(elapsed===half+1)simEvent(null,null,'info','후반전 경기 진행 중');
@@ -4737,8 +4741,8 @@ function injuryOrAISub(teamId,injured,forced=false){
  if(previous.length>=limit)return false;
  const unused=eligibleMatchBench(teamId);
  const slot=current.indexOf(out.id),slotRole=(FORMATIONS[ours?(simState.formation||formation):'433']||FORMATIONS['433'])[slot]?.r||out.pos;
- const next=unused.sort((a,b)=>preciseOverall(b)*positionFit(b,slotRole)-preciseOverall(a)*positionFit(a,slotRole))[0];
- if(!next)return false;
+ const value=p=>preciseOverall(p)*positionFit(p,slotRole)*fitnessImpact128(playerFitness(p),'sprint');const next=unused.sort((a,b)=>value(b)-value(a))[0];
+ if(!next||(!forced&&value(next)<value(out)*.96))return false;
  current[slot]=next.id;assignTeamMatchLineup(teamId,current);
  if(ours){simState.participants.push(next.id)}
  const entry={minute:simMinuteLabel(simState.minute),out:out.id,in:next.id,club:teamId,forced};
@@ -4757,15 +4761,15 @@ function scheduleAutoSubstitutions(){
  const m=simState;if(!m)return;
  const clock=simMinuteLabel(m.minute);
  const minuteNum=parseInt(clock,10);
- if(![54,63,72,81].includes(minuteNum))return;
+ if(minuteNum<50||minuteNum>88||minuteNum%3!==0)return;
  for(const id of [m.home,m.away]){
-  const current=teamMatchLineup(id),subList=id===manager?m.substitutions:m.aiSubstitutions;
-  if((subList||[]).length>=4)continue;
+  const current=teamMatchLineup(id),subList=id===manager?m.substitutions:(m.aiSubstitutions||[]).filter(v=>v.club===id);
+  if((subList||[]).length>=5||((subList||[]).length&&minuteNum-parseInt(subList[subList.length-1].minute,10)<6))continue;
   if(id===manager&&(m.autoSubstitution===false||m.manualCoaching))continue;
   const eligible=current.map(x=>players.find(p=>p.id===x)).filter(p=>p&&!playerUnavailable(p)&&p.pos!=='GK');
   if(!eligible.length)continue;
   const target=eligible.sort((a,b)=>(playerFitness(a)+(a.id===m.ballCarrier80?100:0))-(playerFitness(b)+(b.id===m.ballCarrier80?100:0)))[0];
-  injuryOrAISub(id,target,false);
+  if(playerFitness(target)<(minuteNum>=75?76:68)&&target.id!==m.ballCarrier80)injuryOrAISub(id,target,false);
  }
 }
 
@@ -4991,7 +4995,7 @@ function moveMatchObjects(homeAttack,type){
 }
 
 function playerFitness(p){return Math.max(0,Math.min(100,Number.isFinite(p.fitness)?p.fitness:100))}
-function playerFitnessFactor(p){return (.78+.22*playerFitness(p)/100)*(1+(p.club===manager?condition40(p)[1]:0))}
+function playerFitnessFactor(p){return (.70+.30*playerFitness(p)/100)*(1+(p.club===manager?condition40(p)[1]:0))}
 function recoverFitnessAfterMatch(starterIds){
  const used=new Set(starterIds||[]);
  for(const p of myPlayers()){
