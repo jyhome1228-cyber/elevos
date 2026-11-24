@@ -25,6 +25,7 @@ function draw(){
   let legacy=false;try{legacy=local.guestSnapshot()?.save?.manager!=null}catch(e){}
   p.insertAdjacentHTML('beforeend','<div class="account-simple"><div class="account-email"><small>로그인 이메일</small><strong id="cloud-identity"></strong></div><div class="account-auto"><span class="account-auto-dot"></span><div><strong>자동 저장</strong><p>로그아웃하면 게임 기록이 저장됩니다.</p></div></div><button class="btn sub account-signout" id="cloud-logout">게임 로그아웃</button><details class="account-recovery"><summary>저장 및 복원 관리</summary><div class="cloud-actions"><button class="btn sub" id="cloud-upload">지금 저장</button><button class="btn sub" id="cloud-download">저장 기록 불러오기</button>'+(legacy?'<button class="btn sub" id="cloud-migrate">이전 테스트 기록 가져오기</button>':'')+'</div></details></div>');
   $('cloud-identity').textContent=user.email||'회원 계정';
+  const profile52=document.createElement('div');profile52.id='cloud-coach-profile52';if(typeof window.coachProfileControl52==='function')profile52.innerHTML=window.coachProfileControl52();$('cloud-identity').closest('.account-email').after(profile52);
   $('cloud-upload').onclick=()=>act(upload);
   $('cloud-download').onclick=()=>act(download);
   if($('cloud-migrate'))$('cloud-migrate').onclick=()=>act(migrate);
