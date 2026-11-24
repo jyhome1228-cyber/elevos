@@ -945,6 +945,9 @@ html body .home-right .home-progress-meter>span{background:#a8b5c5!important}
 .calendar-scorer{display:flex;justify-content:space-between;gap:6px;padding:7px 0;border-bottom:1px solid #3b4552}
 .calendar-no-record{color:#c2ccd8;font-size:12px;line-height:1.5;margin:14px 0}
 .calendar-result .btn{width:100%;margin-top:10px}
+</style><style>
+.sim-ball-trail i{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);display:block;pointer-events:none}
+.cup-tree-modal{width:min(1100px,94vw);max-width:none;max-height:88vh;overflow:auto}.cup-tree{display:flex;gap:12px;overflow:auto;padding:12px 0;align-items:flex-start}.cup-tree-stage{flex:0 0 190px;min-width:0}.cup-tree-stage h3{font-size:14px!important;padding:8px;border-bottom:1px solid #536070}.cup-tree-game{background:#262d37;border:1px solid #424d5a;padding:8px;margin:8px 0}.cup-tree-game.mine{border-color:#d2b477}.cup-tree-game>div{display:flex;align-items:center;gap:5px;padding:5px 0;font-size:11px}.cup-tree-game>div span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cup-tree-game .crest{width:20px!important;height:24px!important}.cup-tree-game small{font-size:10px;color:#b8c5d4}.cup-tree-stage>p{color:#aeb9c9;font-size:12px}.season-calendar-legend{align-items:center}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -995,6 +998,7 @@ function finishSeason(){
  walletGBP+=reward;
  const summary=(isWinner?'리그 우승 · ':'')+(isPromoted?'상위 리그 승격 · ':'')+(isRelegated?'하위 리그 강등 · ':'')+finalRank+'위';
  seasonAwards.push({season:previousSeason,league:oldLeague,rank:finalRank,summary,reward});
+ previousTopFour={season:previousSeason,entries:LEAGUES.flatMap((l,i)=>standing(i).slice(0,4).map((c,j)=>({id:c.id,nation:l[0],division:l[2],rank:j+1})))};
  const transitions=[];
  for(const [hi,lo] of [[0,1],[2,3],[4,5],[6,7]]){
   const upper=standing(hi),lower=standing(lo),down=upper.slice(-2),up=lower.slice(0,2);
@@ -2046,13 +2050,15 @@ function viewMatchSimulationWrapper(){
  }).join('');
  const homeDots=renderPawns(homeIds,homeSlots,false),awayDots=renderPawns(awayIds,awaySlots,true);
  const oldBall=m.previousBall||m.ball;
- const ballPath='<svg class="sim-ball-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="'+oldBall.x+'" y1="'+oldBall.y+'" x2="'+m.ball.x+'" y2="'+m.ball.y+'" stroke="#ffffffb5" stroke-width=".65" stroke-dasharray="1 1.1"/></svg>';
+ const dx=m.ball.x-oldBall.x,dy=m.ball.y-oldBall.y,dist=Math.hypot(dx,dy);
+ const dotCount=dist<1?0:Math.max(2,Math.min(16,Math.round(dist/4)));
+ const ballPath='<div class="sim-ball-trail" aria-hidden="true">'+Array.from({length:dotCount},(_,i)=>{const t=(i+1)/(dotCount+1);return '<i style="left:'+(oldBall.x+dx*t)+'%;top:'+(oldBall.y+dy*t)+'%;opacity:'+(0.35+t*.5)+'"></i>'}).join('')+'</div>';
  const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
  const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'자동 진행':'일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'경기 재개')+'</button>';
  return penaltyChoiceHTML()+'<div class="sim-layout sim-layout-triple"><aside class="match-coach-col">'+simCoachingPanel()+matchSideLineup()+'</aside><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">'+competitionStageText(m.competition||'league')+'</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+Math.min(100,(mins<=45?mins:mins<=45+simAddedFirst()?45:mins<=90+simAddedFirst()?mins-simAddedFirst():90)/90*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+ballPath+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p>'+liveMatchAnalysis(m,homeIds,awayIds)+'</section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(matchLogHTML).join('')+'</div>'+liveMatchTotals(m)+'</aside></div>';
 }
 function save(){
- try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,calendarMatchArchive,pendingReward,latestReward,walletGBP,simState,youthVault,pendingTransfers,seasonAwards,cupState,activeCompetition}))}
+ try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,calendarMatchArchive,pendingReward,latestReward,walletGBP,simState,youthVault,pendingTransfers,seasonAwards,cupState,activeCompetition,previousTopFour}))}
  catch(e){console.warn('저장 실패',e)}
 }
 window.tacticsDragStart=tacticsDragStart;window.tacticsDragOver=tacticsDragOver;window.tacticsDrop=tacticsDrop;
@@ -2629,7 +2635,10 @@ function seasonAwardHTML(){
 }
 
 
-const CUP_RULES={leagueCup:{name:'리그컵',rounds:[5,11,17],stages:['8강','4강','결승'],prize:400},worldCup:{name:'위너스 월드리그',rounds:[4,9,14,19],stages:['16강','8강','4강','결승'],prize:850}};
+const OLD_CUP_RULES={leagueCup:{name:'리그컵',rounds:[5,11,17],stages:['8강','4강','결승'],prize:400},worldCup:{name:'위너스 월드리그',rounds:[4,9,14,19],stages:['16강','8강','4강','결승'],prize:850}};;
+const NEW_CUP_RULES={leagueCup:{name:'리그컵',rounds:[2,5,8,11,15,19],stages:['64강','32강','16강','8강','4강','결승'],prize:400},worldCup:{name:'위너스컵',rounds:[4,7,10,14,18],stages:['32강','16강','8강','4강','결승'],prize:850}};
+let CUP_RULES=saved?.cupState&&!saved.cupState.formatVersion&&saved.cupState.season===season?OLD_CUP_RULES:NEW_CUP_RULES;
+let previousTopFour=saved?.previousTopFour||null;
 let cupState=saved?.cupState||null,activeCompetition=saved?.activeCompetition||'league';
 function dashboardNextCompetition(){
  if(simState?.club===manager)return simState.competition||'league';
@@ -2664,8 +2673,10 @@ function dashboardCalendar(){
  }
  for(const [key,d] of Object.entries(CUP_RULES)){
   const c=cupState[key];
+  if(c.qualified===false)continue;
   for(let i=0;i<d.stages.length;i++){
    const game=c.history.find(x=>x.stage===i)?.games.find(g=>g.home===manager||g.away===manager);
+   if(game?.bye)continue;
    const pair=game?[game.home,game.away]:i===c.stage&&!c.eliminated&&!c.completed?(()=>{const j=c.teams.indexOf(manager);return j<0?null:c.teams.slice(j-j%2,j-j%2+2)})():null;
    if(c.eliminated&&!game)continue;
    items.push({order:d.rounds[i]*10+(key==='leagueCup'?1:2),key,stage:i,label:(key==='leagueCup'?'리그컵':'위너스')+' '+d.stages[i],pair,score:game?[game.hg,game.ag]:null,winner:game?.winner,next:nextKey===key&&i===c.stage});
@@ -2680,20 +2691,33 @@ function dashboardCalendar(){
   const score=x.score?(home?x.score[0]+' : '+x.score[1]:x.score[1]+' : '+x.score[0]):live?'경기 진행 중':x.next?'NEXT MATCH':'예정';
   return '<button type="button" class="season-tile '+x.key+' '+result+(x.next?' next':'')+'" '+(x.score?'onclick="showCalendarResult('+index+')"':x.next||live?'onclick="dashboardOpenNext()"':'disabled')+'><small>'+txt(x.label)+'</small><div class="season-tile-crest">'+(opponent?shield(opponent):'<span>?</span>')+'</div><strong>'+txt(opponent?.name||'상대 미정')+'</strong><span>'+score+'</span></button>';
  }).join('');
- return '<section class="card season-calendar"><div class="home-heading"><h2>시즌 경기 일정</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><div class="season-calendar-legend"><span>리그</span><span>리그컵 · 국내</span><span>위너스 · 국제</span></div><div class="season-calendar-grid">'+tiles+'</div><p class="muted small">컵대회 상대는 대진 결과에 따라 확정됩니다. 경기 결과는 우리 팀 기준입니다.</p></section>';
+ return '<section class="card season-calendar"><div class="home-heading"><h2>시즌 경기 일정</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><div class="season-calendar-legend"><span>리그</span><button class="btn sub mini" onclick="openCupBracket(\'leagueCup\')">리그컵 대진표</button><button class="btn sub mini" onclick="openCupBracket(\'worldCup\')">위너스컵 대진표</button></div><div class="season-calendar-grid">'+tiles+'</div><p class="muted small">컵대회 상대는 대진 결과에 따라 확정됩니다. 경기 결과는 우리 팀 기준입니다.</p></section>';
 }
 function initializeCups(){
  if(manager===null||cupState?.season===season)return;
- const nation=LEAGUES[own().league][0],local=clubs.filter(c=>c.id!==manager&&LEAGUES[c.league][0]===nation).sort((a,b)=>b.rating-a.rating).slice(0,7).map(c=>c.id);
- const global=[],counts={};
- for(const c of clubs.filter(c=>c.id!==manager&&LEAGUES[c.league][0]!==nation).sort((a,b)=>b.rating-a.rating)){
-  const country=LEAGUES[c.league][0];if((counts[country]||0)>=3)continue;
-  counts[country]=(counts[country]||0)+1;global.push(c.id);if(global.length===15)break;
- }
- const make=teams=>({teams,stage:0,history:[],eliminated:false,completed:false,champion:null});
- cupState={season,leagueCup:make([manager,...local]),worldCup:make([manager,...global])};activeCompetition='league';
+ CUP_RULES=NEW_CUP_RULES;
+ const nation=LEAGUES[own().league][0],local=clubs.filter(c=>LEAGUES[c.league][0]===nation).sort((a,b)=>a.id===manager?-1:b.id===manager?1:b.rating-a.rating).map(c=>c.id);
+ const entries=previousTopFour?.season===season-1?previousTopFour.entries:[];
+ const ranked=entries.slice().sort((a,b)=>a.division-b.division||a.rank-b.rank||a.id-b.id);
+ const eligible=entries.some(e=>e.id===manager);
+ const global=[];for(const country of [...new Set(ranked.map(e=>e.nation))]){global.push(...ranked.filter(e=>e.nation===country).slice(0,4).map(e=>e.id))}
+ if(eligible&&!global.includes(manager)){const ownEntry=entries.find(e=>e.id===manager);const k=global.map(id=>entries.find(e=>e.id===id)?.nation).lastIndexOf(ownEntry.nation);if(k>=0)global[k]=manager}
+ const make=(teams,size,qualified)=>{const slots=Array(size).fill(null);teams.slice(0,size).forEach((id,k)=>{slots[k<size/2?k*2:(k-size/2)*2+1]=id});return {teams:slots,stage:0,history:[],eliminated:!qualified,qualified,completed:!teams.length,champion:null}};
+ cupState={season,formatVersion:2,leagueCup:make(local,64,true),worldCup:make(global,32,eligible&&global.length>=2)};
+ if(global.length<2){cupState.worldCup.completed=true;cupState.worldCup.qualified=false;cupState.worldCup.eliminated=true}
+ activeCompetition='league';
 }
-function cupReady(key){if(manager===null)return false;initializeCups();const c=cupState[key],d=CUP_RULES[key];return !!(c&&!c.completed&&!c.eliminated&&c.teams.includes(manager)&&round>=d.rounds[c.stage])}
+function advanceCupByes(){
+ if(!cupState?.formatVersion)return;
+ for(const [key,d] of Object.entries(CUP_RULES)){
+  const c=cupState[key];
+  while(!c.completed&&!c.eliminated&&round>=d.rounds[c.stage]){
+   const at=c.teams.indexOf(manager),opp=at<0?null:c.teams[at^1];if(at<0||opp!=null)break;
+   settleCupStage(key,null,null);
+  }
+ }
+}
+function cupReady(key){if(manager===null)return false;initializeCups();advanceCupByes();const c=cupState[key],d=CUP_RULES[key];return !!(c&&!c.completed&&!c.eliminated&&c.teams.includes(manager)&&round>=d.rounds[c.stage])}
 function cupPair(key){if(!cupReady(key))return null;const t=cupState[key].teams;for(let i=0;i<t.length;i+=2)if(t[i]===manager||t[i+1]===manager)return[t[i],t[i+1]];return null}
 function chooseCompetition(key){if(simState?.club===manager){go('match');return}if(pendingReward?.club===manager){go('match');chooseMatchTab('rewards');return}if(key!=='league'&&!CUP_RULES[key])return;if(key!=='league'&&!cupReady(key))return;activeCompetition=key;matchTab='preview';page='match';save();render()}
 function competitionStageText(key){return key==='league'||!CUP_RULES[key]?'리그 '+(round+1)+'라운드':CUP_RULES[key].name+' · '+CUP_RULES[key].stages[cupState?.[key]?.stage||0]}
@@ -2701,7 +2725,7 @@ function cupStatusHTML(){
  if(manager===null)return '';initializeCups();
  return '<section class="card cup-overview"><h2>병행 컵대회</h2><div class="cup-overview-grid">'+Object.entries(CUP_RULES).map(([key,d])=>{
   const c=cupState[key],ready=cupReady(key),stage=d.stages[Math.min(c.stage,d.stages.length-1)];
-  const status=c.completed?(c.champion===manager?'우승':'종료'):c.eliminated?'탈락':ready?'경기 가능':d.rounds[c.stage]+'라운드 이후';
+  const status=c.qualified===false?'전 시즌 4위 이내 출전 자격 필요':c.completed?(c.champion===manager?'우승':'종료'):c.eliminated?'탈락':ready?'경기 가능':d.rounds[c.stage]+'라운드 이후';
   return '<div class="cup-overview-card"><strong>'+d.name+'</strong><span>'+stage+' · '+status+'</span><button class="btn sub mini" '+(!ready?'disabled':'')+' onclick="chooseCompetition(\''+key+'\')">컵 경기 진행</button></div>';
  }).join('')+'</div></section>';
 }
@@ -2709,6 +2733,7 @@ function settleCupStage(key,hg,ag){
  const c=cupState[key],next=[],games=[];let myWin=false;
  for(let i=0;i<c.teams.length;i+=2){
   const home=c.teams[i],away=c.teams[i+1],mine=home===manager||away===manager;
+  if(home==null||away==null){const winner=home??away;next.push(winner);if(winner!=null){games.push({home,away,hg:null,ag:null,winner,bye:true});if(winner===manager)myWin=true}continue}
   const h=mine?hg:goals((teamPower(home)-teamPower(away))*1.2),a=mine?ag:goals((teamPower(away)-teamPower(home))*1.2);
   const winner=h>a?home:a>h?away:(Math.random()<.5?home:away);
   if(mine)myWin=winner===manager;next.push(winner);games.push({home,away,hg:h,ag:a,winner});
@@ -2735,15 +2760,23 @@ function playCupMatch(){
 window.chooseCompetition=chooseCompetition;
 
 
-function cupBracketHTML(){
- if(manager===null)return '';initializeCups();
- return '<section class="card cup-brackets"><h2>컵대회 대진표·결과</h2><div class="cup-bracket-grid">'+Object.entries(CUP_RULES).map(([key,d])=>{
-  const c=cupState[key];
-  return '<div class="cup-bracket-panel"><strong>'+d.name+'</strong><small>현재 '+(c.completed?'대회 종료':d.stages[c.stage])+'</small>'+
-  c.history.map(h=>'<div class="cup-bracket-stage"><b>'+d.stages[h.stage]+'</b>'+h.games.map(g=>'<div class="cup-bracket-match"><span>'+txt(clubs[g.home].name)+'</span><strong>'+g.hg+' : '+g.ag+'</strong><span>'+txt(clubs[g.away].name)+'</span></div>').join('')+'</div>').join('')+
-  (c.completed?'<p>우승: '+txt(clubs[c.champion].name)+'</p>':'')+'</div>';
- }).join('')+'</div></section>';
+function cupBracketContent(key){
+ const d=CUP_RULES[key],c=cupState[key];if(!d||!c)return '';
+ const team=(id)=>id==null?'<span>부전승 / 미정</span>':shield(clubs[id])+'<span>'+txt(clubs[id].name)+'</span>';
+ const gameRow=g=>'<div class="cup-tree-game '+([g.home,g.away].includes(manager)?'mine':'')+'"><div>'+team(g.home)+'<b>'+(g.hg??'–')+'</b></div><div>'+team(g.away)+'<b>'+(g.ag??'–')+'</b></div><small>'+(g.bye?'부전승':g.winner!=null?'진출 · '+txt(clubs[g.winner].name):'경기 예정')+'</small></div>';
+ return '<div class="cup-tree">'+d.stages.map((stage,i)=>{
+  const done=c.history.find(h=>h.stage===i);let games=done?.games||[];
+  if(i===c.stage&&!c.completed)games=Array.from({length:c.teams.length/2},(_,j)=>({home:c.teams[j*2],away:c.teams[j*2+1]})).filter(g=>g.home!=null||g.away!=null);
+  return '<section class="cup-tree-stage"><h3>'+stage+'</h3>'+(games.length?games.map(gameRow).join(''):'<p>대진 미정</p>')+'</section>';
+ }).join('')+'</div>';
 }
+function openCupBracket(key){
+ initializeCups();if(!CUP_RULES[key])return;
+ document.getElementById('elevos-game-dialog')?.remove();const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+ const c=cupState[key];el.innerHTML='<div class="game-dialog-content cup-tree-modal"><div class="row"><h2>'+CUP_RULES[key].name+' 토너먼트</h2><button class="btn sub mini" onclick="dismissGameDialog()">닫기</button></div><p class="muted small">'+(c.qualified===false?'미출전 · 전 시즌 리그 4위 이내 자격 및 참가 명단 필요':c.champion!=null?'우승 · '+txt(clubs[c.champion].name):c.eliminated?'우리 팀 탈락':'현재 '+CUP_RULES[key].stages[c.stage])+'</p>'+cupBracketContent(key)+'</div>';el.addEventListener('click',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);
+}
+window.openCupBracket=openCupBracket;
+function cupBracketHTML(){return ''}
 
 
 function statTier(n){return n>=110?'stat-110':n>=100?'stat-100':n>=90?'stat-90':n>=80?'stat-80':''}
