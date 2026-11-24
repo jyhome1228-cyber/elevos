@@ -10,7 +10,7 @@ function draw(){
  const p=$('cloud-panel');if(!p)return;
  p.innerHTML='<div class="row"><h2>계정 및 클라우드 저장</h2><button class="btn sub mini" id="cloud-close">닫기</button></div><p id="cloud-status" class="cloud-status"></p>';
  $('cloud-close').onclick=()=>{if(!busy)$('cloud-modal')?.remove()};
- if(!configured){p.insertAdjacentHTML('beforeend','<p>Firebase 프로젝트 연결 준비 중입니다. 현재는 기존 로컬 커리어를 이용할 수 있습니다.</p>');message('Firebase 설정 미연결');return}
+ if(!configured){p.insertAdjacentHTML('beforeend','<p>현재 게스트 커리어를 이용 중입니다. 이 기기의 기록을 파일로 백업할 수 있습니다.</p><div class="cloud-actions"><button class="btn" id="cloud-export">기록 백업</button><button class="btn sub" id="cloud-import">기록 복원</button></div><input type="file" id="cloud-file" accept=".json,application/json" hidden>');bindLocalBackup();message('로컬 저장 모드');return}
  if(!ready){message(notice||'계정 서비스 연결 중');return}
  if(!user){
   p.insertAdjacentHTML('beforeend','<label for="cloud-email">이메일</label><input type="email" id="cloud-email" autocomplete="email"><label for="cloud-password">비밀번호</label><input type="password" id="cloud-password" autocomplete="current-password" minlength="6"><div class="cloud-actions"><button class="btn" id="cloud-login">로그인</button><button class="btn sub" id="cloud-register">회원가입</button></div><button class="btn sub" id="cloud-google">Google 로그인</button><button class="btn sub" id="cloud-reset">비밀번호 재설정</button>');
@@ -28,6 +28,7 @@ function draw(){
  }
  message(notice);
 }
+function bindLocalBackup(){const exp=$('cloud-export'),imp=$('cloud-import'),file=$('cloud-file');if(!exp||!imp||!file)return;exp.onclick=()=>act(async()=>{if(local.busy)throw Error('경기 종료 후 백업하세요.');const data=local.snapshot();if(!data.save||data.save.manager==null)throw Error('저장할 커리어가 없습니다.');const blob=new Blob([JSON.stringify({format:'ELEVOS_BACKUP_V1',...data})],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='elevos-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('백업 파일을 생성했습니다.')});imp.onclick=()=>file.click();file.onchange=()=>act(async()=>{if(local.busy)throw Error('경기 종료 후 복원하세요.');const f=file.files[0];if(!f)return;if(f.size>30000000)throw Error('파일 크기 제한 초과');const d=JSON.parse(await f.text());if(d.format!=='ELEVOS_BACKUP_V1'||d.save?.version!==2||!Array.isArray(d.save.players)||!Array.isArray(d.save.clubs)||!d.save.clubs.some(c=>c.id===d.save.manager)||!d.archive||typeof d.archive!=='object'||Array.isArray(d.archive))throw Error('올바른 ELEVOS 백업 파일이 아닙니다.');if(!confirm('현재 게스트 기록을 백업 파일로 교체할까요?'))return;local.restoreGuest(d)})}
 function open(){if($('cloud-modal'))return;const el=document.createElement('div');el.id='cloud-modal';el.className='cloud-modal';el.innerHTML='<section id="cloud-panel" class="cloud-panel" role="dialog" aria-modal="true" aria-label="계정"></section>';document.body.appendChild(el);draw()}
 window.ElevosCloud={open};
 async function act(fn){
