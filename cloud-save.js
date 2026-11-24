@@ -85,10 +85,10 @@ async function registerMember(username,email,phone,password,realName,betaContact
 }
 function entryLogin(email,password){if(!configured){message('회원 인증 서비스 연결 준비 중입니다.');return}if(!ready){message('계정 서비스 연결 중입니다.');return}if(!email.includes('@')){message('가입한 이메일 주소를 입력해 주세요.');return}return act(async()=>{sessionStorage.setItem('elevos-auth-progress','1');authProgress('로그인하고 있습니다.');await A.signInWithEmailAndPassword(auth,email,password)})}
 function entryReset(email){if(!configured||!ready){message('계정 서비스가 연결되지 않았습니다.');return}if(!email||!email.includes('@')){message('비밀번호 재설정을 위해 가입 이메일을 입력해 주세요.');return}return act(async()=>{await A.sendPasswordResetEmail(auth,email);message('비밀번호 재설정 이메일 발송을 요청했습니다.')})}
-let autoTimer=null,autoPending=false,autoFlight=null,autoBlocked=false;
+let autoTimer=null,autoPending=false,autoFlight=null,autoBlocked=false,autoClosing=false;
 function autoStatusV10(state){window.dispatchEvent(new CustomEvent('elevos-save-status',{detail:state}));}
-function queueCareerSaveV10(){if(!ready||!user||local.uid!==user.uid)return;autoPending=true;autoStatusV10('pending');clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,1200)}
-async function flushCareerSaveV10(){if(!autoPending||autoBlocked||!ready||!user||local.uid!==user.uid)return;if(busy||autoFlight){autoTimer=setTimeout(flushCareerSaveV10,2000);return}autoPending=false;busy=true;autoStatusV10('saving');autoFlight=upload({automatic:true,background:true});try{await autoFlight;autoStatusV10(autoPending?'pending':'saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');console.warn('자동 저장 실패',e)}finally{autoFlight=null;busy=false;if(autoPending&&!autoBlocked)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
+function queueCareerSaveV10(){if(autoClosing||!ready||!user||local.uid!==user.uid)return;autoPending=true;autoStatusV10('pending');clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,1200)}
+async function flushCareerSaveV10(){if(autoClosing||!autoPending||autoBlocked||!ready||!user||local.uid!==user.uid)return;if(busy||autoFlight){autoTimer=setTimeout(flushCareerSaveV10,2000);return}autoPending=false;busy=true;autoStatusV10('saving');autoFlight=upload({automatic:true,background:true});try{await autoFlight;autoStatusV10(autoPending?'pending':'saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');console.warn('자동 저장 실패',e)}finally{autoFlight=null;busy=false;if(autoPending&&!autoBlocked&&!autoClosing)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
 window.addEventListener('online',()=>{if(autoPending&&!autoBlocked)queueCareerSaveV10()});
 async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');busy=true;try{await upload({automatic:true});autoBlocked=false;autoStatusV10('saved')}finally{busy=false}}
 window.ElevosCloud={open,entryLogin,entryReset,logoutSavedGame,manualSave136,queueCareerSaveV10,isAuthenticatedCareer(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid)},isTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&['info@9works.kr','hhs0579@naver.com','kimdanbi1226@naver.com'].includes(String(u.email||'').trim().toLowerCase()))},isOriginalTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&String(u.email||'').trim().toLowerCase()==='info@9works.kr')}};
@@ -144,7 +144,7 @@ async function upload(options={}){
  await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema:1,updatedAt:F.serverTimestamp()})});
  remoteRevision=rev;await Promise.all([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);try{if(!options.background)localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev);else localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}message('클라우드 저장 완료');
 }
-async function logoutSavedGame(){clearTimeout(autoTimer);if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');busy=true;try{await upload({automatic:true});sessionStorage.setItem('elevos-signed-out','1');sessionStorage.removeItem('elevos-beta-session');await A.signOut(auth)}finally{busy=false}}
+async function logoutSavedGame(){if(autoClosing)throw Error('로그아웃이 진행 중입니다.');autoClosing=true;clearTimeout(autoTimer);let ownsBusy=false;try{if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');busy=true;ownsBusy=true;await upload({automatic:true});sessionStorage.setItem('elevos-signed-out','1');sessionStorage.removeItem('elevos-beta-session');await A.signOut(auth);autoPending=false}catch(e){if(autoPending&&!autoBlocked)autoTimer=setTimeout(flushCareerSaveV10,15000);throw e}finally{if(ownsBusy)busy=false;autoClosing=false}}
 async function download(){
  const uid=requireAccount();if(!confirm('현재 계정의 로컬 기록을 클라우드 기록으로 교체할까요?'))return;
  const snap=await F.getDocFromServer(ptr(uid));if(!snap.exists()){message('클라우드 저장 기록이 없습니다.');return}
@@ -173,7 +173,7 @@ async function boot(){
  }catch(e){authLoadFailure(e)}
 }
 async function activateAccount(u){
- const run=++activationRun;user=u;remoteRevision=null;
+ const run=++activationRun;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;
  if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
  if(!window.ElevosEntry?.isOpen())return;
  authProgress('회원 정보 확인 중');
