@@ -4,8 +4,15 @@ service cloud.firestore {
     function owner(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
-    match /users/{uid} {
+    function admin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    match /admins/{uid} {
       allow get: if owner(uid);
+      allow list, create, update, delete: if false;
+    }
+    match /users/{uid} {
+      allow get: if owner(uid) || admin();
       allow create: if owner(uid)
         && request.resource.data.keys().hasOnly(['username','email','phone','createdAt'])
         && request.resource.data.keys().hasAll(['username','email','phone','createdAt'])
@@ -16,7 +23,8 @@ service cloud.firestore {
         && request.resource.data.phone.matches('^01[016789][0-9]{7,8}$')
         && request.resource.data.createdAt == request.time
         && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid;
-      allow list, update, delete: if false;
+      allow list: if admin();
+      allow update, delete: if false;
       match /career/{document=**} {
         allow read, create, update: if owner(uid);
         allow delete: if false;
