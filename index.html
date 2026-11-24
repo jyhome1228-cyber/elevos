@@ -876,6 +876,35 @@ html body .firstplay-step.done{background:#27352d!important}
 html body .btn:focus-visible,html body .match-tabs button:focus-visible{outline:2px solid #a6b9d4;outline-offset:3px}
 @media(max-width:720px){html body .pregame-lineups{grid-template-columns:minmax(0,1fr)}html body .pregame-lineup{padding:12px!important}html body .pregame-player{padding:8px 10px!important;gap:8px}html body .scoreboard{padding:22px 10px;gap:8px}html body .scoreboard-team .crest{width:48px;height:56px}}
 
+</style><style>
+html body .enhancement-animation-card .enhancement-sub{color:#c3ccd8!important;font-size:15px}
+html body .enhancement-result-shot{flex-direction:column;gap:10px}
+html body .enhancement-result-shot>div:last-child{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+html body .enhancement-result-shot .enhancement-tier{margin-top:0!important}
+.enhancement-ovr{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:260px;padding:12px;border-top:1px solid #48515e;border-bottom:1px solid #48515e;color:#d8e0ea;font-size:14px}
+html body .enhancement-animation-card .btn{min-width:140px}
+html body .sim-commentary>.sim-log-entry{flex:0 0 auto!important;height:auto!important;max-height:none!important;overflow:visible!important}
+html body .sim-log-text{white-space:normal;overflow-wrap:anywhere;line-height:1.55}
+html body .sim-log-text>div{height:auto!important;max-height:none!important;overflow:visible!important;white-space:normal!important}
+.sim-commentary,.live-roster-scroll{scrollbar-width:thin;scrollbar-color:#596372 #20242c}
+.match-analysis{margin-top:20px;border-top:1px solid #49515e;padding-top:16px;color:#e9edf4;min-width:0}
+.match-analysis h3{font-size:14px;margin:16px 0 10px}
+.match-analysis-teams,.match-analysis-metric>div:first-child,.match-flow-labels{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.match-analysis-teams>span{display:flex;align-items:center;gap:7px;font-size:12px;min-width:0}
+.match-analysis-teams .crest{width:24px!important;height:28px!important}
+.match-analysis-metric{margin:10px 0;font-size:12px}
+.match-analysis-metric span,.match-flow-labels{color:#bbc5d1;font-size:11px}
+.match-analysis-bars{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px}
+.match-analysis-bars i,.match-fitness-row i{height:5px;background:#343b46;display:flex;overflow:hidden}
+.match-analysis-bars i:first-child{justify-content:flex-end}
+.match-analysis-bars em,.match-fitness-row em{display:block;background:#a65b70}
+.match-analysis-bars i:last-child em{background:#aeb8c6}
+.match-flow{height:86px;display:grid;grid-template-columns:repeat(18,minmax(0,1fr));gap:3px;background:linear-gradient(transparent 49%,#596372 49%,#596372 51%,transparent 51%)}
+.match-flow-slot{position:relative}.match-flow-slot i{position:absolute;width:80%;left:10%}.match-flow-slot .home{bottom:50%;background:#a65b70}.match-flow-slot .away{top:50%;background:#aeb8c6}
+.match-fitness-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.match-fitness-row{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(24px,44px) 34px;gap:5px;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid #343b46}
+.match-fitness-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.match-fitness-row small{color:#bbc5d1}.match-fitness-row b{text-align:right}.match-fitness-row em{background:#67a987}
+@media(max-width:760px){.match-fitness-grid{grid-template-columns:1fr}.match-analysis-teams>span{font-size:11px}}
 </style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1956,7 +1985,7 @@ function viewMatchSimulationWrapper(){
  const ballPath='<svg class="sim-ball-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="'+oldBall.x+'" y1="'+oldBall.y+'" x2="'+m.ball.x+'" y2="'+m.ball.y+'" stroke="#ffffffb5" stroke-width=".65" stroke-dasharray="1 1.1"/></svg>';
  const overlay=''; // 2-second announcement is mounted once outside this frequently updated panel.
  const button=mins>=simTotalMinutes()?'<button class="btn" onclick="commitSimulation()">경기 결과 확인</button>':'<span class="sim-status">'+(simTicker!==null?'자동 진행':'일시정지')+'</span><button class="btn sub" onclick="'+(simTicker!==null?'pauseSimulation();render()':'runSimulation()')+'">'+(simTicker!==null?'일시정지':'경기 재개')+'</button>';
- return penaltyChoiceHTML()+'<div class="sim-layout sim-layout-triple"><aside class="match-coach-col">'+simCoachingPanel()+matchSideLineup()+'</aside><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">'+competitionStageText(m.competition||'league')+'</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+Math.min(100,(mins<=45?mins:mins<=45+simAddedFirst()?45:mins<=90+simAddedFirst()?mins-simAddedFirst():90)/90*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+ballPath+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p></section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(matchLogHTML).join('')+'</div>'+liveMatchTotals(m)+'</aside></div>';
+ return penaltyChoiceHTML()+'<div class="sim-layout sim-layout-triple"><aside class="match-coach-col">'+simCoachingPanel()+matchSideLineup()+'</aside><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">'+competitionStageText(m.competition||'league')+'</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+Math.min(100,(mins<=45?mins:mins<=45+simAddedFirst()?45:mins<=90+simAddedFirst()?mins-simAddedFirst():90)/90*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+ballPath+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p>'+liveMatchAnalysis(m,homeIds,awayIds)+'</section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(matchLogHTML).join('')+'</div>'+liveMatchTotals(m)+'</aside></div>';
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState,youthVault,pendingTransfers,seasonAwards,cupState,activeCompetition}))}
@@ -2362,7 +2391,7 @@ function dismissGameDialog(){document.getElementById('elevos-game-dialog')?.remo
 function enhancePlayer(id){
  const p=players.find(x=>x.id===id&&x.club===manager);
  if(!p||enhancementBusy||enhancementLevel(p)>=10)return;
- const current=enhancementLevel(p),target=current+1,cost=ENHANCE_COST[target];
+ const current=enhancementLevel(p),target=current+1,cost=ENHANCE_COST[target],beforeOverall=overall(p);
  if(walletGBP<cost){
   showGameDialog('강화 비용 부족',[['보유 금액',formatGBP(walletGBP)],['필요 비용',formatGBP(cost)],['부족 금액',formatGBP(cost-walletGBP)]]);
   return;
@@ -2380,7 +2409,7 @@ function enhancePlayer(id){
  setTimeout(()=>{
   if(!el.parentNode&&!el.isConnected&&typeof el.remove==='function'&&typeof document.getElementById==='function'&&document.getElementById('enhancement-animation')!==el){enhancementBusy=false;return}
   const style='enhancement-tier '+tier;
-  el.innerHTML='<div class="enhancement-animation-card"><div class="enhancement-glow '+(success?'success':'fail')+'"></div><div class="eyebrow">ENHANCEMENT RESULT</div><div class="enhancement-result-shot">'+avatar(p,100)+'<div><strong style="font-size:19px">'+txt(p.name)+'</strong><div class="'+style+'" style="margin-top:9px">+'+enhancementLevel(p)+'</div></div></div><strong class="enhancement-result">'+(success?'강화 성공!':'강화 실패')+'</strong><div class="enhancement-sub">+'+current+' → +'+enhancementLevel(p)+' · '+formatGBP(cost)+'</div><button class="btn" onclick="closeEnhancementResult()">확인</button></div>';
+  el.innerHTML='<div class="enhancement-animation-card"><div class="enhancement-glow '+(success?'success':'fail')+'"></div><div class="eyebrow">ENHANCEMENT RESULT</div><div class="enhancement-result-shot">'+avatar(p,100)+'<div><strong style="font-size:19px">'+txt(p.name)+'</strong><div class="'+style+'" style="margin-top:9px">+'+enhancementLevel(p)+'</div></div></div><strong class="enhancement-result">'+(success?'강화 성공!':'강화 실패')+'</strong><div class="enhancement-sub">+'+current+' → +'+enhancementLevel(p)+' · '+formatGBP(cost)+'</div><div class="enhancement-ovr"><span>종합 능력치</span><strong>'+beforeOverall+' → '+overall(p)+'</strong></div><button class="btn" onclick="closeEnhancementResult()">확인</button></div>';
  },1800);
  setTimeout(()=>{enhancementBusy=false;if(page==='squad')render()},1800);
 }
@@ -2456,6 +2485,22 @@ function matchSideLineup(){
  const starters=ids.map(id=>players.find(p=>p.id===id)).filter(Boolean).map(make).join('');
  const bench=healthyClubRoster(manager).filter(p=>!active.has(p.id)).slice(0,14).map(make).join('');
  return '<div class="live-roster-box"><strong>선발 선수</strong><div class="live-roster-scroll">'+starters+'</div><strong>후보 선수</strong><div class="live-roster-scroll live-reserves">'+bench+'</div></div>';
+}
+function liveMatchAnalysis(m,homeIds,awayIds){
+ const log=m.log||[],events=m.events||[],h=clubs[m.home],a=clubs[m.away];
+ const count=(list,id,types)=>list.filter(e=>e.team===id&&types.includes(e.type)).length;
+ const metrics=[['공격 전개',log,['attack','pass']],['슈팅',events,['shot','goal']],['득점',events,['goal']],['코너킥',events,['corner']],['파울',events,['foul']]];
+ const rows=metrics.map(([label,list,types])=>{
+  const x=count(list,m.home,types),y=count(list,m.away,types),sum=x+y;
+  return '<div class="match-analysis-metric"><div><b>'+x+'</b><span>'+label+'</span><b>'+y+'</b></div><div class="match-analysis-bars"><i><em style="width:'+(sum?100*x/sum:0)+'%"></em></i><i><em style="width:'+(sum?100*y/sum:0)+'%"></em></i></div></div>';
+ }).join('');
+ const buckets=Array.from({length:18},(_,i)=>{
+  const relevant=log.filter(e=>['attack','pass','shot','goal'].includes(e.type)&&Math.min(17,Math.floor(Math.max(0,(Number(e.elapsed)||parseInt(e.minute,10)||1)-1)/5))===i);
+  const diff=count(relevant,m.home,['attack','pass','shot','goal'])-count(relevant,m.away,['attack','pass','shot','goal']);
+  return '<div class="match-flow-slot" title="'+(i*5+1)+'–'+(i+1)*5+'분"><i class="'+(diff>=0?'home':'away')+'" style="height:'+Math.min(42,Math.abs(diff)*6)+'px"></i></div>';
+ }).join('');
+ const roster=ids=>ids.map(id=>players.find(p=>p.id===id)).filter(Boolean).map(p=>'<div class="match-fitness-row"><span>'+txt(p.name)+'</span><small>'+txt(p.pos)+'</small><i><em style="width:'+playerFitness(p)+'%"></em></i><b>'+Math.round(playerFitness(p))+'%</b></div>').join('');
+ return '<section class="match-analysis"><h3>실시간 경기 분석</h3><div class="match-analysis-teams"><span>'+shield(h)+txt(h.name)+'</span><span>'+txt(a.name)+shield(a)+'</span></div>'+rows+'<h3>경기 주도권</h3><div class="match-flow">'+buckets+'</div><div class="match-flow-labels"><span>0′</span><span>30′</span><span>60′</span><span>90′</span></div><p class="sim-info">최근 중계 이벤트 기준 · 5분 단위 공격 흐름</p><h3>선수 체력</h3><div class="match-fitness-grid"><div>'+roster(homeIds)+'</div><div>'+roster(awayIds)+'</div></div></section>';
 }
 function liveMatchTotals(m){
  const events=m.events||[],count=(team,types)=>events.filter(e=>e.team===team&&types.includes(e.type)).length;
