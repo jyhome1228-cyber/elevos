@@ -1762,6 +1762,7 @@ function specialColor(p){return p.legendSpecial?'#e5c36d':p.redSpecial?'#ff657e'
 function specialLabel(p){return p.legendSpecial?'LEGEND ELITE':p.redSpecial?'RED ELITE':PACK_INFO[p.packTier]?.name||'STANDARD'}
 /* Shared atlas crop: 24-face sheets need progressive vertical registration. */
 function avatar(p,size=42){
+ if(p.legendSpecial===true)return legendAvatarFace(p.legendFaceIndex,size);
  const red=p.redSpecial===true,legend=p.legendSpecial===true,h=Math.imul(p.id+1,2654435761)>>>0;
  const tile=legend?Math.max(0,Math.min(23,Math.trunc(Number(p.legendFaceIndex)||0))):red?redEliteFaceIndex(p):Number.isInteger(p.identityFace)&&p.identityFace>=0&&p.identityFace<FACE_SHEETS.length*12?p.identityFace:h%(FACE_SHEETS.length*12);
  const extra=red&&!legend&&tile>=24,large=legend||extra,rows=large?6:3,sheet=Math.floor(tile/12),slot=legend?tile:extra?tile-24:tile%12,col=slot%4,row=Math.floor(slot/4),src=legend?LEGEND_SHEET:extra?RED_EXTRA_SHEET:(red?RED_ELITE_FACE_SHEETS:FACE_SHEETS)[sheet];
@@ -2003,7 +2004,8 @@ function viewItemsPage(){
 function viewCupPage(key){initializeCups();return '<section class="card"><h2>'+CUP_RULES[key].name+' 토너먼트</h2><div id="cup-bracket-host">'+cupBracketContent(key)+'</div></section>'}
 let hallTab='red';
 function hallOwned(legend,i){return [...myPlayers(),...coachCards].some(p=>legend?!!p.legendSpecial&&p.legendFaceIndex===i:p.redSpecial&&!p.legendSpecial&&redEliteFaceIndex(p)===i)}
-function hallPortrait(r,size=100){return avatar({id:900000+r.i,redSpecial:true,legendSpecial:r.legend,legendFaceIndex:r.i,redFaceIndex:r.i,name:r.nameKo},size)}
+function legendAvatarFace(index,size=42){const slot=Math.max(0,Math.min(23,Math.trunc(Number(index)||0))),col=slot%4,row=Math.floor(slot/4);return '<span class="face-tile red-elite-face" style="width:'+size+'px;height:'+size+'px" title="LEGEND ELITE"><span class="face-fallback">'+svgAvatarFallback({id:900000+slot,name:LEGEND_KO[slot],pos:ARCHIVE_POS[slot%8]},size)+'</span><img draggable="false" loading="lazy" decoding="async" alt="" src="'+LEGEND_SHEET+'" style="position:absolute;width:400%;height:600%;max-width:none;max-height:none;left:'+(-col*100)+'%;top:'+(-row*100)+'%;object-fit:fill" onerror="this.style.display=\'none\'"></span>'}
+function hallPortrait(r,size=100){return r.legend?legendAvatarFace(r.i,size):avatar({id:900000+r.i,redSpecial:true,legendSpecial:false,redFaceIndex:r.i,name:r.nameKo},size)}
 function hallClub(id){return clubs.find(c=>c.id===id)}
 function hallName(r){return displayLanguage==='en'?r.nameEn:r.nameKo}
 function viewHallOfFame(){const legend=hallTab==='legend',count=legend?24:48,owned=Array.from({length:count},(_,i)=>hallOwned(legend,i)).filter(Boolean).length;return '<section class="card hall-of-fame"><div class="hall-header"><div><div class="eyebrow">ELEVOS LEGACY COLLECTION</div><h2>명예의 전당</h2><p>축구의 역사를 빛낸 전설들과 그들의 위대한 커리어를 만나보세요.</p></div><div><small>현재 보유 컬렉션</small><b>'+owned+' / '+count+'</b></div></div><div class="hall-tabs"><button class="btn sub '+(!legend?'active':'')+'" onclick="hallTab=\'red\';render()">RED ELITE · 48</button><button class="btn sub '+(legend?'active':'')+'" onclick="hallTab=\'legend\';render()">LEGEND ELITE · 24</button></div><div class="hall-grid">'+Array.from({length:count},(_,i)=>{const r=hallRecord(legend,i),has=hallOwned(legend,i);return '<button class="hall-player '+(legend?'legend':'red')+'" onclick="openHallPlayer('+Number(legend)+','+i+')"><div class="hall-player-top"><b>'+r.ovr+'</b><span>'+r.pos+'</span></div>'+hallPortrait(r,120)+'<strong>'+txt(hallName(r))+'</strong><small>'+txt(r.nation)+' · '+r.start+'–'+r.end+'</small><div class="hall-player-foot"><span>'+(legend?'LEGEND ELITE':'RED ELITE')+'</span><span>'+(has?'보유':'미보유')+'</span></div></button>'}).join('')+'</div></section>'}
@@ -2259,10 +2261,13 @@ function viewCoachCards(){
  const packs=packInventoryModule();
  return '<section class="game-module"><div class="module-title"><h2>선수 카드 보관함</h2><span>'+coachCards.length+'장 · '+coachPacks.length+'팩</span></div>'+(cardTab==='packs'?packs:cardTab==='recycle'?recycleModule():cardTab==='items'?ownedItemsModule():'<div class="inventory-workspace"><aside class="inventory-preview"><h3>선수 정보</h3>'+details+'</aside><div>'+list+'</div></div>')+'</section>';
 }
-function registerStoredCard(id){const p=coachCards.find(x=>x.id===id);if(!p)return;if(p.locked||simState||myPlayers().length+pendingTransfers.length>=squadCapacity()){commitStoredRegistration(id);return}economyConfirm('선수단에 등록하시겠습니까?',[['선수',p.name],['포지션',p.pos],['능력치',String(overall(p))]],()=>commitStoredRegistration(id),'네','등록하면 보관함에서 선수단으로 이동합니다.','아니오')}
+function squadIdentity(p){if(p.legendSpecial)return 'legend:'+Math.trunc(Number(p.legendFaceIndex)||0);if(p.redSpecial)return 'red:'+redEliteFaceIndex(p);return playerIdentity(p)}
+function squadDuplicate(p){return myPlayers().some(q=>q!==p&&(q.id===p.id||squadIdentity(q)===squadIdentity(p)))}
+function rejectDuplicateRegistration(p){if(!squadDuplicate(p))return false;showGameDialog('선수단 등록 불가',[['선수',p.name],['안내','이미 등록된 선수입니다. 동일 선수는 선수단에 한 명만 등록할 수 있습니다.']]);return true}
+function registerStoredCard(id){const p=coachCards.find(x=>x.id===id);if(!p)return;if(rejectDuplicateRegistration(p))return;if(p.locked||simState||myPlayers().length+pendingTransfers.length>=squadCapacity()){commitStoredRegistration(id);return}economyConfirm('선수단에 등록하시겠습니까?',[['선수',p.name],['포지션',p.pos],['능력치',String(overall(p))]],()=>commitStoredRegistration(id),'네','등록하면 보관함에서 선수단으로 이동합니다.','아니오')}
 function commitStoredRegistration(id){
  if(simState||myPlayers().length>=squadCapacity()){showGameDialog('선수단 등록 불가',[['조건',simState?'경기 종료 후 등록 가능':'선수단 정원 초과']]);return}
- const i=coachCards.findIndex(p=>p.id===id);if(i<0)return;if(coachCards[i].locked){showGameDialog('잠금된 카드',[['안내','잠금 해제 후 등록 가능']]);return}if(myPlayers().length+pendingTransfers.length>=squadCapacity()){showGameDialog('선수단 정원 초과',[['안내','예약 영입 포함 정원 초과']]);return}const p=coachCards.splice(i,1)[0];
+ const i=coachCards.findIndex(p=>p.id===id);if(i<0)return;if(coachCards[i].locked){showGameDialog('잠금된 카드',[['안내','잠금 해제 후 등록 가능']]);return}if(myPlayers().length+pendingTransfers.length>=squadCapacity()){showGameDialog('선수단 정원 초과',[['안내','예약 영입 포함 정원 초과']]);return}if(rejectDuplicateRegistration(coachCards[i]))return;const p=coachCards.splice(i,1)[0];
  if(players.some(x=>x.id===p.id))p.id=Math.max(0,...players.map(x=>x.id),...coachCards.map(x=>x.id),...youthVault.map(x=>x.id))+1;
  p.club=manager;p.jerseyNumber=null;p.growthBase=p.growthBase||{...detailed(p)};players.push(p);ensureJerseyNumbers();save();render();showGameDialog('선수단 등록 완료',[['선수',p.name]]);
 }
@@ -3629,7 +3634,7 @@ function toggleYouthVault(){vaultExpanded=!vaultExpanded;render()}
 function promoteYouth(id){
  const index=youthVault.findIndex(p=>p.id===id);if(index<0)return;
  if(myPlayers().length>=squadCapacity()){if(typeof alert==='function')alert('1군 선수단 정원이 가득 찼습니다.');return}
- if(simState||myPlayers().length+pendingTransfers.length>=squadCapacity())return;const p=youthVault.splice(index,1)[0];p.club=manager;p.academyOrigin=true;
+ if(simState||myPlayers().length+pendingTransfers.length>=squadCapacity())return;if(rejectDuplicateRegistration(youthVault[index]))return;const p=youthVault.splice(index,1)[0];p.club=manager;p.academyOrigin=true;
  players.push(p);ensureJerseyNumbers();save();render()
 }
 function sellYouth(id){
