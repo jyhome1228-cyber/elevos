@@ -3920,7 +3920,7 @@ function kickoffAfterGoal89(m){
   m.positions[side]=slots.map((slot,i)=>{const x=h?Math.min(47,100-slot.y):Math.max(53,slot.y),y=slot.x;if(i===chosen){kicker=ids[i];return {id:ids[i],x:h?48:52,y:50}}return {id:ids[i],x,y}});
   m.previousPositions80[side]=m.positions[side].map(q=>({...q}));
  }
- m.velocity119={};m.limits119={};m.ballCarrier80=kicker;m.pitchFrame80=(m.pitchFrame80||0)+1;m.goalRestart89=null;m.looseBall107=null;m.kickoffTeam89=team;
+ m.flight120=null;m.velocity119={};m.limits119={};m.ballCarrier80=kicker;m.pitchFrame80=(m.pitchFrame80||0)+1;m.goalRestart89=null;m.looseBall107=null;m.kickoffTeam89=team;
  simEvent(team,null,'info',clubs[team].name+'의 중앙 킥오프로 경기를 재개합니다.',null);
 }
 function scoreConfirmedGoal(homeSide,actor,text,title='GOAL!',assistId=null,xg=null,extra={}){
@@ -3999,7 +3999,8 @@ function chanceValue83(depth,kind){
  return Math.round(Math.max(.02,Math.min(.36,base*(kind==='cross'?.85:kind==='through'||kind==='counter'?1.18:1)))*1000)/1000;
 }
 function minuteEvent(){
- if(simState.pendingVAR)return;
+ if(simState.pendingVAR||simState.flight120)return;
+ if(!simState.setPiece85&&!simState.looseBall107){const p=activeMatchPlayers(simState.possession).find(p=>p.id===simState.ballCarrier80),q=p&&pitchPoint80(simState,p.id,simState.possession);if(!q||Math.hypot(q.x-simState.ball.x,(q.y-simState.ball.y)*.65)>3){simState.ballCarrier80=null;simState.looseBall107={kind:'rebound',team:simState.possession}}}
  if(resumeLooseBall107())return;
  if(!simState.crowdDelay110&&simState.minute>12&&simState.minute<82&&Math.random()<.00065){simState.crowdDelay110=true;const first=simState.minute<=45;const added=1+Math.floor(Math.random()*2);if(first)simState.firstAdded=(simState.firstAdded||0)+added;else simState.secondAdded=(simState.secondAdded||0)+added;simEvent(null,null,'delay','관중 난입으로 경기가 잠시 지연됩니다. 안전 요원 정리 후 재개 · 추가시간 +'+added+'분','MATCH DELAY');return}
  const h=clubs[simState.home],a=clubs[simState.away],hp=matchActivePower(h.id),ap=matchActivePower(a.id);
@@ -4094,6 +4095,7 @@ function validateCarrier115(m){if(m.ballCarrier80!=null&&!activeMatchPlayers(m.p
 function advanceMinute(){
  if(document.getElementById('elevos-entry')||document.getElementById('game-logout-progress'))return;
  if(!simState||simState.club!==manager)return;
+ if(simState.flight120){if(simBatchMode){while(simState.flight120)advanceBallFlight120(simState,100)}else return}
  simState.lastTickAt=Date.now();
  if(!simBatchMode&&page==='match'&&!document.hidden&&Date.now()<(simState.highlightUntil50||0)){simState.lastTickAt=Date.now();return}
  if(simState.introStart){const now=Date.now(),stage=preMatchStage(simState);simState.lastTickAt=now;if(page!=='match'||document.hidden){simState.introStageAt=now;return}const host=document.querySelector('.match-intro-v12');if(!host||host.dataset.stage!==String(stage)){simState.introStageAt=now;render();return}if(!simState.introStageAt)simState.introStageAt=now;if(now-simState.introStageAt<([1400,1100,650][stage]))return;if(stage===2){skipMatchIntro();return}simState.introStage=stage+1;simState.introStageAt=now;save();render();return;}
@@ -4133,7 +4135,7 @@ function advanceMinute(){
   // Do not finalize until VAR review has a ruling. Extend one minute if necessary.
   simState.secondAdded=(simState.secondAdded||0)+1;
  }
- if(simState.minute>=simTotalMinutes()){
+ if(simState.minute>=simTotalMinutes()&&!simState.flight120){
   const justOccurred=simState.majorEvent&&simState.majorEvent.minute===simMinuteLabel(simState.minute);
   clearPitchNotices116(false);simEvent(null,null,'info','경기 종료! 최종 스코어가 확정됐습니다.',justOccurred&&document.getElementById('elevos-sim-flash')?null:'FULL TIME');
   if(simTicker!==null){clearInterval(simTicker);simTicker=null}
@@ -4152,7 +4154,7 @@ function matchPace118(){const active=Number(simState?.paceSeconds118);if(MATCH_P
 function actionInterval118(seconds){return seconds*1000/134}
 let matchNextAction118=0;
 function setMatchPace118(v){v=Number(v);if(!MATCH_PACES118.includes(v))return;try{localStorage.setItem(saveKey+':match-pace118',String(v))}catch(e){}if(simState){simState.paceSeconds118=v;matchNextAction118=performance.now()+actionInterval118(v);save()}if(page==='match')render()}
-function matchClockPulse118(){const m=simState;if(!m||m.paused||m.finishPending||document.hidden||document.getElementById('elevos-entry')||document.getElementById('game-logout-progress')){matchNextAction118=0;return}const now=performance.now(),interval=actionInterval118(matchPace118());if(!matchNextAction118)matchNextAction118=now+interval;
+function matchClockPulse118(){const m=simState;if(!m||m.paused||m.finishPending||document.hidden||document.getElementById('elevos-entry')||document.getElementById('game-logout-progress')){matchNextAction118=0;ballPulseAt120=0;return}const now=performance.now(),interval=actionInterval118(matchPace118());if(m.flight120){const delta=ballPulseAt120?now-ballPulseAt120:50;ballPulseAt120=now;advanceBallFlight120(m,delta);if(m.flight120&&now-ballCheckpoint120>500){ballCheckpoint120=now;save()}matchNextAction118=now+interval;return}ballPulseAt120=0;if(!matchNextAction118)matchNextAction118=now+interval;
  const waiting=!!(m.introStart||m.kickoffPending37||m.goalRestart89||m.pendingVAR||m.pendingPenalty||m.halftimeUntil||Date.now()<(m.highlightUntil50||0));
  if(waiting){advanceMinute();matchNextAction118=now+interval;return}
  if(now<matchNextAction118)return;advanceMinute();matchNextAction118=now+interval;
@@ -4180,7 +4182,7 @@ function catchUpSavedSimulation(){
 }
 function stepSimulation(){
  pauseSimulation();
- if(simState?.minute<simTotalMinutes())advanceMinute();
+ if(simState?.flight120){while(simState.flight120)advanceBallFlight120(simState,100);return}if(simState?.minute<simTotalMinutes())advanceMinute();
 }
 let shootoutTimer=null;
 function startShootout(){
@@ -4768,7 +4770,7 @@ function setPieceLayout85(home,kind,kickerId){
    return {...q,x:50+dir*(attacking?29+(i%3)*5:34+(i%3)*4),y:24+index*13+(attacking?0:3)};
   });
  }
- m.velocity119={};m.limits119={};m.pitchFrame80=(m.pitchFrame80||0)+1;return kicker?.id??null;
+ m.flight120=null;m.velocity119={};m.limits119={};m.pitchFrame80=(m.pitchFrame80||0)+1;return kicker?.id??null;
 }
 // Open-play spacing in pitch coordinates; keep the ball carrier anchored.
 function separatePlayers88(m,carrier){
@@ -4784,7 +4786,7 @@ function separatePlayers88(m,carrier){
 }
 function nearDefender115(team){const m=simState,b=m.ball,c=activeMatchPlayers(team).filter(p=>p.pos!=='GK').map(p=>{const q=pitchPoint80(m,p.id,team);return {p,d:q?Math.hypot(q.x-b.x,q.y-b.y):100}}).sort((a,b)=>a.d-b.d);if(!c.length)return null;const ids=c.filter(v=>v.d<=c[0].d+5).slice(0,3);return weightedMatchPlayer(ids.map(v=>v.p),p=>{const v=ids.find(q=>q.p.id===p.id);return 1/(1+v.d*.15)});}
 function nearestBallPlayer107(team,includeKeeper=false){const m=simState,b=m.ball||{x:50,y:50};return activeMatchPlayers(team).filter(p=>includeKeeper||p.pos!=='GK').map(p=>({p,q:pitchPoint80(m,p.id,team)})).filter(v=>v.q).sort((a,z)=>Math.hypot(a.q.x-b.x,a.q.y-b.y)-Math.hypot(z.q.x-b.x,z.q.y-b.y))[0]?.p||null}
-function resumeLooseBall107(){const m=simState,r=m.looseBall107;if(!r)return false;m.looseBall107=null;m.attack81=null;m.lastPass79=null;if(r.kind==='woodwork'){m.previousBall={...m.ball};m.ball={x:m.ball.x>50?m.ball.x-8:m.ball.x+8,y:50+(m.ball.y-50)*1.5};m.ballCarrier80=null;m.ballMotion88='shot';m.pitchFrame80=(m.pitchFrame80||0)+1;m.looseBall107={kind:'rebound',team:r.team};return true}if(r.kind==='corner'){m.attack81={team:r.team,kind:'corner',stage:'build',restart:true,minute:m.minute};simEvent(r.team,null,'corner','골키퍼가 쳐낸 공으로 코너킥이 선언됩니다.');m.attack81.kickerId=setPieceLayout85(r.team===m.home,'corner',null);return true}if(r.kind==='throwin'){const p=nearestBallPlayer107(r.team);m.previousBall={...m.ball};m.ball={x:Math.max(5,Math.min(95,m.ball.x)),y:m.ball.y<50?3:97};const q=(m.positions?.[r.team===m.home?'home':'away']||[]).find(q=>q.id===p?.id);if(q){q.x=m.ball.x;q.y=m.ball.y}m.possession=r.team;m.ballCarrier80=p?.id??null;m.ballMotion88='restart';m.phase='throwin';m.pitchFrame80=(m.pitchFrame80||0)+1;simEvent(r.team,p,'info','스로인으로 경기를 재개합니다.');return true}if(r.kind==='goalkick'){const home=r.team===m.home,k=activeMatchKeeper(r.team);m.previousBall={...m.ball};m.ball={x:home?6:94,y:50};const kp=(m.positions?.[home?'home':'away']||[]).find(q=>q.id===k?.id);if(kp){kp.x=home?6:94;kp.y=50}m.possession=r.team;m.ballCarrier80=k?.id??null;m.phase='goalkick';m.ballMotion88='restart';m.pitchFrame80=(m.pitchFrame80||0)+1;simEvent(r.team,k,'info','골킥으로 경기를 이어갑니다.');return true}const candidates=[m.home,m.away].map(t=>{const p=nearestBallPlayer107(t);const q=p&&pitchPoint80(m,p.id,t);return {t,p,d:q?Math.hypot(q.x-m.ball.x,q.y-m.ball.y):100}}).sort((a,b)=>a.d-b.d);const v=candidates[0];if(!v.p)return false;const side=v.t===m.home?'home':'away',idx=teamMatchLineup(v.t).indexOf(v.p.id),q=pitchPoint80(m,v.p.id,v.t);if(v.d>4&&q&&idx>=0){m.positions=m.positions||{home:[],away:[]};m.positions[side]=m.positions[side]||[];const next=playerMotion119(q,m.ball.x,m.ball.y,4.4,1.3,m.velocity119?.[v.p.id]);m.previousBall={...m.ball};m.positions[side][idx]={id:v.p.id,x:next.x,y:next.y};(m.velocity119||={})[v.p.id]={vx:next.vx,vy:next.vy};m.ballCarrier80=null;m.ballMotion88='restart';m.looseBall107=r;m.pitchFrame80=(m.pitchFrame80||0)+1;return true}m.possession=v.t;m.ballCarrier80=v.p.id;m.phase='attack';m.ballMotion88='restart';m.pitchFrame80=(m.pitchFrame80||0)+1;simEvent(v.t,v.p,'attack',v.p.name+'이(가) 세컨드볼을 확보합니다.',null,{turnover:true});return true}
+function resumeLooseBall107(){const m=simState,r=m.looseBall107;if(!r)return false;m.looseBall107=null;m.attack81=null;m.lastPass79=null;if(r.kind==='woodwork'){m.previousBall={...m.ball};m.ball={x:m.ball.x>50?m.ball.x-8:m.ball.x+8,y:50+(m.ball.y-50)*1.5};m.ballCarrier80=null;m.ballMotion88='shot';m.pitchFrame80=(m.pitchFrame80||0)+1;m.looseBall107={kind:'rebound',team:r.team};return true}if(r.kind==='corner'){m.attack81={team:r.team,kind:'corner',stage:'build',restart:true,minute:m.minute};simEvent(r.team,null,'corner','골키퍼가 쳐낸 공으로 코너킥이 선언됩니다.');m.attack81.kickerId=setPieceLayout85(r.team===m.home,'corner',null);return true}if(r.kind==='throwin'){const p=nearestBallPlayer107(r.team);m.previousBall={...m.ball};m.ball={x:Math.max(5,Math.min(95,m.ball.x)),y:m.ball.y<50?3:97};const q=(m.positions?.[r.team===m.home?'home':'away']||[]).find(q=>q.id===p?.id);if(q){q.x=m.ball.x;q.y=m.ball.y}m.possession=r.team;m.ballCarrier80=p?.id??null;m.ballMotion88='restart';m.phase='throwin';m.pitchFrame80=(m.pitchFrame80||0)+1;simEvent(r.team,p,'info','스로인으로 경기를 재개합니다.');return true}if(r.kind==='goalkick'){const home=r.team===m.home,k=activeMatchKeeper(r.team);m.previousBall={...m.ball};m.ball={x:home?6:94,y:50};const kp=(m.positions?.[home?'home':'away']||[]).find(q=>q.id===k?.id);if(kp){kp.x=home?6:94;kp.y=50}m.possession=r.team;m.ballCarrier80=k?.id??null;m.phase='goalkick';m.ballMotion88='restart';m.pitchFrame80=(m.pitchFrame80||0)+1;simEvent(r.team,k,'info','골킥으로 경기를 이어갑니다.');return true}const candidates=[m.home,m.away].map(t=>{const p=nearestBallPlayer107(t);const q=p&&pitchPoint80(m,p.id,t);return {t,p,d:q?Math.hypot(q.x-m.ball.x,q.y-m.ball.y):100}}).sort((a,b)=>a.d-b.d);const v=candidates[0];if(!v.p)return false;const side=v.t===m.home?'home':'away',idx=teamMatchLineup(v.t).indexOf(v.p.id),q=pitchPoint80(m,v.p.id,v.t);if(v.d>2.5&&q&&idx>=0){m.positions=m.positions||{home:[],away:[]};m.positions[side]=m.positions[side]||[];const next=playerMotion119(q,m.ball.x,m.ball.y,4.4,1.3,m.velocity119?.[v.p.id]);m.previousBall={...m.ball};m.positions[side][idx]={id:v.p.id,x:next.x,y:next.y};(m.velocity119||={})[v.p.id]={vx:next.vx,vy:next.vy};m.ballCarrier80=null;m.ballMotion88='restart';m.looseBall107=r;m.pitchFrame80=(m.pitchFrame80||0)+1;return true}m.possession=v.t;m.ballCarrier80=v.p.id;m.ball={x:q.x,y:q.y};m.phase='attack';m.ballMotion88='restart';m.pitchFrame80=(m.pitchFrame80||0)+1;simEvent(v.t,v.p,'attack',v.p.name+'이(가) 세컨드볼을 확보합니다.',null,{turnover:true});return true}
 function pitchClamp112(v,a,b){return Math.max(a,Math.min(b,v))}
 function teamShape112(m,team,old,slots,plan,own,carrier){const d=team===m.home?1:-1,b=m.ball,depth=d===1?b.x:100-b.x,other=team===m.home?m.away:m.home;const defenders=activeMatchPlayers(other).map(p=>pitchPoint80(m,p.id,other)).filter(Boolean).map(q=>d===1?q.x:100-q.x).sort((a,b)=>b-a);const offside=Math.max(depth,defenders[1]??90);const pressing=old.map((q,i)=>({q,i,dist:Math.hypot(q.x-b.x,q.y-b.y)})).filter(v=>v.q.id!=null&&slots[v.i].r!=='GK'&&v.dist<18).sort((a,b)=>a.dist-b.dist).slice(0,plan.pressure>75?2:1).map(v=>v.q.id);return {d,depth,offside,pressing,shift:pitchClamp112((depth-50)*.22+(plan.line-50)*.18+(own?5:-4),-18,18),width:.78+plan.width*.004}}
 // 10-2: persistent velocity, bounded acceleration and physical travel in pitch units.
@@ -4798,6 +4800,26 @@ function playerMotion119(q,tx,ty,maxSpeed,accel,prior={}){
  return {id:q.id,x,y,vx:x-q.x,vy:y-q.y};
 }
 function playerMovementLimit119(role,carrying,pressing,speed){return (role==='GK'?1.5:carrying?3.8:pressing?4.4:role==='DF'?3.2:4.0)*Math.max(.7,Math.min(1.3,speed))}
+// 10-3: ball flight is persistent and possession is awarded only on arrival.
+function ballFlightPoint120(f,elapsed){const t=Math.max(0,Math.min(1,elapsed/f.duration));return {x:f.from.x+(f.to.x-f.from.x)*t,y:f.from.y+(f.to.y-f.from.y)*t,done:t>=1}}
+function queueBallFlight120(m,from,to,kind,team,receiver,loose){
+ const distance=Math.hypot(to.x-from.x,(to.y-from.y)*.65),speed=kind==='shot'?42:kind==='cross'?24:kind==='pass'?30:18;
+ const duration=Math.round(Math.max(180,Math.min(2400,distance/speed*1000)));
+ m.flight120={from:{...from},to:{...to},kind,team,receiver:receiver??null,loose:loose||null,duration,elapsed:0};m.ball={...from};m.previousBall={...from};m.ballCarrier80=null;m.looseBall107=null;
+}
+let ballPulseAt120=0,ballCheckpoint120=0;
+function advanceBallFlight120(m,delta){
+ const f=m.flight120;if(!f)return false;
+ f.elapsed=Math.min(f.duration,(Number(f.elapsed)||0)+Math.max(0,Math.min(100,delta)));
+ const q=ballFlightPoint120(f,f.elapsed);m.ball={x:q.x,y:q.y};m.ballCarrier80=null;
+ const field=page==='match'?document.querySelector('#main .sim-field'):null,ball=field?.querySelector('.sim-ball');if(ball){ball.style.setProperty('--flight111','50ms');ball.style.left=q.x+'%';ball.style.top=q.y+'%';field.querySelectorAll('.ball-owner80').forEach(n=>n.classList.remove('ball-owner80'))}
+ if(!q.done)return true;
+ m.flight120=null;m.possession=f.team;
+ const receiver=f.receiver!=null&&activeMatchPlayers(f.team).find(p=>p.id===f.receiver),point=receiver&&pitchPoint80(m,receiver.id,f.team);
+ if(point&&Math.hypot(point.x-q.x,(point.y-q.y)*.65)<=2.5){m.ballCarrier80=receiver.id;m.looseBall107=null}
+ else m.looseBall107=f.loose||(f.receiver!=null||['pass','cross'].includes(f.kind)?{kind:'rebound',team:f.team}:null);
+ m.pitchFrame80=(m.pitchFrame80||0)+1;save();if(page==='match'&&!m.finishPending)refreshLive87();return true;
+}
 function moveMatchObjects(homeAttack,type){
  const m=simState;if(!m)return;
  const attacker=homeAttack?m.home:m.away,defender=homeAttack?m.away:m.home,dir=homeAttack?1:-1;
@@ -4848,7 +4870,7 @@ function moveMatchObjects(homeAttack,type){
  separatePlayers88(m,carrier);const velocities={};for(const side of ['home','away']){const team=side==='home'?m.home:m.away,k=activeMatchKeeper(team);for(const q of m.positions[side]){if(q.id==null)continue;const old=m.previousPositions80[side].find(v=>v.id===q.id);if(!old)continue;const dx=q.x-old.x,dy=q.y-old.y,cap=m.limits119?.[q.id]||4,d=Math.hypot(dx,dy*.65),scale=Math.min(1,cap/Math.max(.001,d));q.x=old.x+dx*scale;q.y=old.y+dy*scale;if(q.id===k?.id){q.x=side==='home'?pitchClamp112(q.x,3,13):pitchClamp112(q.x,87,97);q.y=pitchClamp112(q.y,34,66)}velocities[q.id]={vx:q.x-old.x,vy:q.y-old.y}}}m.velocity119=velocities;m.limits119={};
  if(carrier!=null&&(!shot||type==='save')){const target=pitchPoint80(m,carrier,owner),gap=target?Math.hypot(target.x-m.ball.x,(target.y-m.ball.y)*.65):100;if(target&&(type==='attack'&&!event.turnover&&carrier===m.ballCarrier80||gap<=2.5)){m.ball={x:clamp(target.x+(owner===m.home?1:-1)*.8,3,97),y:target.y}}else{carrier=null;m.looseBall107={kind:'rebound',team:owner}}}
  m.ballMotion88=type==='pass'?(['cross','corner','freekick'].includes(attackingEvent?.pattern)?'cross':'pass'):type==='attack'&&!event.turnover?'dribble':shot?'shot':'restart';
- m.possession=owner;m.ballCarrier80=carrier??null;m.pitchFrame80=(m.pitchFrame80||0)+1;
+ m.possession=owner;m.ballCarrier80=carrier??null;if(['pass','cross','shot','save','block','woodwork','provisional'].includes(type)&&Math.hypot(m.ball.x-prev.x,(m.ball.y-prev.y)*.65)>1){const intended=type==='pass'&&!m.looseBall107?actorId:carrier;queueBallFlight120(m,prev,m.ball,m.ballMotion88,owner,intended,m.looseBall107);ballPulseAt120=0;}m.pitchFrame80=(m.pitchFrame80||0)+1;
 }
 
 function playerFitness(p){return Math.max(0,Math.min(100,Number.isFinite(p.fitness)?p.fitness:100))}
