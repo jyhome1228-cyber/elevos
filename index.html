@@ -2084,7 +2084,7 @@ function showPackConfirm(tier,packs){
  el.innerHTML='<section class="game-dialog-content pack-confirm-v2" style="--pack-accent:'+info.color+'"><div class="pack-confirm-art">'+packArt(tier)+'</div><h2>'+tier+'+ 선수팩 <em>× '+packs.length+'</em></h2><p>선수 카드 '+packs.length+'장을 획득합니다.</p><small>개봉 후 남은 팩 '+(coachPacks.filter(p=>Number(p.tier)===tier).length-packs.length)+'개</small><div class="pack-confirm-actions"><button class="btn sub" data-cancel>취소</button><button class="btn" data-open>'+packs.length+'개 개봉</button></div></section>';document.body.appendChild(el);el.querySelector('[data-cancel]').onclick=()=>el.remove();el.querySelector('[data-open]').onclick=()=>{el.remove();openPackBatch(packs)};el.querySelector('[data-cancel]').focus();
 }
 function showBatchReveal(result){
- const single=result.length===1;const state=result.map(p=>({p,shown:false,special:single||!!p.redSpecial||p.packTier>=100}));let ready=false,busy=false,staged=false;
+ const single=result.length===1;const eliteBatch=!single&&result.every(p=>Number(p.sourcePackTier)>=100);const state=result.map(p=>({p,shown:false,special:single||!!p.redSpecial||(!eliteBatch&&p.packTier>=100)}));let ready=false,busy=false,staged=false;
  const reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  function mount(){
  dismissGameDialog();const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog batch-opening-overlay'+(result.length===1?' single-opening':'');el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','선수팩 개봉');
