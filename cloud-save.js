@@ -102,6 +102,17 @@ async function recordGameActivity(uid){
 let activityTimer=null;
 function startGameActivity(uid){clearInterval(activityTimer);recordGameActivity(uid);activityTimer=setInterval(()=>recordGameActivity(uid),60000)}
 
+async function syncPlaySummary(uid,save){
+ if(auth.currentUser?.uid!==uid||local.uid!==uid||!save||save.manager==null)return;
+ const rewards=Array.isArray(save.coachProgress?.rewards)?save.coachProgress.rewards:[];
+ const state=id=>{const r=rewards.find(x=>x.id===id);return !r?'absent':r.claimed===true?'claimed':'pending'};
+ const count=a=>Array.isArray(a)?a.length:0;
+ const matches=Number.isSafeInteger(save.coachProgress?.total)&&save.coachProgress.total>=0?save.coachProgress.total:0;
+ const wallet=Number.isFinite(save.walletGBP)?Math.max(0,Math.min(1000000000000000,save.walletGBP)):0;
+ const summary={matches,wallet,squad:Array.isArray(save.players)?save.players.filter(p=>p.club===save.manager).length:0,cards:count(save.coachCards),packs:count(save.coachPacks),supply:state('all-member-supply-20261124-v1'),beta1:state('beta-support-v20261124'),beta2:state('beta-support-v2-20261124'),collection:state('beta-collection-2026'),updatedAt:F.serverTimestamp()};
+ try{await bounded(F.setDoc(F.doc(db,'users',uid,'summary','play'),summary),'플레이 현황 동기화',8000)}catch(e){console.warn('플레이 요약 동기화 실패',e)}
+}
+
 async function syncCareerSummary(uid,save){
  if(auth.currentUser?.uid!==uid||local.uid!==uid||!save||save.manager==null)return;
  const club=save.clubs?.find(c=>c.id===save.manager);if(!club)return;
@@ -126,7 +137,7 @@ async function upload(options={}){
  const rev=crypto.randomUUID(),counts={};
  for(const key of parts){const list=chunks(groups[key]);counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++){if(auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');message('게임 기록을 저장하고 있습니다.');if($('game-logout-message'))$('game-logout-message').textContent='게임 기록을 저장하고 있습니다.';await F.setDoc(partRef(uid,rev,key,i),{data:list[i]})}}
  await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다. 다시 확인하세요.');tx.set(ptr(uid),{revision:rev,counts,schema:1,updatedAt:F.serverTimestamp()})});
- remoteRevision=rev;await syncCareerSummary(uid,snapshot.save);try{const durable=local.cacheSnapshot(uid,snapshot);if(durable)localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev);else localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}message('클라우드 저장 완료');
+ remoteRevision=rev;await Promise.all([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);try{const durable=local.cacheSnapshot(uid,snapshot);if(durable)localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev);else localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}message('클라우드 저장 완료');
 }
 async function logoutSavedGame(){if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');busy=true;try{await upload({automatic:true});sessionStorage.setItem('elevos-signed-out','1');sessionStorage.removeItem('elevos-beta-session');await A.signOut(auth)}finally{busy=false}}
 async function download(){
@@ -179,7 +190,7 @@ async function activateAccount(u){
  if(local.uid!==uid){sessionStorage.setItem('elevos-auth-progress','1');local.switchAccount(uid);return}
  const btn=$('cloud-account');if(btn)btn.textContent='내 계정';$('cloud-modal')?.remove();clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');window.ElevosEntry?.release();
  startGameActivity(uid);
- if(career)syncCareerSummary(uid,career);
+ if(career){syncCareerSummary(uid,career);syncPlaySummary(uid,career)}
 }
 
 if(sessionStorage.getItem('elevos-auth-progress')==='1'&&window.ElevosEntry?.isOpen())authProgress('게임 기록을 불러오고 있습니다.');
