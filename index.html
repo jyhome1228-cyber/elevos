@@ -1155,6 +1155,26 @@ html body #nav.sidebar .nav,html body .game-module-tabs button{min-height:40px}
 </style><style id="elevos-tab-scrollbar-hide">
 html body #nav.sidebar,html body .game-module-tabs{scrollbar-width:none!important;-ms-overflow-style:none;overflow-x:auto;overflow-y:hidden}
 html body #nav.sidebar::-webkit-scrollbar,html body .game-module-tabs::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+</style><style id="elevos-dialog-button-polish">
+html body .game-dialog-content .btn,html body .cloud-panel .btn{min-height:40px;padding:9px 18px!important;font-size:13px!important;font-weight:650;line-height:1.4;border-radius:4px!important}
+html body .game-dialog-content .btn:not(.sub):not(.ghost):not(.outline),html body .cloud-panel .btn:not(.sub){background:linear-gradient(180deg,#edf2f7,#bdcad9)!important;color:#141b24!important;border:1px solid #e0e7ef!important;box-shadow:inset 0 1px #ffffffb0,inset 0 -2px #8e9dad}
+html body .game-dialog-content .btn.sub,html body .cloud-panel .btn.sub{background:linear-gradient(180deg,#343f4d,#242c37)!important;color:#e3eaf3!important;border:1px solid #536173!important;box-shadow:inset 0 1px #ffffff12}
+html body .game-dialog-content .btn:hover:not(:disabled){filter:brightness(1.12)}
+html body .game-dialog-content .btn:active:not(:disabled){transform:translateY(1px);box-shadow:none}
+html body .game-dialog-content .btn:disabled{background:#303844!important;color:#b0bdca!important;border-color:#495463!important;box-shadow:none}
+html body .coach-gift-modal{padding:0!important;width:min(520px,92vw);overflow:auto}
+.gift-modal-heading{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:linear-gradient(180deg,#343e4a,#252d38);border-bottom:1px solid #536071}
+.gift-modal-heading h2{margin:0;font-size:16px!important}
+.gift-close{background:transparent!important;color:#c9d4e0!important;border:0!important;width:32px;height:32px;font-size:24px;line-height:1;cursor:pointer}
+.gift-close:hover{background:#ffffff14!important;color:#fff!important}
+.coach-gift-modal .gift-summary{padding:0 18px;margin:16px 0 8px;font-size:13px}
+.coach-gift-modal .gift-list{padding:0 18px;max-height:50vh;overflow:auto}
+.coach-gift-modal .gift-row{padding:10px 0}
+.coach-gift-modal .gift-footer{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 18px;margin:12px 0 0;background:#181e27;border-top:1px solid #414b59}
+.coach-gift-modal .gift-footer .btn{margin:0;width:100%}
+.coach-gift-modal .gift-empty{padding:18px 0 24px;text-align:center}
+.coach-gift-modal .gift-empty svg{width:64px;height:64px;opacity:.65}
+.coach-gift-modal .gift-empty small{font-size:12px}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><button id="cloud-account" class="name-lang-button" onclick="window.ElevosCloud?.open()">계정</button><div id="client-coach" class="client-coach"></div><button id="client-gifts" class="client-gifts" onclick="openCoachGifts()" hidden>선물함 <b id="client-gift-count">0</b></button><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row client-page-heading"><div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1803,9 +1823,9 @@ function claimCoachGift(level){
 function openCoachGifts(){
  document.getElementById('elevos-game-dialog')?.remove();
  const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','선물함');
- const rewards=coachProgress.rewards.slice().sort((a,b)=>b.level-a.level),n=coachPendingGifts().length;
+ const rewards=coachPendingGifts().slice().sort((a,b)=>b.level-a.level),n=rewards.length;
  const items=rewards.map(r=>'<div class="gift-row"><div class="gift-art">'+rewardAsset('gift')+'</div><div><strong>레벨 '+r.level+' 달성 보상</strong><small>£'+r.money+' · 선수팩 1개</small></div>'+(r.claimed===false?'<button class="btn mini" onclick="claimCoachGift('+r.level+')">보상 수령</button>':'<span class="gift-claimed">수령 완료</span>')+'</div>').join('');
- el.innerHTML='<div class="game-dialog-content coach-gift-modal"><div class="row"><h2>선물함</h2><button class="btn sub mini" onclick="dismissGameDialog()">닫기</button></div><p class="gift-summary">수령 가능한 보상 '+n+'개</p><div class="gift-list">'+(items||'<div class="gift-empty">'+rewardAsset('gift')+'<strong>받은 선물이 없습니다.</strong><small>감독 레벨업 시 보상이 도착합니다.</small></div>')+'</div><div class="row gift-footer"><button class="btn sub mini" onclick="dismissGameDialog();go(\'cards\')">선수 카드 보관함</button><button class="btn mini" onclick="dismissGameDialog()">확인</button></div></div>';el.addEventListener('click',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);
+ el.innerHTML='<div class="game-dialog-content coach-gift-modal"><div class="gift-modal-heading"><h2>선물함</h2><button class="gift-close" type="button" aria-label="닫기" onclick="dismissGameDialog()">×</button></div><p class="gift-summary">수령 가능한 보상 '+n+'개</p><div class="gift-list">'+(items||'<div class="gift-empty">'+rewardAsset('gift')+'<strong>수령할 선물이 없습니다.</strong><small>감독 레벨업 시 보상이 도착합니다.</small></div>')+'</div><div class="gift-footer"><button class="btn sub" onclick="dismissGameDialog();go(\'cards\')">선수 카드 보관함</button><button class="btn" onclick="dismissGameDialog()">확인</button></div></div>';el.addEventListener('click',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);
 }
 window.openCoachGifts=openCoachGifts;window.claimCoachGift=claimCoachGift;
 function coachDashboardCard(){
