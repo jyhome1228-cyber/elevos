@@ -915,7 +915,11 @@ html body .sim-event-overlay-fixed .event-detail{grid-column:2;font-size:12px;li
 html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest)){grid-template-columns:1fr}
 html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest))>*{grid-column:1}
 @keyframes match-flash-compact{0%{opacity:0;transform:translate(-50%,8px)}12%,83%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
-</style></head><body><header><div class="logo">ELEVOS.</div><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
+</style><style>
+header .elevos-home-logo{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important;cursor:pointer;text-align:left}
+header .elevos-home-logo:hover{opacity:.8}header .elevos-home-logo:focus-visible{outline:2px solid #aeb8c6;outline-offset:5px}
+.elevos-home-notice{position:fixed;z-index:210;bottom:24px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);background:#252c37;color:#f3f5f7;border:1px solid #596372;padding:13px 20px;font-size:13px;line-height:1.6;box-shadow:0 5px 20px #0005;text-align:center;border-radius:4px}
+</style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
 const LEAGUES=[["잉글랜드","Crown Division",1,["Northbridge Athletic","Westford Union","Kingsport Borough","Eastmere City","Redmont Rovers","Ashbourne Vale","Southvale Athletic","Whitestone FC","Marshfield Albion","Harbourgate Town","Oakminster FC","Greyhaven Athletic"]],["잉글랜드","Crown Championship",2,["Brackenfield United","Larkspur Town","Moorcastle FC","Riverstone Athletic","Thornwick Rovers","Copperhill City","Wellsbury FC","Eastcliff Union","Stanford Vale","Bellhaven Town","Cedarbridge FC","Highmoor Athletic"]],["이탈리아","Prima Divisione",1,["Valdoro Calcio","Portovento AC","Monteverde 1924","Bellacosta FC","Rivaforte Calcio","San Lucente","Castelnero AS","Citta Aurelia","Pietramare FC","Rosalba Calcio","Lagoferro 1912","Novacielo AC"]],["이탈리아","Seconda Divisione",2,["Verdemare Calcio","Borgo Alto FC","Torregrande AC","Castelbianco","Lunaforte Calcio","Portosole FC","San Verano","Arcomonte AC","Valnera 1910","Bellafonte","Rivagrigia FC","Montelago Calcio"]],["프랑스","Élite Division",1,["Montelac Sporting","Valcerne Olympique","Rivemont FC","Belcour Athletic","Saint Veraine","Azurienne SC","Lavernay Union","Grandelle FC","Port Celeste","Aubrecourt","Merival Sporting","Fontelune FC"]],["프랑스","Division Nationale",2,["Bellemont FC","Saint Calais","Rocheclair SC","Marivelle Union","Valdorne Athletic","Boisfleur FC","Lacour Olympique","Montprel FC","Azurville SC","Champbrune","Vernet Sporting","Portelle FC"]],["독일","Adler Liga",1,["Eisenwald SV","Nordfels 04","Grunhafen SC","Blauheim 09","Rosenbruck FC","Silberstadt 07","Waldkirch Union","Westtal 08","Kronfeld Athletic","Ostgarten SV","Falkenau FC","Hohenried 06"]],["독일","Adler Liga Zwei",2,["Bergfeld 05","Kaltenbruck SV","Hinterwald FC","Grunfels 11","Stahlgarten SC","Westerhof 03","Birkstadt Union","Rheindorf 08","Oberthal SV","Sonnenbruck 04","Adlersee FC","Neustadt Blau"]],["스페인","División Sol",1,["Costa Brava Norte","Monteluz CF","Puerto Dorado","Valle Claro FC","Real Solviera","Atletico Verdena","Roca Blanca","Marazul Union","Rio Fuerte CF","Costa Serena","Villadoro FC","San Estrella"]],["포르투갈","Liga Atlântica",1,["Porto Claro","Estrela do Vale","Marinha Verde","Atlético Moura","Costa Nova FC","Braga Alta","Vila Serena","Rio Dourado","Montesul SC","Alvorada FC","Santo Lago","Uniao do Norte"]],["네덜란드","Oranje Divisie",1,["Noorderdam FC","Rijnhaven Athletic","Zuidmeer SC","Veldstad United","Havenburg 04","Oostveen FC","Westermeer","Tulpenhof SV","De Groene Stad","Dijkdam FC","Bergveen Union","Kustwijk 09"]],["벨기에","Royal Division",1,["Royal Bravelle","Antwerp Vale","Noordhaven FC","Sainte Marenne","Brugge Heights","Wallonne Athletic","Royal Evermont","Belfort City","Rivelle Sporting","East Flanders FC","Montbel Union","Zilverbeek"]]];
@@ -2413,6 +2417,23 @@ function showGameDialog(title,rows){
  el.innerHTML='<div class="game-dialog-content"><h3>'+txt(title)+'</h3>'+rows.map(([k,v])=>'<div class="cost-row"><span>'+txt(k)+'</span><strong>'+txt(v)+'</strong></div>').join('')+'<div style="display:flex;justify-content:flex-end;margin-top:22px"><button class="btn" onclick="dismissGameDialog()">확인</button></div></div>';
  document.body.appendChild(el);
 }
+let elevosHomeNoticeTimer=null;
+function elevosGoHome(){
+ if(manager===null){go('start');return}
+ if(page==='dashboard')return;
+ const running=simState&&simState.club===manager&&!simState.paused;
+ const paused=simState&&simState.club===manager&&simState.paused;
+ go('dashboard');
+ if(running&&!simState.finishPending&&simTicker===null)runSimulation();
+ document.getElementById('elevos-sim-flash')?.remove();
+ document.getElementById('elevos-home-notice')?.remove();
+ if(elevosHomeNoticeTimer!==null)clearTimeout(elevosHomeNoticeTimer);
+ const notice=document.createElement('div');notice.id='elevos-home-notice';notice.className='elevos-home-notice';notice.setAttribute('role','status');
+ notice.textContent=running?'메인 대시보드로 돌아왔습니다. 진행 중인 경기는 계속 진행됩니다.':paused?'메인 대시보드로 돌아왔습니다. 일시정지된 경기는 경기 센터에서 재개할 수 있습니다.':'메인 대시보드로 돌아왔습니다.';
+ document.body.appendChild(notice);
+ elevosHomeNoticeTimer=setTimeout(()=>{notice.remove();elevosHomeNoticeTimer=null},3500);
+}
+window.elevosGoHome=elevosGoHome;
 function dismissGameDialog(){document.getElementById('elevos-game-dialog')?.remove()}
 function enhancePlayer(id){
  const p=players.find(x=>x.id===id&&x.club===manager);
