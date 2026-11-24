@@ -1319,7 +1319,24 @@ function teamPower(clubId){return clubs[clubId].rating*.27+effectiveLineupPower(
 function tacticModifier(){return (tactic==='attack'?2:tactic==='defend'?-1:0)+(pressure-50)/22}
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups}))}catch(e){console.warn('저장 공간이 부족하거나 저장할 수 없습니다.',e)}}
 function chooseClub(id){manager=id;selectedLeague=clubs[id].league;page='dashboard';currentLineup();save();render()}
-function setFormation(x){if(!FORMATIONS[x])return;formation=x;currentLineup();save();render()}
+function remapFormation(ids,oldSlots,newSlots,roster){
+ const pool=ids.map((id,i)=>({id,slot:oldSlots[i],p:roster.find(p=>p.id===id)})).filter(x=>x.id!=null&&x.p);
+ // Maximum-weight assignment of the existing starters to the new slots.
+ const memo=new Map(),n=pool.length;
+ function solve(i,mask){
+  if(i===newSlots.length)return {score:0,ids:[]};
+  const key=i+':'+mask;if(memo.has(key))return memo.get(key);
+  const slot=newSlots[i];let best={score:-Infinity,ids:[]};
+  if(newSlots.length-i>n-mask.toString(2).replace(/0/g,'').length){const tail=solve(i+1,mask);best={score:tail.score,ids:[null,...tail.ids]}}
+  for(let j=0;j<n;j++){if(mask&(1<<j))continue;const item=pool[j],p=item.p,fit=positionFit(p,slot.r);
+   const score=1000*fit+(item.slot?.r===slot.r?30:0)-(Math.abs((item.slot?.x??50)-slot.x)+Math.abs((item.slot?.y??50)-slot.y))*.1;
+   const tail=solve(i+1,mask|(1<<j));if(score+tail.score>best.score)best={score:score+tail.score,ids:[item.id,...tail.ids]};
+  }
+  memo.set(key,best);return best;
+ }
+ return solve(0,0).ids;
+}
+function setFormation(x){if(!FORMATIONS[x]||manager===null||x===formation)return;const ids=currentLineup().slice(),oldSlots=FORMATIONS[formation];const next=remapFormation(ids,oldSlots,FORMATIONS[x],myPlayers());formation=x;lineups[manager+':'+x]=next;lastTacticsChange='포메이션 변경 · 기존 선발 선수 유지';save();render()}
 function setSlot(i,v){if(manager===null)return;const slot=FORMATIONS[formation][i],id=Number(v),p=players.find(p=>p.id===id&&p.club===manager);if(!p)return;let arr=currentLineup(),old=arr.indexOf(id);if(old!==-1)arr[old]=arr[i];arr[i]=id;save();render()}
 function resetLineup(){lineups[manager+':'+formation]=initLineup(formation);save();render()}
 function viewTactics(){let lineup=currentLineup(),slots=FORMATIONS[formation];let fitScore=0;const spots=slots.map((slot,i)=>{let p=players.find(x=>x.id===lineup[i]);let score=p?Math.round(overall(p)*positionFit(p,slot.r)):0;fitScore+=score;return '<div class="lineup-spot" style="left:'+slot.x+'%;top:'+slot.y+'%"><span class="playerdot">'+slot.r+'</span><div class="lineup-name">'+(p?txt(p.name.split(' ').slice(-1)[0]):'미배정')+'</div></div>'}).join('');return '<div class="grid two"><section class="card"><div class="row"><h2>포메이션</h2><button class="btn sub mini" onclick="resetLineup()">자동 선발</button></div><div class="chips">'+Object.keys(FORMATIONS).map(x=>'<button class="chip '+(formation===x?'on':'')+'" onclick="setFormation(\''+x+'\')">'+({433:'4-3-3',4231:'4-2-3-1',442:'4-4-2',352:'3-5-2',343:'3-4-3'}[x])+'</button>').join('')+'</div><div class="pitch"><div class="half"></div>'+spots+'</div><div class="lineup-stats"><span>선발 11명</span><span>예상 전력 '+Math.round(fitScore/11)+'</span><span>포지션 적합도 반영</span></div></section><section class="card"><h2>선발 11명 설정</h2><p class="muted small">포지션별 선수를 선택하세요. 동일 선수 중복 선택 시 두 위치를 교체합니다.</p>'+slots.map((slot,i)=>'<div class="slotpick"><span class="tag">'+slot.r+'</span><select aria-label="'+slot.r+' 선발 선수" onchange="setSlot('+i+',this.value)">'+myPlayers().slice().sort((a,b)=>overall(b)*positionFit(b,slot.r)-overall(a)*positionFit(a,slot.r)).map(p=>'<option value="'+p.id+'" '+(p.id===lineup[i]?'selected':'')+'>'+txt(p.name)+' · '+p.pos+' '+overall(p)+(p.pos!==slot.r?' ('+Math.round(positionFit(p,slot.r)*100)+'%)':'')+'</option>').join('')+'</select></div>').join('')+'<h2 style="margin-top:20px">팀 전술</h2><div class="setting"><label>경기 운영</label><select onchange="setTactic(this.value)"><option value="balanced" '+(tactic==='balanced'?'selected':'')+'>균형</option><option value="attack" '+(tactic==='attack'?'selected':'')+'>공격적</option><option value="defend" '+(tactic==='defend'?'selected':'')+'>수비적</option></select></div><div class="setting"><label>압박 강도 <span id="pressnum">'+pressure+'</span></label><input type="range" min="10" max="90" step="5" value="'+pressure+'" oninput="setPressure(this.value)"/></div><p class="muted small">선발 선수 능력치와 포지션 적합도는 다음 경기 결과 계산에 반영됩니다.</p><button class="btn" onclick="go(\'match\')">경기 준비 완료</button></section></div>'}
@@ -3068,7 +3085,7 @@ function enhancePlayer(id){
 function closeEnhancementResult(){document.getElementById('enhancement-animation')?.remove()}
 window.dismissGameDialog=dismissGameDialog;window.closeEnhancementResult=closeEnhancementResult;
 let materialEnhancement=null;
-function materialBonus(cards){return cards.reduce((sum,p)=>sum+Math.max(1,Math.min(10,Math.floor((overall(p)-40)/7))),0)/100}
+function materialBonus(cards){return cards.reduce((sum,p)=>sum+Math.max(1,Math.min(4,Math.floor((overall(p)-30)/20))),0)/100}
 function openMaterialEnhancement(p,source){
  if(simState||enhancementBusy)return;
  materialEnhancement={id:p.id,source,level:enhancementLevel(p),ids:[],protect:false};
