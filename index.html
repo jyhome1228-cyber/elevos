@@ -919,6 +919,10 @@ html body .sim-event-overlay-fixed:not(:has(.sim-flash-crest))>*{grid-column:1}
 header .elevos-home-logo{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important;cursor:pointer;text-align:left}
 header .elevos-home-logo:hover{opacity:.8}header .elevos-home-logo:focus-visible{outline:2px solid #aeb8c6;outline-offset:5px}
 .elevos-home-notice{position:fixed;z-index:210;bottom:24px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);background:#252c37;color:#f3f5f7;border:1px solid #596372;padding:13px 20px;font-size:13px;line-height:1.6;box-shadow:0 5px 20px #0005;text-align:center;border-radius:4px}
+</style><style>
+.season-calendar{margin-top:14px}.season-calendar-legend{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0;color:#c3ccd8;font-size:12px}.season-calendar-legend span:nth-child(2){color:#d9b87a}.season-calendar-legend span:nth-child(3){color:#9ab9df}
+.season-calendar-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.season-tile{min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;background:#232933;color:#eef1f5;border:1px solid #414b58;border-radius:3px;text-align:center}.season-tile:disabled{opacity:1;cursor:default}.season-tile small{color:#bbc5d1!important;font-size:11px}.season-tile strong{font-size:11px;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.season-tile>span{font-size:12px;font-weight:700}.season-tile-crest{height:46px;display:grid;place-items:center}.season-tile-crest .crest{width:38px!important;height:44px!important}.season-tile.leagueCup{border-top:3px solid #b99a60}.season-tile.worldCup{border-top:3px solid #769cc7}.season-tile.win>span{color:#a5d5b0}.season-tile.loss>span{color:#e7a2a2}.season-tile.next{background:#dfe5eb!important;color:#141a22!important;border-color:#fff}.season-tile.next small{color:#39434f!important}.season-tile.next>span{font-size:10px}.season-calendar p{margin:12px 0 0}
+@media(max-width:1000px){.season-calendar-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}@media(max-width:600px){.season-calendar-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1614,17 +1618,17 @@ window.toggleDisplayLanguage=toggleDisplayLanguage;
 function viewDashboard(){
  if(manager===null)return viewStart();
  const club=own(),standingList=standing(club.league),rank=standingList.findIndex(c=>c.id===manager)+1;
- const next=(fixtures[club.league]?.[round]||[]).find(pair=>pair.includes(manager));
+ const nextKey=dashboardNextCompetition(),next=simState?.club===manager?[simState.home,simState.away]:nextKey==='league'?(fixtures[club.league]?.[round]||[]).find(pair=>pair.includes(manager)):cupPair(nextKey);
  const home=next?clubs[next[0]]:null,away=next?clubs[next[1]]:null;
  const stats=points[manager],squad=myPlayers().slice().sort((a,b)=>overall(b)-overall(a));
  const matchUp=next?'<div class="home-matchup"><div class="home-matchup-side">'+shield(home)+'<strong>'+txt(home.name)+'</strong></div><div class="home-matchup-vs">VS</div><div class="home-matchup-side">'+shield(away)+'<strong>'+txt(away.name)+'</strong></div></div>':'<div class="notice">이번 시즌의 리그 경기를 모두 마쳤습니다.</div>';
- const nextAction=pendingReward?.club===manager?"chooseMatchTab('rewards');go('match')":"go('match')";
+ const nextAction=pendingReward?.club===manager?"chooseMatchTab('rewards');go('match')":"dashboardOpenNext()";
  const nextText=pendingReward?.club===manager?'경기 보상 받기':simState?.club===manager?'진행 중인 경기 관전':'다음 경기 시작';
  let intro='';
  if(round===0&&!tutorialDismissed){intro='<div class="home-getting-started"><div><strong>첫 경기부터 시작해 볼까요?</strong><p>선발 선수를 확인한 다음 경기를 진행하면 경험치와 보상을 받을 수 있어요.</p></div><button class="btn sub mini" onclick="hideTutorial()">확인했어요</button></div>'}
- const main='<div class="home-main"><section class="card home-match"><div><div class="home-heading"><div><div class="eyebrow">NEXT MATCH</div><h2>'+txt(LEAGUES[club.league][1])+' · '+Math.min(round+1,22)+'라운드</h2></div><span class="tag">'+season+' 시즌</span></div>'+matchUp+'</div><div class="home-match-actions"><button class="btn" onclick="'+nextAction+'">'+nextText+'</button><button class="btn sub" onclick="go(\'tactics\')">선발·전술 설정</button></div></section>'+
+ const main='<div class="home-main"><section class="card home-match"><div><div class="home-heading"><div><div class="eyebrow">NEXT MATCH</div><h2>'+(nextKey==='league'?txt(LEAGUES[club.league][1])+' · '+Math.min(round+1,22)+'라운드':txt(competitionStageText(nextKey)))+'</h2></div><span class="tag">'+season+' 시즌</span></div>'+matchUp+'</div><div class="home-match-actions"><button class="btn" onclick="'+nextAction+'">'+nextText+'</button><button class="btn sub" onclick="go(\'tactics\')">선발·전술 설정</button></div></section>'+
  '<div class="home-actions"><button class="home-action" onclick="go(\'squad\')"><span class="action-ic">♟</span><strong>선수단 육성</strong><span>선수 능력치 · 레벨업</span></button><button class="home-action" onclick="go(\'market\')"><span class="action-ic">⇄</span><strong>이적시장</strong><span>선수 검색 · 영입</span></button><button class="home-action" onclick="go(\'league\')"><span class="action-ic">▦</span><strong>리그 일정</strong><span>순위 · 경기 기록</span></button></div>'+
- '<div class="home-quick-market"><div><strong>이적시장</strong><small>선수 영입과 보유 금액 관리</small></div><button class="btn sub mini" onclick="go(\'market\')">이적시장 열기</button></div><section class="card" style="margin-top:14px"><div class="home-heading"><h2>우리 팀 핵심 선수</h2><button class="btn sub mini" onclick="go(\'squad\')">전체 선수단</button></div><div class="home-featured-players">'+squad.slice(0,4).map(p=>'<div class="home-player">'+avatar(p,100)+'<strong>'+txt(p.name)+'</strong><small>'+p.pos+' · 능력 '+overall(p)+'</small></div>').join('')+'</div></section></div>';
+ '<div class="home-quick-market"><div><strong>이적시장</strong><small>선수 영입과 보유 금액 관리</small></div><button class="btn sub mini" onclick="go(\'market\')">이적시장 열기</button></div><section class="card" style="margin-top:14px"><div class="home-heading"><h2>우리 팀 핵심 선수</h2><button class="btn sub mini" onclick="go(\'squad\')">전체 선수단</button></div><div class="home-featured-players">'+squad.slice(0,4).map(p=>'<div class="home-player">'+avatar(p,100)+'<strong>'+txt(p.name)+'</strong><small>'+p.pos+' · 능력 '+overall(p)+'</small></div>').join('')+'</div></section>'+dashboardCalendar()+'</div>';
  const side='<aside class="home-right"><section class="card"><div class="eyebrow">MY CLUB</div><div class="home-club-identity">'+shield(club)+'<div><strong>'+txt(club.name)+'</strong><small>'+txt(LEAGUES[club.league][1])+'</small></div></div>'+
  '<div class="home-datum"><span>소속 리그</span><strong>'+txt(LEAGUES[club.league][1])+'</strong></div><div class="home-datum"><span>리그 순위</span><strong>'+rank+'위</strong></div>'+lastFiveLeagueResults()+'<div class="home-datum"><span>현재 전적</span><strong>'+stats.w+'승 '+stats.d+'무 '+stats.l+'패</strong></div><div class="home-datum"><span>보유 선수</span><strong>'+squad.length+'명</strong></div><div class="home-datum"><span>구단 예산</span><strong>'+formatGBP(walletGBP)+'</strong></div>'+
  '<div class="home-progress"><div class="row"><strong style="font-size:12px">시즌 진행</strong><span class="muted small">'+round+' / 22</span></div><div class="home-progress-meter"><span style="width:'+Math.min(100,round/22*100)+'%"></span></div></div></section>'+
@@ -1740,7 +1744,9 @@ function pauseSimulation(){
  if(simState){simState.paused=true;simState.lastTickAt=Date.now();save()}
 }
 function startSimulation(){
- if(manager===null||(activeCompetition==='league'&&round>=22)||pendingReward?.club===manager)return;
+ if(manager===null||simState||pendingReward?.club===manager)return;
+ if(activeCompetition==='league'&&dashboardNextCompetition()!=='league'){chooseCompetition(dashboardNextCompetition());return}
+ if(activeCompetition==='league'&&round>=22)return;
  const pair=matchPair(),s=currentLineup();
  fixInjuredLineup();
  const healthy=currentLineup();if(!pair||healthy.filter(id=>id!==null&&id!==undefined).length!==11)return;
@@ -2597,12 +2603,50 @@ function seasonAwardHTML(){
 
 const CUP_RULES={leagueCup:{name:'리그컵',rounds:[5,11,17],stages:['8강','4강','결승'],prize:400},worldCup:{name:'위너스 월드리그',rounds:[4,9,14,19],stages:['16강','8강','4강','결승'],prize:850}};
 let cupState=saved?.cupState||null,activeCompetition=saved?.activeCompetition||'league';
+function dashboardNextCompetition(){
+ if(simState?.club===manager)return simState.competition||'league';
+ return Object.keys(CUP_RULES).filter(cupReady).sort((a,b)=>CUP_RULES[a].rounds[cupState[a].stage]-CUP_RULES[b].rounds[cupState[b].stage])[0]||'league';
+}
+function dashboardOpenNext(){
+ if(simState?.club===manager){go('match');return}
+ if(pendingReward?.club===manager){go('match');chooseMatchTab('rewards');return}
+ chooseCompetition(dashboardNextCompetition());
+}
+window.dashboardOpenNext=dashboardOpenNext;
+function dashboardCalendar(){
+ initializeCups();
+ const li=own().league,items=[],nextKey=dashboardNextCompetition();
+ for(let i=0;i<22;i++){
+  const games=fixtures[li]?.[i]||[],idx=games.findIndex(g=>g.includes(manager));
+  if(idx<0)continue;
+  const pair=games[idx],score=matchResults[fixtureKey(season,li,i)]?.[idx];
+  items.push({order:i*10+5,key:'league',stage:i,label:'리그 '+(i+1)+'R',pair,score,next:i===round&&nextKey==='league'});
+ }
+ for(const [key,d] of Object.entries(CUP_RULES)){
+  const c=cupState[key];
+  for(let i=0;i<d.stages.length;i++){
+   const game=c.history.find(x=>x.stage===i)?.games.find(g=>g.home===manager||g.away===manager);
+   const pair=game?[game.home,game.away]:i===c.stage&&!c.eliminated&&!c.completed?(()=>{const j=c.teams.indexOf(manager);return j<0?null:c.teams.slice(j-j%2,j-j%2+2)})():null;
+   if(c.eliminated&&!game)continue;
+   items.push({order:d.rounds[i]*10+(key==='leagueCup'?1:2),key,stage:i,label:(key==='leagueCup'?'리그컵':'위너스')+' '+d.stages[i],pair,score:game?[game.hg,game.ag]:null,winner:game?.winner,next:nextKey===key&&i===c.stage});
+  }
+ }
+ items.sort((a,b)=>a.order-b.order);
+ const tiles=items.map(x=>{
+  const opponent=x.pair?clubs[x.pair.find(id=>id!==manager)]:null,home=x.pair?.[0]===manager;
+  const live=simState?.club===manager&&simState.competition===x.key&&(x.key==='league'?simState.round===x.stage:cupState[x.key].stage===x.stage);
+  const result=x.score?(x.winner!==undefined?(x.winner===manager?'win':'loss'):x.score[0]===x.score[1]?'draw':(home?x.score[0]>x.score[1]:x.score[1]>x.score[0])?'win':'loss'):'';
+  const score=x.score?(home?x.score[0]+' : '+x.score[1]:x.score[1]+' : '+x.score[0]):live?'경기 진행 중':x.next?'NEXT MATCH':'예정';
+  return '<button type="button" class="season-tile '+x.key+' '+result+(x.next?' next':'')+'" '+(x.next||live?'onclick="dashboardOpenNext()"':'disabled')+'><small>'+txt(x.label)+'</small><div class="season-tile-crest">'+(opponent?shield(opponent):'<span>?</span>')+'</div><strong>'+txt(opponent?.name||'상대 미정')+'</strong><span>'+score+'</span></button>';
+ }).join('');
+ return '<section class="card season-calendar"><div class="home-heading"><h2>시즌 경기 일정</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><div class="season-calendar-legend"><span>리그</span><span>리그컵 · 국내</span><span>위너스 · 국제</span></div><div class="season-calendar-grid">'+tiles+'</div><p class="muted small">컵대회 상대는 대진 결과에 따라 확정됩니다. 경기 결과는 우리 팀 기준입니다.</p></section>';
+}
 function initializeCups(){
  if(manager===null||cupState?.season===season)return;
  const nation=LEAGUES[own().league][0],local=clubs.filter(c=>c.id!==manager&&LEAGUES[c.league][0]===nation).sort((a,b)=>b.rating-a.rating).slice(0,7).map(c=>c.id);
  const global=[],counts={};
- for(const c of clubs.filter(c=>c.id!==manager).sort((a,b)=>b.rating-a.rating)){
-  const country=LEAGUES[c.league][0];if((counts[country]||0)>=2)continue;
+ for(const c of clubs.filter(c=>c.id!==manager&&LEAGUES[c.league][0]!==nation).sort((a,b)=>b.rating-a.rating)){
+  const country=LEAGUES[c.league][0];if((counts[country]||0)>=3)continue;
   counts[country]=(counts[country]||0)+1;global.push(c.id);if(global.length===15)break;
  }
  const make=teams=>({teams,stage:0,history:[],eliminated:false,completed:false,champion:null});
@@ -2610,7 +2654,7 @@ function initializeCups(){
 }
 function cupReady(key){if(manager===null)return false;initializeCups();const c=cupState[key],d=CUP_RULES[key];return !!(c&&!c.completed&&!c.eliminated&&c.teams.includes(manager)&&round>=d.rounds[c.stage])}
 function cupPair(key){if(!cupReady(key))return null;const t=cupState[key].teams;for(let i=0;i<t.length;i+=2)if(t[i]===manager||t[i+1]===manager)return[t[i],t[i+1]];return null}
-function chooseCompetition(key){if(key!=='league'&&!CUP_RULES[key])return;if(key!=='league'&&!cupReady(key))return;activeCompetition=key;matchTab='preview';page='match';save();render()}
+function chooseCompetition(key){if(simState?.club===manager){go('match');return}if(pendingReward?.club===manager){go('match');chooseMatchTab('rewards');return}if(key!=='league'&&!CUP_RULES[key])return;if(key!=='league'&&!cupReady(key))return;activeCompetition=key;matchTab='preview';page='match';save();render()}
 function competitionStageText(key){return key==='league'||!CUP_RULES[key]?'리그 '+(round+1)+'라운드':CUP_RULES[key].name+' · '+CUP_RULES[key].stages[cupState?.[key]?.stage||0]}
 function cupStatusHTML(){
  if(manager===null)return '';initializeCups();
