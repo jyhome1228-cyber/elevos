@@ -1796,12 +1796,29 @@ function startSimulation(){
  matchTab='live';page='match';save();render();runSimulation();
 }
 
+function activeMatchPlayers(teamId){
+ if(!simState||![simState.home,simState.away].includes(teamId))return [];
+ const ids=teamMatchLineup(teamId)||[],excluded=new Set([...(simState.dismissedIds||[]),...(simState.substitutions||[]).map(x=>x.out),...(simState.aiSubstitutions||[]).filter(x=>x.club===teamId).map(x=>x.out)]);
+ return [...new Set(ids)].filter(id=>id!=null&&!excluded.has(id)).map(id=>players.find(p=>p.id===id&&p.club===teamId)).filter(p=>p&&!playerUnavailable(p));
+}
+function activeMatchKeeper(teamId){
+ const list=activeMatchPlayers(teamId),ids=teamMatchLineup(teamId)||[];
+ const shape=teamId===manager?(simState.formation||formation):(teamId===simState.home?simState.homeFormation:simState.awayFormation)||'433';
+ const slot=(FORMATIONS[shape]||FORMATIONS['433']).findIndex(x=>x.r==='GK');
+ return list.find(p=>p.id===ids[slot])||list.find(p=>p.pos==='GK')||list[0]||null;
+}
+function eligibleMatchBench(teamId){
+ const ids=new Set(teamMatchLineup(teamId)||[]);
+ for(const x of [...(simState.substitutions||[]),...(simState.aiSubstitutions||[])]){ids.add(x.out);ids.add(x.in)}
+ for(const id of simState.dismissedIds||[])ids.add(id);
+ return healthyClubRoster(teamId).filter(p=>!ids.has(p.id));
+}
 function randomMatchActor(attackingHome){
  const clubId=attackingHome?simState.home:simState.away;
  const ids=clubId===manager?simPlayerIds():(clubId===simState.home?simState.homeLineup:simState.awayLineup);
- const selected=(ids||[]).map(id=>players.find(p=>p.id===id)).filter(Boolean);
- const eligible=selected.filter(p=>p.pos!=='GK'&&!playerUnavailable(p));
- return eligible.length?eligible[Math.floor(Math.random()*eligible.length)]:null;
+ const selected=activeMatchPlayers(clubId);
+ const eligible=selected.filter(p=>p.id!==activeMatchKeeper(clubId)?.id);
+ return eligible.length?eligible[Math.floor(Math.random()*eligible.length)]:selected[0]||null;
 }
 
 /* Authoritative timed events. Only confirmed goals change the score. */
@@ -1958,7 +1975,9 @@ function minuteEvent(){
  }else if(roll<.062){
   simEvent(defender.id,defensiveActor,'foul',(defensiveActor?.name||defender.name)+' 파울! '+actorName+'에게 프리킥이 주어집니다.','FOUL');
  }else if(roll<.095*quality*finish){
-  simEvent(attacker.id,actor,'shot',actorName+'의 슈팅! 골키퍼가 선방합니다.');
+  const keeper=activeMatchKeeper(defender.id);
+  simEvent(attacker.id,actor,'shot',actorName+'의 슈팅!');
+  if(keeper)simEvent(defender.id,keeper,'save',keeper.name+' 선방! '+actorName+'의 슈팅을 막아냈습니다.');
  }else if(roll<.132*quality*create){
   simEvent(attacker.id,actor,'offside',actorName+'이(가) 오프사이드 위치에서 공을 받았습니다.');
  }else if(roll<.17){
@@ -2055,14 +2074,14 @@ function takeShootoutKick(direction){
  if(shootoutTimer!==null){clearTimeout(shootoutTimer);shootoutTimer=null}
  const side=q.kicks.length%2===0?'home':'away',team=m[side],other=m[side==='home'?'away':'home'];
  const ownKicks=q.kicks.filter(k=>k.side===side).length;
- const ids=teamMatchLineup(team).filter(id=>id!=null),p=players.find(x=>x.id===ids[ownKicks%Math.max(1,ids.length)]);
- const keeper=teamMatchLineup(other).map(id=>players.find(x=>x.id===id)).find(x=>x?.pos==='GK');
+ const eligible=activeMatchPlayers(team).sort((a,b)=>detailed(b).finishing-detailed(a).finishing),p=eligible[ownKicks%Math.max(1,eligible.length)];
+ const keeper=activeMatchKeeper(other);
  const dirs=['left','center','right'],randomDir=()=>dirs[Math.floor(Math.random()*3)];
  const shot=team===manager&&dirs.includes(direction)?direction:randomDir(),saveDir=other===manager&&dirs.includes(direction)?direction:randomDir();
  const skill=p?detailed(p).finishing:70,reflex=keeper?detailed(keeper).reflex:70;
  const probability=Math.max(.2,Math.min(.94,(shot===saveDir?.48:.87)+(skill-reflex)*.003));
  const goal=Math.random()<probability;if(goal)q[side]++;
- q.kicks.push({side,team,playerId:p?.id??null,name:p?.name||'키커',goal,shot,saveDir});
+ q.kicks.push({side,team,playerId:p?.id??null,name:p?.name||'키커',keeperId:keeper?.id??null,keeperName:keeper?.name||null,goal,shot,saveDir});
  const h=q.kicks.filter(k=>k.side==='home').length,a=q.kicks.length-h;
  q.done=h<=5&&a<=5&&(q.home>q.away+5-a||q.away>q.home+5-h)||h>=5&&a>=5&&h===a&&q.home!==q.away;
  save();if(page==='match')render();
@@ -2132,9 +2151,9 @@ function substituteSimPlayer(){
  if(!simState||simState.club!==manager||simState.minute>=simTotalMinutes())return;
  const inId=Number(document.getElementById('sim-sub-in')?.value??simSubIn);
  const outId=Number(document.getElementById('sim-sub-out')?.value??simSubOut);
- const lineup=simPlayerIds(),outIndex=lineup.indexOf(outId),squad=healthyClubRoster(manager);
+ const lineup=simPlayerIds(),outIndex=lineup.indexOf(outId),squad=eligibleMatchBench(manager);
  if((simState.substitutions||[]).length>=5)return;
- if(outIndex<0||inId===outId||lineup.includes(inId)||!squad.some(p=>p.id===inId))return;
+ if(simState.pendingVAR||simState.pendingPenalty||outIndex<0||inId===outId||lineup.includes(inId)||!squad.some(p=>p.id===inId))return;
  lineup[outIndex]=inId;
  simState.activeLineup=lineup;
  if(simState.home===manager)simState.homeLineup=lineup.slice();else simState.awayLineup=lineup.slice();
@@ -2148,7 +2167,7 @@ function substituteSimPlayer(){
  simState.majorEvent={id:(simState.eventSeq=(simState.eventSeq||0)+1),minute:simMinuteLabel(simState.minute),type:'sub',title:'SUBSTITUTION',detail:subMessage,team:manager};
  if(!simBatchMode&&page==='match')displaySimEventOnce(simState.majorEvent);
  simState.lastSubNotice={minute:simState.minute,text:subMessage};
- simState.log.unshift({minute:simMinuteLabel(simState.minute),type:'sub',team:manager,playerId:inId,text:'선수 교체: '+subMessage});
+ simEvent(manager,inbound,'sub','선수 교체: '+subMessage);
  save();render();
 }
 function simTeamPower(){
@@ -2159,7 +2178,7 @@ function simTeamPower(){
 }
 function simCoachingPanel(){
  if(!simState)return '';
- const ids=simPlayerIds(),selected=new Set(ids),available=healthyClubRoster(manager).filter(p=>!selected.has(p.id));
+ const ids=simPlayerIds(),selected=new Set(ids),available=eligibleMatchBench(manager);
  const outs=ids.map(id=>players.find(p=>p.id===id)).filter(Boolean);
  const subs=simState.substitutions||[];
  const instruction=simState.instruction||'balanced';
@@ -2408,7 +2427,9 @@ function advanceInjuryRecovery(completedRound){
 function teamMatchLineup(teamId){
  if(!simState)return [];
  if(teamId===manager)return simPlayerIds();
- return teamId===simState.home?simState.homeLineup:simState.awayLineup;
+ if(teamId===simState.home)return simState.homeLineup||[];
+ if(teamId===simState.away)return simState.awayLineup||[];
+ return [];
 }
 function assignTeamMatchLineup(teamId,ids){
  if(teamId===manager){simState.activeLineup=ids.slice();if(!simState.participants)simState.participants=[]}
@@ -2421,7 +2442,7 @@ function injuryOrAISub(teamId,injured,forced=false){
  if(!out||!current.includes(out.id))return false;
  const ours=teamId===manager,previous=ours?(simState.substitutions||[]):(simState.aiSubstitutions||[]),limit=5;
  if(previous.length>=limit)return false;
- const unused=healthyClubRoster(teamId).filter(p=>!current.includes(p.id));
+ const unused=eligibleMatchBench(teamId);
  const slot=current.indexOf(out.id),slotRole=(FORMATIONS[ours?(simState.formation||formation):'433']||FORMATIONS['433'])[slot]?.r||out.pos;
  const next=unused.sort((a,b)=>preciseOverall(b)*positionFit(b,slotRole)-preciseOverall(a)*positionFit(a,slotRole))[0];
  if(!next)return false;
@@ -2434,10 +2455,10 @@ function injuryOrAISub(teamId,injured,forced=false){
 }
 function matchInjuryEvent(teamId,injured){
  const p=injured||players.find(p=>p.id===teamMatchLineup(teamId)[6]);
- if(!p||playerUnavailable(p))return;
+ if(!p||!activeMatchPlayers(teamId).some(x=>x.id===p.id))return;
  const injury=injuryFor(p);
  simEvent(teamId,p,'injury',p.name+' 부상! '+injury.type+' · '+injury.remaining+'경기 결장 예상','INJURY');
- injuryOrAISub(teamId,p,true);
+ if(!injuryOrAISub(teamId,p,true)){const ids=teamMatchLineup(teamId).slice(),slot=ids.indexOf(p.id);if(slot>=0){ids[slot]=null;assignTeamMatchLineup(teamId,ids)}}
 }
 function scheduleAutoSubstitutions(){
  const m=simState;if(!m)return;
@@ -2447,7 +2468,7 @@ function scheduleAutoSubstitutions(){
  for(const id of [m.home,m.away]){
   const current=teamMatchLineup(id),subList=id===manager?m.substitutions:m.aiSubstitutions;
   if((subList||[]).length>=4)continue;
-  if(id===manager&&(m.autoSubstitution===false||m.manualCoaching))return;
+  if(id===manager&&(m.autoSubstitution===false||m.manualCoaching))continue;
   const eligible=current.map(x=>players.find(p=>p.id===x)).filter(p=>p&&!playerUnavailable(p)&&p.pos!=='GK');
   if(!eligible.length)continue;
   const target=eligible[(Math.floor(m.minute/9)+id)%eligible.length];
@@ -2625,7 +2646,7 @@ function matchSideLineup(){
  const ids=simPlayerIds(),active=new Set(ids);
  const make=(p)=>'<div class="live-roster-row"><span class="live-shirt">'+(p.jerseyNumber||'–')+'</span><span>'+txt(p.name)+'</span><small>'+p.pos+'</small></div>';
  const starters=ids.map(id=>players.find(p=>p.id===id)).filter(Boolean).map(make).join('');
- const bench=healthyClubRoster(manager).filter(p=>!active.has(p.id)).slice(0,14).map(make).join('');
+ const bench=eligibleMatchBench(manager).slice(0,14).map(make).join('');
  return '<div class="live-roster-box"><strong>선발 선수</strong><div class="live-roster-scroll">'+starters+'</div><strong>후보 선수</strong><div class="live-roster-scroll live-reserves">'+bench+'</div></div>';
 }
 function liveMatchAnalysis(m,homeIds,awayIds){
@@ -2872,13 +2893,15 @@ function penaltyChoiceHTML(){
  return '<div class="penalty-choice-dialog"><div class="penalty-choice-panel"><div class="eyebrow">PENALTY KICK</div><h2>'+ (shooting?'킥 방향 선택':'골키퍼 선방 방향 선택')+'</h2><p>'+txt(clubs[p.teamId]?.name||'')+' · '+(shooting?'골문 어디로 찰까요?':'어느 방향으로 막을까요?')+'</p><div class="penalty-direction-choices">'+[['left','왼쪽'],['center','중앙'],['right','오른쪽']].map(([v,label])=>'<button onclick="choosePenaltyDirection(\''+v+'\')">'+label+'</button>').join('')+'</div><small>선택하지 않으면 약 5초 후 자동으로 처리됩니다.</small></div></div>';
 }
 function finishPenaltyKick(p,chosen){
- const kicker=players.find(x=>x.id===p.playerId),side=p.teamId===manager;
+ const kicker=activeMatchPlayers(p.teamId).find(x=>x.id===p.playerId)||randomMatchActor(p.home),side=p.teamId===manager;
+ const defendingTeam=p.home?simState.away:simState.home,keeperPlayer=activeMatchKeeper(defendingTeam);
  const directions=['left','center','right'];
  const target=side?(chosen||directions[Math.floor(Math.random()*3)]):directions[Math.floor(Math.random()*3)];
  const keeper=side?directions[Math.floor(Math.random()*3)]:(chosen||directions[Math.floor(Math.random()*3)]);
  const chance=target===keeper?Math.max(.16,p.conversion*.32):Math.max(.55,p.conversion);
  if(Math.random()<chance)scoreConfirmedGoal(p.home,kicker,(kicker?.name||clubs[p.teamId].name)+' 페널티킥 성공!','PENALTY GOAL');
- else simEvent(p.teamId,kicker,'save',(kicker?.name||clubs[p.teamId].name)+'의 페널티킥을 골키퍼가 선방했습니다!','PENALTY SAVED');
+ else if(keeperPlayer)simEvent(defendingTeam,keeperPlayer,'save',keeperPlayer.name+' 선방! '+(kicker?.name||clubs[p.teamId].name)+'의 페널티킥을 막았습니다.','PENALTY SAVED');
+ else simEvent(p.teamId,kicker,'shot',(kicker?.name||clubs[p.teamId].name)+' 페널티킥 실축!','PENALTY MISSED');
  simState.pendingPenalty=null;save();
 }
 function choosePenaltyDirection(direction){
