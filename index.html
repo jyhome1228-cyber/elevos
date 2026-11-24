@@ -2188,7 +2188,7 @@ function viewMarket(){
  if(manager===null)return viewStart();
  const candidates=players.filter(p=>marketCandidate(p)&&(marketPosition==='ALL'||p.pos===marketPosition)&&(!marketSearch||p.name.toLowerCase().includes(marketSearch)||(p.nameEn||'').toLowerCase().includes(marketSearch)))
  .sort((a,b)=>overall(b)-overall(a)).slice(0,24);
- return '<section class="card"><div class="row"><div><div class="eyebrow">TRANSFER MARKET</div><h2 style="margin:6px 0">이적시장</h2></div><span class="tag">보유 예산 '+formatGBP(walletGBP)+'</span></div><p class="muted small">선수를 계약하면 이적료를 즉시 지급하며, 다음 시즌 개막 시 1군에 합류합니다.</p>'+transferWindowSummary()+pendingTransfersHTML()+''+
+ return '<section class="card"><div class="row"><div><div class="eyebrow">TRANSFER MARKET</div><h2 style="margin:6px 0">이적시장</h2></div><span class="tag">보유 예산 '+formatGBP(walletGBP)+'</span></div><p class="muted small">이적료는 OVR·나이·강화 등급에 따라 산정됩니다. 계약 선수는 다음 시즌 개막 시 1군에 합류합니다.</p>'+transferWindowSummary()+pendingTransfersHTML()+''+
  '<div class="transfer-toolbar"><input id="market-query" placeholder="선수 이름 검색" value="'+txt(marketSearch).replaceAll('"','&quot;')+'" onkeydown="if(event.key===\'Enter\')applyMarketSearch()"><select onchange="setMarketPosition(this.value)">'+['ALL','GK','CB','RB','LB','CDM','CM','CAM','LW','RW','ST'].map(x=>'<option value="'+x+'" '+(marketPosition===x?'selected':'')+'>'+(x==='ALL'?'전체 포지션':x)+'</option>').join('')+'</select><button class="btn" onclick="applyMarketSearch()">검색</button></div>'+
  '<div class="tablewrap client-market-table"><table><thead><tr><th>선수</th><th>소속 구단</th><th>POS</th><th>나이</th><th>OVR</th><th>이적료</th><th>계약</th></tr></thead><tbody>'+candidates.map(p=>{const fee=transferFeeGBP(p);return '<tr><td><div class="inventory-player">'+avatar(p,40)+'<b>'+txt(p.name)+'</b></div></td><td><div class="client-market-club">'+shield(clubs[p.club])+txt(clubs[p.club].name)+'</div></td><td>'+positionBadge(p)+'</td><td>'+p.age+'</td><td><b class="ability-value '+statTier(overall(p))+'">'+overall(p)+'</b></td><td>'+formatGBP(fee)+'</td><td><button class="btn mini" '+(fee>walletGBP?'disabled':'')+' onclick="buy('+p.id+','+fee+')">'+(fee>walletGBP?'예산 부족':'영입')+'</button></td></tr>'}).join('')+'</tbody></table></div>'+
  (candidates.length?'':'<div class="notice">검색 조건에 맞는 선수가 없습니다.</div>')+'</section>'
@@ -2203,7 +2203,14 @@ window.setMarketPosition=setMarketPosition;window.applyMarketSearch=applyMarketS
 const GBP_START=1000;
 let walletGBP=(saved&&Number.isFinite(saved.walletGBP))?Math.max(0,Math.floor(saved.walletGBP)):GBP_START;
 const formatGBP=n=>'£'+Math.max(0,Math.round(Number(n)||0)).toLocaleString('en-GB');
-function transferFeeGBP(p){return Math.max(45,Math.round((overall(p)-50)*9))}
+function transferFeeGBP(p){
+ const anchors=[[25,40],[50,150],[60,350],[70,750],[80,1500],[90,3500],[100,9000],[110,18000],[120,30000]];
+ const ovr=Math.max(25,Math.min(120,overall(p))),i=anchors.findIndex(a=>a[0]>=ovr);
+ const hi=anchors[Math.max(0,i)],lo=anchors[Math.max(0,i-1)],base=hi[0]===lo[0]?hi[1]:lo[1]+(hi[1]-lo[1])*(ovr-lo[0])/(hi[0]-lo[0]);
+ const age=Number(p.age)||27,ageFactor=age<=21?1.2:age<=25?1.1:age<=29?1:age<=32?.85:.7;
+ const enhanceFactor=1+.035*Math.max(0,enhancementLevel(p)-1);
+ return Math.max(40,Math.round(base*ageFactor*enhanceFactor/5)*5);
+}
 function markPrimaryActions(root){
  const primary=/^(다음 경기 시작|진행 중인 경기 관전|시뮬레이션 시작|경기 준비 완료|경기 보상 받기|보상 선택하기|이 보상 선택|보상 수령|경기 결과 확인|경기 재개|홈으로 돌아가기|다음 경기 준비|선수단 등록|강화 시도|강화하기|재활용|개봉하기)$/;
  for(const b of root.querySelectorAll('button.btn'))if(primary.test(b.textContent.trim()))b.classList.add('cta-primary');
@@ -2213,14 +2220,14 @@ function renderWallet(){const node=document.getElementById('wallet-value');if(no
 
 function buy(id,quotedFee){
  if(manager===null)return;
- const p=players.find(q=>q.id===id&&marketCandidate(q));
- if(!p)return;
+ const p=players.find(q=>q.id===id&&marketCandidate(q));if(!p)return;
  const fee=transferFeeGBP(p);
- if(walletGBP<fee){if(typeof alert==='function')alert('보유 파운드가 부족합니다.');return}
- if(myPlayers().length+pendingTransfers.length>=squadCapacity()){if(typeof alert==='function')alert('다음 시즌 1군 정원을 초과할 수 없습니다.');return}
- walletGBP-=fee;
- pendingTransfers.push({id:p.id,fee,sourceClub:p.club,joinSeason:season+1,signedRound:round});
- save();render();
+ if(walletGBP<fee){showGameDialog('보유 금액 부족',[['필요 이적료',formatGBP(fee)],['보유 금액',formatGBP(walletGBP)]]);return}
+ if(myPlayers().length+pendingTransfers.length>=squadCapacity()){showGameDialog('선수단 정원 초과',[['안내','예약 영입 포함 정원을 확인하세요.']]);return}
+ economyConfirm('선수를 영입하시겠습니까?',[['선수',p.name],['종합 능력치',String(overall(p))],['이적료',formatGBP(fee)],['영입 후 잔액',formatGBP(walletGBP-fee)],['합류 시기',(season+1)+' 시즌']],()=>{
+ if(!marketCandidate(p)||walletGBP<fee||myPlayers().length+pendingTransfers.length>=squadCapacity())return;
+ walletGBP-=fee;pendingTransfers.push({id:p.id,fee,sourceClub:p.club,joinSeason:season+1,signedRound:round});logEconomy('이적시장 영입',-fee,p.name);save();render();showGameDialog('영입 계약 완료',[['선수',p.name],['지급 이적료',formatGBP(fee)],['합류 시기',(season+1)+' 시즌']]);
+ },'영입');
 }
 function save(){
  try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP}))}
@@ -3098,19 +3105,19 @@ function enhancePlayer(id){
  p.enhancementLevel=success?target:current>=5?current-1:current;
  save();render();
  const el=typeof document.createElement==='function'&&document.body?document.createElement('div'):null;
- if(!el){enhancementBusy=false;return}
+ if(!el){enhancementBusy=false;render();return}
  el.id='enhancement-animation';el.className='enhancement-overlay';
  const tier=enhancementTier(p);
  const loading='<div class="enhancement-animation-card"><div class="enhancement-glow"></div><div class="eyebrow">PLAYER ENHANCEMENT</div><strong class="enhancement-busy-title">'+txt(p.name)+'</strong><div style="font-size:22px;font-weight:800">+'+current+' → +'+target+'</div><div class="enhancement-progress"><i></i></div><small>강화를 진행하고 있습니다</small></div>';
  el.innerHTML=loading;document.body.appendChild(el);
  setTimeout(()=>{
-  if(!el.parentNode&&!el.isConnected&&typeof el.remove==='function'&&typeof document.getElementById==='function'&&document.getElementById('enhancement-animation')!==el){enhancementBusy=false;return}
+  if(!el.parentNode&&!el.isConnected&&typeof el.remove==='function'&&typeof document.getElementById==='function'&&document.getElementById('enhancement-animation')!==el){enhancementBusy=false;render();return}
   const style='enhancement-tier '+tier;
   el.innerHTML='<div class="enhancement-animation-card"><div class="enhancement-glow '+(success?'success':'fail')+'"></div><div class="eyebrow">ENHANCEMENT RESULT</div><div class="enhancement-result-shot">'+avatar(p,100)+'<div><strong style="font-size:19px">'+txt(p.name)+'</strong><div class="'+style+'" style="margin-top:9px">+'+enhancementLevel(p)+'</div></div></div><strong class="enhancement-result">'+(success?'강화 성공!':'강화 실패')+'</strong><div class="enhancement-sub">+'+current+' → +'+enhancementLevel(p)+' · '+formatGBP(cost)+'</div><div class="enhancement-ovr"><span>종합 능력치</span><strong>'+beforeOverall+' → '+overall(p)+'</strong></div><button class="btn" onclick="closeEnhancementResult()">확인</button></div>';
  },1800);
- setTimeout(()=>{enhancementBusy=false;if(page==='squad')render()},1800);
+ // Keep the action locked until the result is dismissed; closing refreshes the current page.
 }
-function closeEnhancementResult(){document.getElementById('enhancement-animation')?.remove()}
+function closeEnhancementResult(){document.getElementById('enhancement-animation')?.remove();enhancementBusy=false;render()}
 window.dismissGameDialog=dismissGameDialog;window.closeEnhancementResult=closeEnhancementResult;
 let materialEnhancement=null;
 function materialBonus(cards){return cards.reduce((sum,p)=>sum+Math.max(1,Math.min(4,Math.floor((overall(p)-30)/20))),0)/100}
