@@ -92,6 +92,16 @@ async function act(fn){
  try{await fn()}catch(e){clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');message(({'auth/invalid-credential':'이메일 또는 비밀번호를 확인해 주세요.','auth/email-already-in-use':'이미 가입된 이메일입니다. 로그인해 주세요.','auth/weak-password':'비밀번호는 6자 이상이어야 합니다.','auth/invalid-email':'이메일 형식을 확인해 주세요.','auth/popup-closed-by-user':'로그인 창이 닫혔습니다. 다시 시도해 주세요.','auth/network-request-failed':'네트워크 연결을 확인해 주세요.','auth/too-many-requests':'요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'})[e.code]||('처리 실패: '+(e.message||'다시 시도하세요.')))}finally{busy=false;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=false)}
 }
 function requireAccount(){if(!user||local.uid!==user.uid)throw Error('계정 연결을 완료하세요.');if(local.busy)throw Error('경기 종료 후 실행하세요.');return user.uid}
+let activityRecordedDay='',activityPending=false;
+async function recordGameActivity(uid){
+ if(auth.currentUser?.uid!==uid||local.uid!==uid||document.visibilityState==='hidden'||activityPending)return;
+ const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const key=uid+':'+day;if(activityRecordedDay===key)return;
+ activityPending=true;try{await F.setDoc(F.doc(db,'users',uid,'activity',day),{lastSeenAt:F.serverTimestamp()});activityRecordedDay=key}catch(e){console.warn('활동 기록 실패',e)}finally{activityPending=false}
+}
+let activityTimer=null;
+function startGameActivity(uid){clearInterval(activityTimer);recordGameActivity(uid);activityTimer=setInterval(()=>recordGameActivity(uid),60000)}
+
 async function syncCareerSummary(uid,save){
  if(auth.currentUser?.uid!==uid||local.uid!==uid||!save||save.manager==null)return;
  const club=save.clubs?.find(c=>c.id===save.manager);if(!club)return;
@@ -148,7 +158,7 @@ async function boot(){
 }
 async function activateAccount(u){
  const run=++activationRun;user=u;remoteRevision=null;
- if(!u){clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
+ if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
  if(!window.ElevosEntry?.isOpen())return;
  authProgress('회원 정보 확인 중');
  sessionStorage.removeItem('elevos-beta-session');sessionStorage.removeItem('elevos-signed-out');
@@ -168,6 +178,7 @@ async function activateAccount(u){
  }
  if(local.uid!==uid){sessionStorage.setItem('elevos-auth-progress','1');local.switchAccount(uid);return}
  const btn=$('cloud-account');if(btn)btn.textContent='내 계정';$('cloud-modal')?.remove();clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');window.ElevosEntry?.release();
+ startGameActivity(uid);
  if(career)syncCareerSummary(uid,career);
 }
 
