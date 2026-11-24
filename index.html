@@ -1783,13 +1783,17 @@ function avatar(p,size=42){
  const extra=red&&!legend&&tile>=24,large=legend||extra,rows=large?6:3,sheet=Math.floor(tile/12),slot=legend?tile:extra?tile-24:tile%12,col=slot%4,row=Math.floor(slot/4),src=legend?LEGEND_SHEET:extra?RED_EXTRA_SHEET:(red?RED_ELITE_FACE_SHEETS:FACE_SHEETS)[sheet];
  // The generated 24-face sheets are not perfectly registered to a uniform grid.
  // Use a bounded inner crop with row-specific top correction, keeping legacy 12-face sheets unchanged.
- const topInset=extra?[0.015,0.08,0.12,0.15,0.18,0.18][row]:0;
- const cropH=extra?0.82:1,cropW=extra?0.82:1,xInset=extra?0.09:0;
- const width=400/cropW,height=rows*100/cropH,left=-(col+xInset)*100/cropW,top=-(row+topInset)*100/cropH;
+ // Pixel-measured boundaries of the 1024 x 1536 RED extra atlas.
+ const edges=[0,276,544,816,1080,1318,1536];
+ const y0=extra?edges[row]:0,y1=extra?edges[row+1]:0;
+ // SVG-style contain framing: preserve native proportions, center each row in a square.
+ const cellH=extra?y1-y0:256,scale=extra?100/Math.max(256,cellH):100/256;
+ const width=extra?1024*scale:400,height=extra?1536*scale:rows*100,left=extra?-col*256*scale+(100-256*scale)/2:-col*100,top=extra?-y0*scale+(100-cellH*scale)/2:-row*100;
+ const clip=extra?'clip-path:inset('+ (y0/1536*100)+'% '+((3-col)*25)+'% '+((1536-y1)/1536*100)+'% '+(col*25)+'%);':'';
  const label=legend?'LEGEND ELITE 전용 선수 얼굴':red?'RED ELITE 전용 선수 얼굴':'가상 선수 얼굴';
  return '<span class="face-tile'+(red||legend?' red-elite-face':'')+'" style="width:'+size+'px;height:'+size+'px" title="'+label+'">'
   +'<span class="face-fallback">'+svgAvatarFallback(p,size)+'</span>'
-  +'<img draggable="false" loading="lazy" decoding="async" alt="" src="'+src+'" style="position:absolute;width:'+width+'%;height:'+height+'%;max-width:none;max-height:none;left:'+left+'%;top:'+top+'%;object-fit:fill" onerror="this.style.display=\'none\'">'
+  +'<img draggable="false" loading="lazy" decoding="async" alt="" src="'+src+'" style="position:absolute;width:'+width+'%;height:'+height+'%;max-width:none;max-height:none;left:'+left+'%;top:'+top+'%;object-fit:fill;'+clip+'" onerror="this.style.display=\'none\'">'
   +'</span>'
 }
 
