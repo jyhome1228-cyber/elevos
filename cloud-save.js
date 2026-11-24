@@ -5,7 +5,7 @@ let auth,db,A,F,user=null,ready=false,busy=false,notice='',remoteRevision=null;
 const configured=!!(cfg.apiKey&&cfg.authDomain&&cfg.projectId&&cfg.appId);
 const parts=['core','players','matches','seasons','cups','scores','calendar','cards','economy'];
 const $=id=>document.getElementById(id);
-function message(t){notice=t;if($('cloud-status'))$('cloud-status').textContent=t}
+function message(t){notice=t;if($('cloud-status'))$('cloud-status').textContent=t;window.ElevosEntry?.status(t)}
 let accountMode='login';
 function draw(){
  const p=$('cloud-panel');if(!p)return;
@@ -32,8 +32,10 @@ function draw(){
  message(notice);
 }
 function bindLocalBackup(){const exp=$('cloud-export'),imp=$('cloud-import'),file=$('cloud-file');if(!exp||!imp||!file)return;exp.onclick=()=>act(async()=>{if(local.busy)throw Error('경기 종료 후 백업하세요.');const data=local.snapshot();if(!data.save||data.save.manager==null)throw Error('저장할 커리어가 없습니다.');const blob=new Blob([JSON.stringify({format:'ELEVOS_BACKUP_V1',...data})],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='elevos-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('백업 파일을 생성했습니다.')});imp.onclick=()=>file.click();file.onchange=()=>act(async()=>{if(local.busy)throw Error('경기 종료 후 복원하세요.');const f=file.files[0];if(!f)return;if(f.size>30000000)throw Error('파일 크기 제한 초과');const d=JSON.parse(await f.text());if(d.format!=='ELEVOS_BACKUP_V1'||d.save?.version!==2||!Array.isArray(d.save.players)||!Array.isArray(d.save.clubs)||!d.save.clubs.some(c=>c.id===d.save.manager)||!d.archive||typeof d.archive!=='object'||Array.isArray(d.archive))throw Error('올바른 ELEVOS 백업 파일이 아닙니다.');if(!confirm('현재 게스트 기록을 백업 파일로 교체할까요?'))return;local.restoreGuest(d)})}
-function open(){if($('cloud-modal'))return;if(!$('elevos-auth-style')){const style=document.createElement('style');style.id='elevos-auth-style';style.textContent=".cloud-panel{background:linear-gradient(145deg,#303d4e,#17212c 65%,#151b24)!important;border:1px solid #758aa3!important;border-radius:8px!important;box-shadow:0 20px 80px #0009}.auth-brand{text-align:center;margin:22px 0}.auth-brand img{width:145px;max-width:60%;display:block;margin:0 auto 18px;filter:brightness(0) invert(1)}.auth-brand strong{font-size:19px;color:#f0f5fc}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 18px}.cloud-panel #auth-form input{box-sizing:border-box;border-radius:4px;padding:12px}.auth-primary,.auth-google{width:100%;min-height:44px;margin-top:16px!important}.auth-text{background:none;border:0;color:#c6d6e8;cursor:pointer;display:block;margin:16px auto!important}.auth-note{text-align:center;margin:16px 0 0;color:#bccbdb!important}";document.head.appendChild(style)};const el=document.createElement('div');el.id='cloud-modal';el.className='cloud-modal';el.innerHTML='<section id="cloud-panel" class="cloud-panel" role="dialog" aria-modal="true" aria-label="계정"></section>';document.body.appendChild(el);draw()}
-window.ElevosCloud={open};
+function open(mode='login'){accountMode=mode==='register'?'register':'login';if($('cloud-modal')){draw();return;}if(!$('elevos-auth-style')){const style=document.createElement('style');style.id='elevos-auth-style';style.textContent=".cloud-panel{background:linear-gradient(145deg,#303d4e,#17212c 65%,#151b24)!important;border:1px solid #758aa3!important;border-radius:8px!important;box-shadow:0 20px 80px #0009}.auth-brand{text-align:center;margin:22px 0}.auth-brand img{width:145px;max-width:60%;display:block;margin:0 auto 18px;filter:brightness(0) invert(1)}.auth-brand strong{font-size:19px;color:#f0f5fc}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 18px}.cloud-panel #auth-form input{box-sizing:border-box;border-radius:4px;padding:12px}.auth-primary,.auth-google{width:100%;min-height:44px;margin-top:16px!important}.auth-text{background:none;border:0;color:#c6d6e8;cursor:pointer;display:block;margin:16px auto!important}.auth-note{text-align:center;margin:16px 0 0;color:#bccbdb!important}";document.head.appendChild(style)};const el=document.createElement('div');el.id='cloud-modal';el.className='cloud-modal';if(window.ElevosEntry?.isOpen())el.style.zIndex='100001';el.innerHTML='<section id="cloud-panel" class="cloud-panel" role="dialog" aria-modal="true" aria-label="계정"></section>';document.body.appendChild(el);draw()}
+function entryLogin(email,password){if(!configured){message('현재 베타테스터 로그인만 이용할 수 있습니다.');return}if(!ready){message('계정 서비스 연결 중입니다.');return}return act(()=>A.signInWithEmailAndPassword(auth,email,password))}
+function entryReset(email){if(!configured||!ready){message('계정 서비스가 연결되지 않았습니다.');return}if(!email||!email.includes('@')){message('재설정할 이메일을 입력해 주세요.');return}return act(async()=>{await A.sendPasswordResetEmail(auth,email);message('비밀번호 재설정 이메일 발송을 요청했습니다.')})}
+window.ElevosCloud={open,entryLogin,entryReset};
 async function act(fn){
  if(busy)return;busy=true;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=true);
  try{await fn()}catch(e){message(({'auth/invalid-credential':'이메일 또는 비밀번호를 확인해 주세요.','auth/email-already-in-use':'이미 가입된 이메일입니다. 로그인해 주세요.','auth/weak-password':'비밀번호는 6자 이상이어야 합니다.','auth/invalid-email':'이메일 형식을 확인해 주세요.','auth/popup-closed-by-user':'로그인 창이 닫혔습니다. 다시 시도해 주세요.','auth/network-request-failed':'네트워크 연결을 확인해 주세요.','auth/too-many-requests':'요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'})[e.code]||('처리 실패: '+(e.message||'다시 시도하세요.')))}finally{busy=false;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=false)}
@@ -72,16 +74,17 @@ async function migrate(){
  local.switchAccount(uid,data);
 }
 async function boot(){
- if(!configured)return;
+ if(!configured){message('베타테스터 로그인으로 시작할 수 있습니다.');return}
  try{
   const base='https://www.gstatic.com/firebasejs/11.10.0/';
   const app=await import(base+'firebase-app.js');A=await import(base+'firebase-auth.js');F=await import(base+'firebase-firestore.js');
   const instance=app.initializeApp(cfg);auth=A.getAuth(instance);db=F.getFirestore(instance);
   await A.setPersistence(auth,A.browserSessionPersistence);
   A.onAuthStateChanged(auth,u=>{user=u;ready=true;remoteRevision=null;
+   if(u)sessionStorage.removeItem('elevos-beta-session');
    if(u&&local.uid!==u.uid){if(local.busy){message('경기 종료 후 계정 메뉴에서 다시 연결하세요.');draw();return}local.switchAccount(u.uid);return}
    if(!u&&local.uid){if(!local.busy)local.switchAccount(null);return}
-   const btn=$('cloud-account');if(btn)btn.textContent=u?'내 계정':'로그인';draw();
+   const btn=$('cloud-account');if(btn)btn.textContent=u?'내 계정':'로그인';draw();if(u&&local.uid===u.uid){$('cloud-modal')?.remove();window.ElevosEntry?.release()}
   });
  }catch(e){message('Firebase 연결 실패: '+(e.code||e.message));draw()}
 }
