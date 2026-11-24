@@ -1,11 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function owner(uid) {
-      return request.auth != null && request.auth.uid == uid;
-    }
-    function admin() {
-      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function admin() { return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function validContact() {
+      return request.resource.data.realName is string
+        && request.resource.data.realName.size() >= 1
+        && request.resource.data.realName.size() <= 50
+        && request.resource.data.phone is string
+        && request.resource.data.phone.matches('^01[016789][0-9]{7,8}$')
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.betaContactConsent is bool;
     }
     match /admins/{uid} {
       allow get: if owner(uid);
@@ -13,53 +18,37 @@ service cloud.firestore {
     }
     match /users/{uid} {
       allow get: if owner(uid) || admin();
+      allow list: if admin();
       allow create: if owner(uid)
         && request.resource.data.keys().hasOnly(['username','email','phone','createdAt','realName','betaContactConsent'])
         && request.resource.data.keys().hasAll(['username','email','phone','createdAt','realName','betaContactConsent'])
-        && request.resource.data.realName is string
-        && request.resource.data.realName.size() >= 1
-        && request.resource.data.realName.size() <= 50
-        && request.resource.data.betaContactConsent is bool
+        && validContact()
         && request.resource.data.username is string
         && request.resource.data.username.matches('^[a-z0-9]{4,20}$')
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.phone is string
-        && request.resource.data.phone.matches('^01[016789][0-9]{7,8}$')
         && request.resource.data.createdAt == request.time
         && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid;
-      allow list: if admin();
       allow update: if owner(uid)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['realName','phone','email','betaContactConsent'])
-        && request.resource.data.realName is string
-        && request.resource.data.realName.size() >= 1
-        && request.resource.data.realName.size() <= 50
-        && request.resource.data.phone is string
-        && request.resource.data.phone.matches('^01[016789][0-9]{7,8}/{document=**} {
-        allow read, create, update: if owner(uid);
-        allow delete: if false;
-      }
-    }
-    match /usernames/{name} {
-      allow get: if request.auth != null;
-      allow create: if request.auth != null
-        && name.matches('^[a-z0-9]{4,20}$')
-        && request.resource.data.keys().hasOnly(['uid'])
-        && request.resource.data.uid == request.auth.uid
-        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
-      allow list, update, delete: if false;
-    }
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-})
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.betaContactConsent is bool;
+        && validContact();
       allow delete: if false;
       match /career/{document=**} {
         allow read, create, update: if owner(uid);
         allow delete: if false;
       }
+      match /summary/current {
+        allow get: if owner(uid) || admin();
+        allow create, update: if owner(uid)
+          && request.resource.data.keys().hasOnly(['coachName','level','portraitId','clubName','season','round','updatedAt'])
+          && request.resource.data.keys().hasAll(['coachName','level','portraitId','clubName','season','round','updatedAt'])
+          && request.resource.data.coachName is string && request.resource.data.coachName.size() <= 80
+          && request.resource.data.clubName is string && request.resource.data.clubName.size() <= 100
+          && request.resource.data.level is int && request.resource.data.level >= 1 && request.resource.data.level <= 100000
+          && request.resource.data.portraitId is int && request.resource.data.portraitId >= -1 && request.resource.data.portraitId <= 35
+          && request.resource.data.season is string && request.resource.data.season.size() <= 40
+          && request.resource.data.round is int && request.resource.data.round >= 0 && request.resource.data.round <= 100000
+          && request.resource.data.updatedAt == request.time;
+        allow list, delete: if false;
+      }
     }
     match /usernames/{name} {
       allow get: if request.auth != null;
@@ -70,8 +59,6 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == name;
       allow list, update, delete: if false;
     }
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    match /{document=**} { allow read, write: if false; }
   }
 }
