@@ -2588,7 +2588,7 @@ const archiveStorageKey=saveKey+':archive:v3';
 let careerArchive=(()=>{try{return JSON.parse(readGameCache(archiveStorageKey)||'null')||{matches:{},seasons:{},cups:{},leagueScores:{}}}catch(e){return {matches:{},seasons:{},cups:{},leagueScores:{}}}})();
 function persistCareerArchive(){try{const payload=JSON.stringify(careerArchive);writeGameCache(archiveStorageKey,payload);return readGameCache(archiveStorageKey)===payload}catch(e){console.warn('경기 기록 저장 실패',e);return false}}
 function calendarArchiveKey(y,club,key,stage){return [y,club,key,stage].join(':')}
-function archiveCalendarMatch(m){if(!m)return;const archiveKey=calendarArchiveKey(m.season,m.club,m.competition||'league',m.competition&&m.competition!=='league'?m.stage:m.round);careerArchive.matches[archiveKey]=JSON.parse(JSON.stringify(m));persistCareerArchive();const key=m.competition||'league';calendarMatchArchive[calendarArchiveKey(m.season,m.club,key,key==='league'?m.round:m.stage)]={home:m.home,away:m.away,events:(m.events||[]).filter(e=>e.type==='goal').map(e=>({...e,scorer:players.find(p=>p.id===e.playerId)?.name||null}))};}
+function archiveCalendarMatch(m){if(!m)return;const archiveKey=calendarArchiveKey(m.season,m.club,m.competition||'league',m.competition&&m.competition!=='league'?m.stage:m.round);careerArchive.matches[archiveKey]=JSON.parse(JSON.stringify(m));persistCareerArchive();const key=m.competition||'league';calendarMatchArchive[calendarArchiveKey(m.season,m.club,key,key==='league'?m.round:m.stage)]={home:m.home,away:m.away,events:(m.events||[]).filter(e=>e.type==='goal').map(e=>({...e,scorer:(players.find(p=>p.id===(e.ownGoal?e.ownGoalPlayerId:e.playerId))?.name||'')+(e.ownGoal?' (자책골)':'')||null}))};}
 if(lastMatch)archiveCalendarMatch(lastMatch);
 let scheduleRound=round,matchTab='preview';
 let newsRead=false;
@@ -3416,13 +3416,14 @@ function recruitYouthPlayer(){
 }
 function claimReward(option){
  if(simState||!pendingReward||pendingReward.club!==manager||![0,1,2].includes(option))return;
+ const backup={wallet:walletGBP,packs:coachPacks.slice(),xp:myPlayers().map(p=>[p,p.xp,p.level,p.pts]),pending:pendingReward,latest:latestReward,bonus:lastMatch?.bonusReward,guide:rookieGuide39?{...rookieGuide39}:null,tab:matchTab};
  let description;
  if(option===0){const amount=managerMoney();walletGBP+=amount;description='추가 게임머니 '+formatGBP(amount)+' 지급'}
  else if(option===1)description=awardTrainingXP(Math.round(80+(managerMoney()-100)*.25));
  else {const tier=drawMatchRewardPack(),id='match-bonus-'+pendingReward.season+'-'+manager+'-'+(pendingReward.competition||'league')+'-'+pendingReward.round+'-'+(lastMatch?.stage??0);if(!coachPacks.some(p=>p.id===id))coachPacks.push({id,tier,level:0});description=PACK_INFO[tier].name+' 선수팩 1개 획득 · 선수팩 개봉 메뉴에서 확인';}
  latestReward={club:manager,season:pendingReward.season,round:pendingReward.round,description,option};
- if(lastMatch){lastMatch.bonusReward={option,description};archiveCalendarMatch(lastMatch)}
- pendingReward=null;rookieMark39('reward');matchTab='rewards';save();render();window.scrollTo(0,0);
+ if(lastMatch)lastMatch.bonusReward={option,description};
+ pendingReward=null;rookieMark39('reward');matchTab='rewards';if(!save(true)){walletGBP=backup.wallet;coachPacks=backup.packs;for(const [p,x,l,t] of backup.xp){p.xp=x;p.level=l;p.pts=t}pendingReward=backup.pending;latestReward=backup.latest;matchTab=backup.tab;if(lastMatch){if(backup.bonus===undefined)delete lastMatch.bonusReward;else lastMatch.bonusReward=backup.bonus}if(rookieGuide39&&backup.guide)Object.assign(rookieGuide39,backup.guide);showGameDialog('보상 저장 실패',[['안내','보상 지급을 취소했습니다. 저장 공간을 확인한 뒤 다시 시도하세요.']]);return}if(lastMatch)archiveCalendarMatch(lastMatch);render();window.scrollTo(0,0);
 }
 function viewMatchOriginal(){
  let html=viewMatchCore();
@@ -3715,7 +3716,7 @@ function officialPortrait51(name){const i=ELEVOS_OFFICIALS.indexOf(name);if(i<0)
 function matchBroadcastData(m){if(!m.broadcast){const seed=((Number(m.season)*31+Number(m.round)*17+Number(m.home)*13+Number(m.away)*7+({'leagueCup':91,'worldCup':173}[m.competition]||0))>>>0);const h=clubs[m.home],tier=LEAGUES[h?.league]?.[2]||2,capacity=tier===1?35000+(seed%31)*1000:15000+(seed%22)*1000;const demand=.55+((seed*37)%44)/100;m.broadcast={attendance:Math.floor(capacity*demand),announced:false}}const b=m.broadcast;if(!Array.isArray(b.officialIds51)||b.officialIds51.length!==3||new Set(b.officialIds51).size!==3||b.officialIds51.some(i=>!Number.isInteger(i)||i<0||i>=12)){const pool=Array.from({length:12},(_,i)=>i);b.officialIds51=Array.from({length:3},()=>pool.splice(Math.floor(Math.random()*pool.length),1)[0]);[b.ref,b.assistant1,b.assistant2]=b.officialIds51.map(i=>ELEVOS_OFFICIALS[i])}return b}
 function preMatchStage(m){return !m.introStart?3:Math.max(0,Math.min(2,Number(m.introStage)||0))}
 function preMatchHTML(m){const stage=preMatchStage(m),b=matchBroadcastData(m),club=id=>clubs[id];const side=(id,ids,shape)=>'<section class="intro-team"><div class="intro-team-heading">'+shield(club(id))+'<div><strong>'+txt(club(id).name)+'</strong><small>'+txt(String(shape).split('').join('-'))+' · 선발 11명</small></div></div>'+ids.map((id,i)=>{const p=players.find(x=>x.id===id);return p?'<div class="intro-player"><span>'+(p.jerseyNumber??'–')+'</span>'+avatar(p,30)+'<b>'+txt(p.name)+'</b><small>'+txt(p.pos)+'</small></div>':''}).join('')+'</section>';const officials=[['주심',b.ref],['부심 1',b.assistant1],['부심 2',b.assistant2]];return '<section class="card match-intro-v12" data-stage="'+stage+'"><div class="intro-top"><span>ELEVOS MATCHDAY</span><button class="btn sub mini" onclick="skipMatchIntro()">건너뛰기</button></div><div class="intro-steps">'+['선발 라인업','심판진 소개','킥오프'].map((v,i)=>'<span class="'+(i===stage?'active':i<stage?'done':'')+'">'+v+'</span>').join('')+'</div><div class="intro-content">'+(stage===0?'<h2>STARTING XI</h2><div class="intro-lineups">'+side(m.home,m.homeLineup,m.homeFormation)+side(m.away,m.awayLineup,m.awayFormation)+'</div>':stage===1?'<h2>MATCH OFFICIALS</h2><div class="intro-officials">'+officials.map(([role,name])=>'<div>'+officialPortrait51(name)+'<small>'+role+'</small><strong>'+txt(name)+'</strong></div>').join('')+'</div><p>오늘 경기의 가상 심판진입니다.</p>':'<div class="intro-kickoff"><div>'+shield(club(m.home))+'<strong>'+txt(club(m.home).name)+'</strong></div><h2>KICK OFF!</h2><div>'+shield(club(m.away))+'<strong>'+txt(club(m.away).name)+'</strong></div></div><p>주심의 휘슬과 함께 경기가 시작됩니다.</p>')+'</div></section>'}
-function skipMatchIntro(){if(!simState?.introStart)return;simState.introStart=null;simState.kickoffPending37=true;simState.kickoffShownAt37=0;simState.lastTickAt=Date.now();simEvent(null,null,'info','킥오프! 주심 '+matchBroadcastData(simState).ref+'의 휘슬과 함께 경기가 시작됩니다.',null);save();if(page==='match')render();runSimulation()}
+function skipMatchIntro(){if(!simState?.introStart)return;simState.introStart=null;simState.goalRestart89={team:simState.home};kickoffAfterGoal89(simState);simState.kickoffPending37=true;simState.kickoffShownAt37=0;simState.lastTickAt=Date.now();simEvent(null,null,'info','킥오프! 주심 '+matchBroadcastData(simState).ref+'의 휘슬과 함께 경기가 시작됩니다.',null);save();if(page==='match')render();runSimulation()}
 
 function startSimulation(){
  if(document.getElementById('elevos-entry'))return;
@@ -3935,7 +3936,7 @@ function kickoffAfterGoal89(m){
  m.previousPositions80={home:[],away:[]};m.positions={home:[],away:[]};
  let kicker=null;
  for(const side of ['home','away']){
-  const h=side==='home',id=h?m.home:m.away,ids=teamMatchLineup(id)||[],slots=FORMATIONS[(h?m.homeFormation:m.awayFormation)||'433']||FORMATIONS['433'];
+  const h=side==='home',id=h?m.home:m.away,ids=teamMatchLineup(id)||[],slots=matchSlots103(m,id,(h?m.homeFormation:m.awayFormation)||'433');
   const index=id===team?slots.findIndex((slot,i)=>ids[i]!=null&&['ST','CF'].includes(slot.r)):-1;
   const chosen=index>=0?index:id===team?slots.findIndex((slot,i)=>ids[i]!=null&&ROLE_FAMILY[slot.r]!=='GK'):-1;
   m.positions[side]=slots.map((slot,i)=>{const x=h?Math.min(47,100-slot.y):Math.max(53,slot.y),y=slot.x;if(i===chosen){kicker=ids[i];return {id:ids[i],x:h?48:52,y:50}}return {id:ids[i],x,y}});
