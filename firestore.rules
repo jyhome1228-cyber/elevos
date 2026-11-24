@@ -2,22 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function owner(uid) { return request.auth != null && request.auth.uid == uid; }
-    match /users/{uid}/career/{slot} {
-      allow read: if owner(uid);
-      allow create, update: if owner(uid) && slot == 'main'
-        && request.resource.data.keys().hasOnly(['revision','counts','updatedAt','schema'])
-        && request.resource.data.revision is string
-        && request.resource.data.schema == 1
-        && request.resource.data.counts is map
-        && request.resource.data.updatedAt == request.time;
-      match /revisions/{revision}/parts/{part} {
-        allow read: if owner(uid);
-        allow create: if owner(uid) && slot == 'main'
-          && request.resource.data.keys().hasOnly(['data'])
-          && request.resource.data.data is string
-          && request.resource.data.data.size() <= 180000;
-        allow update, delete: if false;
+    match /users/{uid} {
+      allow get: if owner(uid);
+      allow list, create, update, delete: if false;
+      match /career/{document=**} {
+        allow read, create, update: if owner(uid);
+        allow delete: if false;
       }
     }
+    match /{document=**} { allow read, write: if false; }
   }
 }
