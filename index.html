@@ -2818,13 +2818,20 @@ function processPendingReview(){
  if(!fast&&now<(p.decisionAt||0))return true;
  resolveVAR();save();if(!simBatchMode&&page==='match')render();return true;
 }
+function matchScoreBalance(powerRatio,shotEdge,lead,ownGoals,final=false){
+ const ratio=Math.max(.1,powerRatio),adv=Math.log(ratio);
+ const quality=Math.exp(Math.max(-.30,Math.min(.30,adv*.48)));
+ const finish=Math.exp(Math.max(-.42,Math.min(.42,shotEdge/85)));
+ const tempo=lead>=4?.48:lead===3?.64:lead===2?.82:1;
+ return {quality,finish,tempo};
+}
 function minuteEvent(){
  if(simState.pendingVAR)return;
  const h=clubs[simState.home],a=clubs[simState.away],hp=matchActivePower(h.id),ap=matchActivePower(a.id);
  const homeAdv=hp+2+(h.id===manager?tacticModifier():0),awayAdv=ap+(a.id===manager?tacticModifier():0);
  const homeReds=simState.dismissals?.[h.id]||0,awayReds=simState.dismissals?.[a.id]||0;
  const adjustedHome=Math.max(15,homeAdv-homeReds*7),adjustedAway=Math.max(15,awayAdv-awayReds*7);
- const homeChance=Math.max(.12,Math.min(.88,adjustedHome**3/Math.max(1,adjustedHome**3+adjustedAway**3)));
+ const powerRatio=adjustedHome/adjustedAway,homeChance=finalLeagueLive()?Math.max(.12,Math.min(.88,adjustedHome**3/Math.max(1,adjustedHome**3+adjustedAway**3))):Math.max(.25,Math.min(.75,1/(1+Math.exp(-1.65*Math.log(powerRatio)))));
  const homeSide=Math.random()<homeChance,attacker=homeSide?h:a,defender=homeSide?a:h;
  const quality=Math.max(.4,Math.min(2.2,(homeSide?adjustedHome:adjustedAway)/Math.max(1,homeSide?adjustedAway:adjustedHome)));
  const actor=randomMatchActor(homeSide),actorName=actor?.name||attacker.name;
@@ -2841,7 +2848,7 @@ function minuteEvent(){
  if(roll>1-injuryRisk&&injuryTarget){matchInjuryEvent(injuryTarget.club,injuryTarget);return}
  simState.ball=simState.ball||{x:50,y:50};
  const drama=(simState.minute>=90+simAddedFirst()&&simState.homeGoals===simState.awayGoals)?1.35:1;
- const tail=simState.goalTail||(simState.goalTail=newGoalTail()),factor=goalTailFactor(simState.homeGoals,simState.awayGoals,homeSide,tail);const goalChance=Math.min(.105,.021*quality*finish*drama*create)*factor,penaltyChance=.008*factor,eventBase=goalChance+penaltyChance;if(roll<goalChance){
+ const tail=simState.goalTail||(simState.goalTail=newGoalTail()),factor=goalTailFactor(simState.homeGoals,simState.awayGoals,homeSide,tail);const ownGoals=homeSide?simState.homeGoals:simState.awayGoals,otherGoals=homeSide?simState.awayGoals:simState.homeGoals,balanced=matchScoreBalance(homeSide?powerRatio:1/powerRatio,shot-(stop*.65+tackle*.35),ownGoals-otherGoals,ownGoals,finalLeagueLive());const goalChance=(finalLeagueLive()?Math.min(.105,.021*quality*finish*drama*create):Math.min(.055,.024*balanced.quality*balanced.finish*Math.pow(create,.45)*drama)*balanced.tempo)*factor,penaltyChance=.008*factor*(finalLeagueLive()?1:balanced.tempo),eventBase=goalChance+penaltyChance;if(roll<goalChance){
   if(Math.random()<.32){
    simState.pendingVAR={kind:'goal',stage:'provisional',reviewAt:Date.now()+2000,decisionAt:Date.now()+4000,home:homeSide,teamId:attacker.id,playerId:actor?.id??null,disallowed:Math.random()<.47,assistId};
    simEvent(attacker.id,actor,'provisional',actorName+' 득점! VAR 확인 전 잠정 골입니다.','GOAL!');
