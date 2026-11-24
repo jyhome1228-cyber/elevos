@@ -3861,7 +3861,7 @@ function attackQuality81(pattern,depth,plan,opp){
  return Math.max(.65,Math.min(1.5,base*(pattern.stage==='chance'?1.2:pattern.stage==='delivery'?1.08:.82)*(depth>65?1.12:1)));
 }
 function chanceValue83(depth,kind){
- const base=depth>=78?.23:depth>=65?.15:depth>=50?.085:.035;
+ const base=depth>=78?.25:depth>=65?.17:depth>=50?.105:.055;
  return Math.round(Math.max(.02,Math.min(.36,base*(kind==='cross'?.85:kind==='through'||kind==='counter'?1.18:1)))*1000)/1000;
 }
 function minuteEvent(){
@@ -3879,7 +3879,7 @@ function minuteEvent(){
  const currentCarrier=activeMatchPlayers(attacker.id).find(p=>p.id===simState.ballCarrier80&&p.pos!=='GK');const actor=(pattern.stage==='chance'&&currentCarrier?currentCarrier:null)||randomMatchActor(homeSide),actorName=actor?.name||attacker.name;
  const defensiveActor=randomMatchActor(!homeSide,'defend');const actorRole=actor?playerRole82(actor):'finisher';
  const last=activeMatchPlayers(attacker.id).find(p=>p.id===simState.lastPass79&&p.id!==actor?.id);
- const passer=last||randomMatchActor(homeSide,'pass',actor?.id),assistId=passer&&depth>55&&Math.random()<.72?passer.id:null;
+ const passer=last||randomMatchActor(homeSide,'pass',actor?.id),assistId=last&&depth>55&&Math.random()<.85?last.id:null;
  const d=actor?detailed(actor):null;
  const keeper=activeMatchKeeper(defender.id),kd=keeper?detailed(keeper):null,def=defensiveActor?detailed(defensiveActor):null;const boost=p=>p?(enhancementLevel(p)-1)*1.5:0;const stat=matchActionStat;const shot=d?(stat(actor,'finishing')+stat(actor,'positioning')+stat(actor,'shotPower'))/3:60,stop=kd?(stat(keeper,'reflex')+stat(keeper,'handling')+stat(keeper,'gkPosition'))/3:50,tackle=def?(stat(defensiveActor,'tackle')+stat(defensiveActor,'marking')+stat(defensiveActor,'interception'))/3:50;const finish=Math.max(.35,Math.min(2.8,Math.exp((shot-(stop*.65+tackle*.35))/48)));
  const pd=passer?detailed(passer):d;const create=Math.max(.6,Math.min(1.65,pd?(stat(passer||actor,'shortPass')+stat(passer||actor,'vision')+stat(passer||actor,'firstTouch'))/225:1));
@@ -3906,7 +3906,7 @@ function minuteEvent(){
   const id=defensiveActor?.id;simState.playerYellows=simState.playerYellows||{};
   if(id!=null)simState.playerYellows[id]=(simState.playerYellows[id]||0)+1;
   simEvent(defender.id,defensiveActor,'yellow',(defensiveActor?.name||defender.name)+' 경고! 거친 태클이 나왔습니다.','YELLOW CARD');
-  if(id!=null&&simState.playerYellows[id]>=2){const ids=teamMatchLineup(defender.id).slice();ids[ids.indexOf(id)]=null;assignTeamMatchLineup(defender.id,ids);(simState.dismissedIds||=[]).push(id);simState.dismissals=simState.dismissals||{};simState.dismissals[defender.id]=(simState.dismissals[defender.id]||0)+1;simEvent(defender.id,defensiveActor,'red',defensiveActor.name+' 경고 누적 퇴장!','RED CARD')}
+  if(id!=null&&simState.playerYellows[id]>=2){simState.redCards=(simState.redCards||0)+1;const ids=teamMatchLineup(defender.id).slice();ids[ids.indexOf(id)]=null;assignTeamMatchLineup(defender.id,ids);(simState.dismissedIds||=[]).push(id);simState.dismissals=simState.dismissals||{};simState.dismissals[defender.id]=(simState.dismissals[defender.id]||0)+1;simEvent(defender.id,defensiveActor,'red',defensiveActor.name+' 경고 누적 퇴장!','RED CARD')}
  }else if(roll<eventBase+.004){
   simState.redCards=(simState.redCards||0)+1;
   if(!simState.dismissals)simState.dismissals={};
@@ -3921,17 +3921,17 @@ function minuteEvent(){
   const serious=!!actor&&Math.random()<.18;simEvent(defender.id,defensiveActor,'red',(defensiveActor?.name||defender.name)+(serious?' 과격한 태클로 퇴장!':' 퇴장! 수적 열세가 발생했습니다.'),'RED CARD',{seriousFoul:serious});if(serious)matchInjuryEvent(attacker.id,actor,Math.random()<.12?4:3);
  }else if(roll<eventBase+.027){
   simEvent(defender.id,defensiveActor,'foul',(defensiveActor?.name||defender.name)+' 파울! '+actorName+'에게 프리킥이 주어집니다.','FOUL');
- }else if(roll<eventBase+.027+Math.min(.12,.045*quality*finish)){
+ }else if(roll<eventBase+.027+Math.max(.105,Math.min(.24,.165*Math.sqrt(quality)*(depth>55?1.12:.82)))){
   const onTarget=Math.random()<Math.max(.24,Math.min(.78,.46+(shot-tackle)/220+(actorRole==='finisher'?.045:actorRole==='target'&&pattern.kind==='cross'?.05:0)));
   simEvent(attacker.id,actor,'shot',actorName+(onTarget?'의 유효 슈팅!':'의 슈팅이 골문을 벗어납니다.')+' · '+attackLabel81(pattern.kind),null,{onTarget,xg:xg83,pattern:pattern.kind});
   if(onTarget&&keeper)simEvent(defender.id,keeper,'save',keeper.name+' 선방! '+actorName+'의 슈팅을 막아냈습니다.');
- }else if(roll<.132*quality*create){
+ }else if(roll<eventBase+.027+Math.max(.105,Math.min(.24,.165*Math.sqrt(quality)*(depth>55?1.12:.82)))+.018){
   simEvent(attacker.id,actor,'offside',actorName+'이(가) 오프사이드 위치에서 공을 받았습니다.');
- }else if(roll<.17){
+ }else if(roll<eventBase+.027+Math.max(.105,Math.min(.24,.165*Math.sqrt(quality)*(depth>55?1.12:.82)))+.055){
   simEvent(attacker.id,actor,'corner',actorName+'의 돌파로 '+attacker.name+'이(가) 코너킥을 얻습니다.');simState.attack81={team:attacker.id,kind:'corner',stage:'build',restart:true,minute:simState.minute};
- }else if(roll<.21){
+ }else if(roll<eventBase+.027+Math.max(.105,Math.min(.24,.165*Math.sqrt(quality)*(depth>55?1.12:.82)))+.075){
   simEvent(attacker.id,actor,'freekick',actorName+'이(가) 프리킥 기회를 얻었습니다.');simState.attack81={team:attacker.id,kind:'freekick',stage:'build',restart:true,minute:simState.minute};
- }else if(roll<.31*create){
+ }else if(roll<eventBase+.027+Math.max(.105,Math.min(.24,.165*Math.sqrt(quality)*(depth>55?1.12:.82)))+.075+.10*create){
   simEvent(attacker.id,actor,'attack',actorName+({counter:'이(가) 빠르게 역습을 전개합니다.',cross:'이(가) 측면 공간을 파고듭니다.',through:'이(가) 수비 뒷공간으로 침투합니다.',build:'이(가) 중앙에서 연계하며 전진합니다.'}[pattern.kind]||'이(가) 공격을 전개합니다.'),null,{pattern:pattern.kind});
  }else {const current=activeMatchPlayers(attacker.id).find(p=>p.id===simState.ballCarrier80),pass=current||passer||actor,from=pitchPoint80(simState,pass?.id,attacker)||simState.ball,dir=homeSide?1:-1;
  const receiver=weightedMatchPlayer(activeMatchPlayers(attacker.id).filter(p=>p.id!==pass?.id&&p.pos!=='GK'),p=>{const q=pitchPoint80(simState,p.id,attacker);if(!q)return 1;const dx=(q.x-from.x)*dir,dist=Math.hypot(q.x-from.x,q.y-from.y),ideal=pattern.kind==='counter'||pattern.kind==='through'?30:pattern.kind==='cross'?24:12+plan.passing*.18;const role=ROLE_FAMILY[p.pos]||'MF',wide=Math.abs(q.y-50)>20;const bias=pattern.kind==='cross'?(pattern.stage==='build'?(wide?1.8:.7):(role==='FW'?1.9:.65)):pattern.kind==='through'||pattern.kind==='counter'?(role==='FW'?1.8:.8):role==='MF'?1.45:1;return Math.max(.1,1.6-Math.abs(dist-ideal)/45)*(dx>0?1.3:.75)*playerFitnessFactor(p)*bias})||actor;
