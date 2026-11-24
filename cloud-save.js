@@ -22,12 +22,12 @@ function draw(){
   $('cloud-google').onclick=()=>act(()=>A.signInWithPopup(auth,new A.GoogleAuthProvider()));
   if($('cloud-reset'))$('cloud-reset').onclick=()=>{const input=$('cloud-email');if(!input.value.trim()||!input.checkValidity()){message('재설정할 이메일을 입력해 주세요.');input.focus();return}act(async()=>{await A.sendPasswordResetEmail(auth,input.value.trim());message('재설정 이메일 발송을 요청했습니다.')})};
  }else{
-  p.insertAdjacentHTML('beforeend','<p id="cloud-identity"></p><p>클라우드 저장은 직접 실행하는 방식입니다. 다른 기기에서 불러올 수 있으며 게스트 기록은 별도로 유지됩니다.</p><div class="cloud-actions"><button class="btn" id="cloud-upload">클라우드 저장</button><button class="btn sub" id="cloud-download">클라우드 불러오기</button><button class="btn sub" id="cloud-migrate">게스트 기록 가져오기</button><button class="btn sub" id="cloud-logout">로그아웃</button></div>');
+  p.insertAdjacentHTML('beforeend','<p id="cloud-identity"></p><p>게임 로그아웃 시 클라우드에도 저장합니다. 다른 기기에서 불러올 수 있으며 게스트 기록은 별도로 유지됩니다.</p><div class="cloud-actions"><button class="btn" id="cloud-upload">클라우드 저장</button><button class="btn sub" id="cloud-download">클라우드 불러오기</button><button class="btn sub" id="cloud-migrate">게스트 기록 가져오기</button><button class="btn sub" id="cloud-logout">로그아웃</button></div>');
   $('cloud-identity').textContent=user.email||'Google 계정';
   $('cloud-upload').onclick=()=>act(upload);
   $('cloud-download').onclick=()=>act(download);
   $('cloud-migrate').onclick=()=>act(migrate);
-  $('cloud-logout').onclick=()=>act(async()=>{if(local.busy)throw Error('경기 종료 후 로그아웃하세요.');await A.signOut(auth);if(local.uid)local.switchAccount(null)});
+  $('cloud-logout').onclick=()=>{$('cloud-modal')?.remove();if(typeof requestGameLogout==='function')requestGameLogout()};
  }
  message(notice);
 }
@@ -35,7 +35,7 @@ function bindLocalBackup(){const exp=$('cloud-export'),imp=$('cloud-import'),fil
 function open(mode='login'){accountMode=mode==='register'?'register':'login';if($('cloud-modal')){draw();return;}if(!$('elevos-auth-style')){const style=document.createElement('style');style.id='elevos-auth-style';style.textContent=".cloud-panel{background:linear-gradient(145deg,#303d4e,#17212c 65%,#151b24)!important;border:1px solid #758aa3!important;border-radius:8px!important;box-shadow:0 20px 80px #0009}.auth-brand{text-align:center;margin:22px 0}.auth-brand img{width:145px;max-width:60%;display:block;margin:0 auto 18px;filter:brightness(0) invert(1)}.auth-brand strong{font-size:19px;color:#f0f5fc}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 18px}.cloud-panel #auth-form input{box-sizing:border-box;border-radius:4px;padding:12px}.auth-primary,.auth-google{width:100%;min-height:44px;margin-top:16px!important}.auth-text{background:none;border:0;color:#c6d6e8;cursor:pointer;display:block;margin:16px auto!important}.auth-note{text-align:center;margin:16px 0 0;color:#bccbdb!important}";document.head.appendChild(style)};const el=document.createElement('div');el.id='cloud-modal';el.className='cloud-modal';if(window.ElevosEntry?.isOpen())el.style.zIndex='100001';el.innerHTML='<section id="cloud-panel" class="cloud-panel" role="dialog" aria-modal="true" aria-label="계정"></section>';document.body.appendChild(el);draw()}
 function entryLogin(email,password){if(!configured){message('현재 베타테스터 로그인만 이용할 수 있습니다.');return}if(!ready){message('계정 서비스 연결 중입니다.');return}return act(()=>A.signInWithEmailAndPassword(auth,email,password))}
 function entryReset(email){if(!configured||!ready){message('계정 서비스가 연결되지 않았습니다.');return}if(!email||!email.includes('@')){message('재설정할 이메일을 입력해 주세요.');return}return act(async()=>{await A.sendPasswordResetEmail(auth,email);message('비밀번호 재설정 이메일 발송을 요청했습니다.')})}
-window.ElevosCloud={open,entryLogin,entryReset};
+window.ElevosCloud={open,entryLogin,entryReset,logoutSavedGame};
 async function act(fn){
  if(busy)return;busy=true;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=true);
  try{await fn()}catch(e){message(({'auth/invalid-credential':'이메일 또는 비밀번호를 확인해 주세요.','auth/email-already-in-use':'이미 가입된 이메일입니다. 로그인해 주세요.','auth/weak-password':'비밀번호는 6자 이상이어야 합니다.','auth/invalid-email':'이메일 형식을 확인해 주세요.','auth/popup-closed-by-user':'로그인 창이 닫혔습니다. 다시 시도해 주세요.','auth/network-request-failed':'네트워크 연결을 확인해 주세요.','auth/too-many-requests':'요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'})[e.code]||('처리 실패: '+(e.message||'다시 시도하세요.')))}finally{busy=false;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=false)}
@@ -50,15 +50,16 @@ function split(data){
 }
 function join(groups){return {save:{...groups.core,players:groups.players,calendarMatchArchive:groups.calendar,...groups.cards,economyLog:groups.economy},archive:{matches:groups.matches,seasons:groups.seasons,cups:groups.cups,leagueScores:groups.scores}}}
 function chunks(value){const str=JSON.stringify(value??null),out=[];for(let i=0;i<str.length;i+=100000)out.push(str.slice(i,i+100000));return out}
-async function upload(){
- const uid=requireAccount();if(!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
- const snapshot=local.snapshot(),groups=split(snapshot),before=await F.getDocFromServer(ptr(uid)),base=before.exists()?before.data().revision:null;
- if(base&&remoteRevision!==base){message('다른 기기의 기록이 있습니다. 먼저 불러오거나 새 기록으로 교체할지 확인하세요.');if(!confirm('기존 클라우드 기록을 현재 로컬 기록으로 교체할까요? 이전 리비전은 보존됩니다.'))return}
+async function upload(options={}){
+ const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
+ const snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic)return;throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await F.getDocFromServer(ptr(uid)),base=before.exists()?before.data().revision:null;
+ if(base&&remoteRevision!==base){message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
  const rev=crypto.randomUUID(),counts={};
- for(const key of parts){const list=chunks(groups[key]);counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++){if(auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');message('저장 중: '+key+' '+(i+1)+'/'+list.length);await F.setDoc(partRef(uid,rev,key,i),{data:list[i]})}}
+ for(const key of parts){const list=chunks(groups[key]);counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++){if(auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');message('저장 중: '+key+' '+(i+1)+'/'+list.length);if($('game-logout-message'))$('game-logout-message').textContent='클라우드 저장 중입니다. '+key+' '+(i+1)+'/'+list.length;await F.setDoc(partRef(uid,rev,key,i),{data:list[i]})}}
  await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다. 다시 확인하세요.');tx.set(ptr(uid),{revision:rev,counts,schema:1,updatedAt:F.serverTimestamp()})});
  remoteRevision=rev;message('클라우드 저장 완료');
 }
+async function logoutSavedGame(){if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');busy=true;try{await upload({automatic:true});sessionStorage.setItem('elevos-signed-out','1');sessionStorage.removeItem('elevos-beta-session');await A.signOut(auth)}finally{busy=false}}
 async function download(){
  const uid=requireAccount();if(!confirm('현재 계정의 로컬 기록을 클라우드 기록으로 교체할까요?'))return;
  const snap=await F.getDocFromServer(ptr(uid));if(!snap.exists()){message('클라우드 저장 기록이 없습니다.');return}
@@ -81,9 +82,9 @@ async function boot(){
   const instance=app.initializeApp(cfg);auth=A.getAuth(instance);db=F.getFirestore(instance);
   await A.setPersistence(auth,A.browserSessionPersistence);
   A.onAuthStateChanged(auth,u=>{user=u;ready=true;remoteRevision=null;
-   if(u)sessionStorage.removeItem('elevos-beta-session');
+   if(u){sessionStorage.removeItem('elevos-beta-session');sessionStorage.removeItem('elevos-signed-out')}
    if(u&&local.uid!==u.uid){if(local.busy){message('경기 종료 후 계정 메뉴에서 다시 연결하세요.');draw();return}local.switchAccount(u.uid);return}
-   if(!u&&local.uid){if(!local.busy)local.switchAccount(null);return}
+   if(!u&&local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.removeItem('elevos-beta-session');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname);return}
    const btn=$('cloud-account');if(btn)btn.textContent=u?'내 계정':'로그인';draw();if(u&&local.uid===u.uid){$('cloud-modal')?.remove();window.ElevosEntry?.release()}
   });
  }catch(e){message('Firebase 연결 실패: '+(e.code||e.message));draw()}
