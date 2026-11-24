@@ -955,6 +955,10 @@ html body .result-event{border-bottom:1px solid rgba(190,199,212,.22)!important;
 html body .result-statline,html body .result-statline strong{background:transparent!important}
 .shootout-screen{text-align:center}.shootout-score{display:grid;grid-template-columns:1fr auto 1fr;gap:15px;align-items:center;margin:20px auto;max-width:760px}.shootout-score>div{display:flex;flex-direction:column;align-items:center;gap:8px}.shootout-score .crest{width:60px!important;height:70px!important}.shootout-score b{font-size:40px}.shootout-score small{color:#bfc9d7}.shootout-marks{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:24px}.shootout-marks i{font-style:normal;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#314838;color:#bde9c4}.shootout-marks i.miss{background:#51343a;color:#f2b5bc}.shootout-goal{position:relative;background:#287b46;height:160px;max-width:460px;margin:20px auto;display:grid;place-items:end center;padding:16px}.shootout-net{position:absolute;top:18px;width:65%;height:90px;border:4px solid white;background:repeating-linear-gradient(90deg,#fff4 0 1px,transparent 1px 15px),repeating-linear-gradient(0deg,#fff4 0 1px,transparent 1px 15px)}.shootout-actions{display:flex;justify-content:center;gap:8px;margin:12px}.archive-list{max-height:340px;overflow:auto}.cup-tree-modal #archive-body h3{margin-top:20px}
 @media(max-width:760px){.result-detail-grid{grid-template-columns:1fr}.shootout-score b{font-size:30px}}
+</style><style>
+html body .game-reward .reward-choice{padding:24px 18px 18px;min-height:290px;gap:10px;background:#222934!important}.game-reward .reward-choice .reward-symbol{width:110px;height:110px;background:transparent!important;border:0!important;margin:0 auto 4px}.game-reward .reward-choice .reward-symbol svg{width:104px;height:104px}.game-reward .reward-coins{border-top:3px solid #c3a15d!important}.game-reward .reward-growth{border-top:3px solid #78a6d3!important}.game-reward .reward-recruit{border-top:3px solid #8ab9a7!important}.game-reward .reward-choice>span{font-size:23px!important}.game-reward .reward-choice:hover{border-color:#aeb9c9!important}
+.champion-celebration{display:flex;align-items:center;gap:22px;background:linear-gradient(100deg,#382d18,#1b2029)!important;border:1px solid #9d824a!important}.champion-celebration h2{font-size:22px;margin:6px 0}.champion-prize{margin-left:auto;text-align:right}.champion-prize small{display:block}.champion-prize b{font-size:30px;color:#f2d28e}.result-next .btn,.reward-complete .btn{width:100%}.reward-complete{text-align:center;padding:35px!important}.reward-complete .btn{max-width:320px;margin:16px auto}.result-detail-grid{align-items:stretch}.result-detail-grid .card{margin-bottom:0}.result-detail-grid .result-events{max-height:580px}.archive-list:empty:after{content:'저장된 경기 기록이 없습니다.';display:block;color:#b9c4d2;padding:12px 0}
+@media(max-width:640px){.champion-celebration{flex-wrap:wrap}.champion-celebration svg{width:70px;height:70px}.champion-prize{margin-left:0;text-align:left}}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1284,7 +1288,7 @@ let careerArchive=(()=>{try{return JSON.parse(localStorage.getItem(archiveStorag
 function persistCareerArchive(){try{localStorage.setItem(archiveStorageKey,JSON.stringify(careerArchive))}catch(e){console.warn('경기 기록 저장 실패',e)}}
 function calendarArchiveKey(y,club,key,stage){return [y,club,key,stage].join(':')}
 function archiveCalendarMatch(m){if(!m)return;const archiveKey=calendarArchiveKey(m.season,m.club,m.competition||'league',m.competition&&m.competition!=='league'?m.stage:m.round);careerArchive.matches[archiveKey]=JSON.parse(JSON.stringify(m));persistCareerArchive();const key=m.competition||'league';calendarMatchArchive[calendarArchiveKey(m.season,m.club,key,key==='league'?m.round:m.stage)]={home:m.home,away:m.away,events:(m.events||[]).filter(e=>e.type==='goal').map(e=>({...e,scorer:players.find(p=>p.id===e.playerId)?.name||null}))};}
-if(lastMatch&&!calendarMatchArchive[calendarArchiveKey(lastMatch.season,lastMatch.club,lastMatch.competition||'league',lastMatch.competition&&lastMatch.competition!=='league'?lastMatch.stage:lastMatch.round)])archiveCalendarMatch(lastMatch);
+if(lastMatch)archiveCalendarMatch(lastMatch);
 let scheduleRound=round,matchTab='preview';
 let newsRead=false;
 function save(){
@@ -1564,13 +1568,24 @@ function save(){
  catch(e){console.warn('저장 실패',e)}
 }
 
+function openMatchRewards(){matchTab='rewards';render();window.scrollTo(0,0)}
+window.openMatchRewards=openMatchRewards;
+function championCelebration(r){return '<section class="card champion-celebration">'+rewardAsset('trophy')+'<div><div class="eyebrow">CHAMPIONS</div><h2>'+txt(r.competition==='leagueCup'?'리그컵':'위너스컵')+' 우승을 축하합니다!</h2><strong>'+txt(clubs[r.club].name)+'</strong></div><div class="champion-prize"><small>우승 상금 · 지급 완료</small><b>'+formatGBP(r.championBonus)+'</b></div></section>'}
+function rewardAsset(kind){
+ const wrap=(body)=>'<svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true">'+body+'</svg>';
+ if(kind==='coins')return wrap('<defs><linearGradient id="gold" x2="1" y2="1"><stop stop-color="#f9e2a0"/><stop offset="1" stop-color="#a56e28"/></linearGradient></defs><g stroke="#d8aa58" stroke-width="2" fill="url(#gold)"><rect x="16" y="67" width="55" height="29" rx="9"/><ellipse cx="43" cy="67" rx="27" ry="9"/><path d="M16 77Q43 95 71 77M16 86Q43 104 71 86" fill="none"/><circle cx="77" cy="46" r="33"/><circle cx="77" cy="46" r="26" fill="#b9873c" stroke="#f5db91"/></g><text x="77" y="60" font-size="39" font-weight="bold" text-anchor="middle" fill="#fff2ca">£</text>');
+ if(kind==='growth')return wrap('<path d="M60 8L105 31V80L60 108L15 80V31Z" fill="#304d6c" stroke="#8bb9e2" stroke-width="2"/><path d="M60 17L96 36V75L60 97L24 75V36Z" fill="#21354e" stroke="#577fa5"/><path d="M36 62L60 38L84 62H69V82H51V62Z" fill="#a6d8ff"/><text x="60" y="31" fill="#dbefff" font-size="11" text-anchor="middle" font-weight="bold">XP</text>');
+ if(kind==='recruit')return wrap('<rect x="30" y="14" width="63" height="87" rx="5" transform="rotate(9 60 60)" fill="#344f50" stroke="#88aaa6"/><rect x="19" y="12" width="68" height="92" rx="5" fill="#263f40" stroke="#a3d0c2" stroke-width="2"/><circle cx="53" cy="40" r="13" fill="#b7ddd1"/><path d="M30 77V69Q30 55 53 55Q76 55 76 69V77Z" fill="#b7ddd1"/><circle cx="86" cy="83" r="20" fill="#456d61" stroke="#d2e9df" stroke-width="2"/><path d="M76 83H96M86 73V93" stroke="#fff" stroke-width="3"/>');
+ if(kind==='trophy')return wrap('<path d="M32 17H88V50Q88 73 60 78Q32 73 32 50Z" fill="#d6a94f" stroke="#ffdfa0" stroke-width="2"/><path d="M32 26H13V42Q13 62 34 62M88 26H107V42Q107 62 86 62" stroke="#eac375" stroke-width="7" fill="none"/><path d="M55 77H65V94H83V104H37V94H55Z" fill="#d6a94f" stroke="#ffdfa0" stroke-width="2"/><path d="M60 30L65 40L76 42L68 50L70 61L60 56L50 61L52 50L44 42L55 40Z" fill="#fff0ba"/>');
+ return wrap('<circle cx="60" cy="60" r="45" fill="#29473b" stroke="#8fc6a5" stroke-width="2"/><path d="M37 60L53 76L85 43" stroke="#c0ebce" stroke-width="9" fill="none"/>');
+}
 function rewardChoices(){
  const options=[
   ['coins','추가 파운드','£100','구단 이적 자금 +£100'],
   ['growth','전 선수 경험치','80 XP','보유 선수 전원에게 +80 XP'],
   ['recruit','유망주 보관함','NEW PLAYER','보관함 입고 (최대 20명)']
  ];
- return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice"><div class="reward-symbol">'+gameSvgIcon(r[0],28)+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
+ return '<section class="card"><div class="reward-stage-head"><div><div class="eyebrow">BONUS PICK</div><h2>보너스 카드 3장 중 1장 선택</h2></div><span class="tag">1장 선택</span></div><p class="match-bonus-caption">경기 기본 보상은 이미 지급됐습니다. 마음에 드는 추가 보상을 하나 선택하세요.</p><div class="reward-choice-grid game-reward">'+options.map((r,i)=>'<article class="reward-choice reward-'+r[0]+'"><div class="reward-symbol">'+rewardAsset(r[0])+'</div><strong>'+r[1]+'</strong><span style="font-size:19px;font-weight:700">'+r[2]+'</span><small>'+r[3]+'</small><button class="btn" onclick="claimReward('+i+')">이 보상 선택</button></article>').join('')+'</div></section>';
 }
 function awardTrainingXP(){
  const squad=myPlayers();if(!squad.length)return '보유 선수가 없습니다';
@@ -1596,7 +1611,8 @@ function claimReward(option){
  else if(option===1)description=awardTrainingXP();
  else description=recruitYouthPlayer();
  latestReward={club:manager,season:pendingReward.season,round:pendingReward.round,description};
- pendingReward=null;matchTab='rewards';save();render();
+ if(lastMatch){lastMatch.bonusReward={option,description};archiveCalendarMatch(lastMatch)}
+ pendingReward=null;matchTab='rewards';save();render();window.scrollTo(0,0);
 }
 function viewMatchOriginal(){
  let html=viewMatchCore();
@@ -2205,6 +2221,8 @@ function resultDataPanel(r){
 function viewMatchFinished(){
  const result=lastMatch?.club===manager?lastMatch:null;
  if(!result)return viewMatchCore();
+ if(matchTab==='rewards'&&pendingReward?.club===manager)return '<div class="match-result-page">'+(result.championBonus?championCelebration(result):'')+rewardChoices()+'</div>';
+ if(matchTab==='rewards'&&!pendingReward&&latestReward?.club===manager)return '<section class="card reward-complete">'+rewardAsset('check')+'<h2>보상 수령 완료</h2><p>'+txt(latestReward.description)+'</p><button class="btn" onclick="go(\'dashboard\')">홈으로 돌아가기</button></section>';
  const home=clubs[result.home],away=clubs[result.away];
  const events=result.events||[],ourEvents=events.filter(e=>e.team===manager);
  const goalEvents=events.filter(e=>e.type==='goal');
@@ -2222,8 +2240,8 @@ function viewMatchFinished(){
  '</div></div></section>';
  const eventsPanel='<section class="card"><div class="row"><h2 style="margin:0">주요 경기 상황</h2><span class="tag">실제 시뮬레이션 기록</span></div><div class="result-events">'+resultEventList(events)+'</div></section>';
  const outstanding=pendingReward?.club===manager;
- const rewardPanel=outstanding?rewardChoices():'<section class="card"><div class="reward-selected">✓ '+txt(latestReward?.club===manager?latestReward.description:'경기 보상 수령 완료')+'</div><div class="match-continue"><button class="btn sub" onclick="go(\'squad\')">선수단 확인</button><button class="btn" onclick="go(\'dashboard\')">다음 경기 준비</button></div></section>';
- return '<div class="match-result-page '+(result.outcome==='승리'?'is-win':result.outcome==='패배'?'is-loss':'is-draw')+'">'+summary+'<div class="result-detail-grid">'+eventsPanel+resultDataPanel(result)+'</div>'+rewardPanel+'</div>';
+ const rewardPanel=outstanding?(matchTab==='rewards'?rewardChoices():'<section class="card result-next"><button class="btn" onclick="openMatchRewards()">경기 보상 받기</button></section>'):'<section class="card"><div class="reward-selected">✓ '+txt(latestReward?.club===manager?latestReward.description:'경기 보상 수령 완료')+'</div><div class="match-continue"><button class="btn sub" onclick="go(\'squad\')">선수단 확인</button><button class="btn" onclick="go(\'dashboard\')">다음 경기 준비</button></div></section>';
+ return '<div class="match-result-page '+(result.outcome==='승리'?'is-win':result.outcome==='패배'?'is-loss':'is-draw')+'">'+(result.championBonus?championCelebration(result):'')+summary+'<div class="result-detail-grid">'+eventsPanel+resultDataPanel(result)+'</div>'+rewardPanel+'</div>';
 }
 function viewMatch(){
  if(manager===null)return viewStart();
@@ -2711,8 +2729,8 @@ function seasonAwardHTML(){
 }
 
 
-const OLD_CUP_RULES={leagueCup:{name:'리그컵',rounds:[5,11,17],stages:['8강','4강','결승'],prize:400},worldCup:{name:'위너스 월드리그',rounds:[4,9,14,19],stages:['16강','8강','4강','결승'],prize:850}};;
-const NEW_CUP_RULES={leagueCup:{name:'리그컵',rounds:[2,5,8,11,15,19],stages:['64강','32강','16강','8강','4강','결승'],prize:400},worldCup:{name:'위너스컵',rounds:[4,7,10,14,18],stages:['32강','16강','8강','4강','결승'],prize:850}};
+const OLD_CUP_RULES={leagueCup:{name:'리그컵',rounds:[5,11,17],stages:['8강','4강','결승'],prize:1000},worldCup:{name:'위너스 월드리그',rounds:[4,9,14,19],stages:['16강','8강','4강','결승'],prize:1000}};;
+const NEW_CUP_RULES={leagueCup:{name:'리그컵',rounds:[2,5,8,11,15,19],stages:['64강','32강','16강','8강','4강','결승'],prize:1000},worldCup:{name:'위너스컵',rounds:[4,7,10,14,18],stages:['32강','16강','8강','4강','결승'],prize:1000}};
 let CUP_RULES=saved?.cupState&&!saved.cupState.formatVersion&&saved.cupState.season===season?OLD_CUP_RULES:NEW_CUP_RULES;
 let previousTopFour=saved?.previousTopFour||null;
 let cupState=saved?.cupState||null,activeCompetition=saved?.activeCompetition||'league';
@@ -2828,8 +2846,8 @@ function playCupMatch(){
  const c=cupState[key],playedStage=c.stage,shootout=r.homeGoals===r.awayGoals,won=settleCupStage(key,r.homeGoals,r.awayGoals,r.shootout),ids=new Set(r.participants||currentLineup());
  const lineupOut=[];let totalXP=0;
  for(const p of myPlayers()){const used=ids.has(p.id),xp=used?rand(18,34):rand(8,14);p.xp+=xp;if(used){totalXP+=xp;lineupOut.push({id:p.id,rating:matchRating(p,rand(-6,8)/10),xp})}while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}}
- const money=(won?75:30)+(c.champion===manager?CUP_RULES[key].prize:0);walletGBP+=money;
- lastMatch={club:manager,season,round,competition:key,stage:playedStage,penaltyShootout:shootout,shootout:r.shootout||null,home:r.pair[0],away:r.pair[1],homeGoals:r.homeGoals,awayGoals:r.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:won?'승리':'패배',leaguePts:0,events:r.events||[],substitutions:r.substitutions||[],instruction:r.instruction||tactic};
+ const championBonus=c.champion===manager?1000:0,baseMoney=won?75:30,money=baseMoney+championBonus;walletGBP+=money;
+ lastMatch={club:manager,season,round,competition:key,stage:playedStage,stageLabel:CUP_RULES[key].stages[playedStage],championBonus,baseMoney,penaltyShootout:shootout,shootout:r.shootout||null,home:r.pair[0],away:r.pair[1],homeGoals:r.homeGoals,awayGoals:r.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:won?'승리':'패배',leaguePts:0,events:r.events||[],substitutions:r.substitutions||[],instruction:r.instruction||tactic};
  archiveCalendarMatch(lastMatch);
  recoverFitnessAfterMatch([...ids]);advanceInjuryRecovery(round);fixInjuredLineup();
  pendingReward={club:manager,competition:key,season,round};matchTab='result';simState=null;simFinalOverride=null;activeCompetition='league';save();render();
@@ -2856,21 +2874,42 @@ window.openCupBracket=openCupBracket;
 function cupBracketHTML(){return '<section class="card"><div class="row"><h2>구단 기록실</h2><button class="btn sub mini" onclick="openCareerArchive()">기록실 열기</button></div><p class="muted small">시즌별 경기, 선수 기록, 역대 성적</p></section>'}
 
 
+function migrateCareerArchive(){
+ if(manager===null)return;
+ const add=(m)=>{const key=calendarArchiveKey(m.season,m.club,m.competition||'league',m.competition&&m.competition!=='league'?m.stage:m.round);if(!careerArchive.matches[key])careerArchive.matches[key]=m};
+ for(const [key,data] of Object.entries(calendarMatchArchive)){
+  const [y,club,comp,stage]=key.split(':');if(Number(club)!==Number(manager))continue;
+  const old=careerArchive.matches[key];if(old)continue;
+  const h=data.home,a=data.away,events=data.events||[];
+  add({season:Number(y),club:Number(club),competition:comp,round:Number(stage),stage:Number(stage),home:h,away:a,homeGoals:null,awayGoals:null,events,partial:true});
+ }
+ if(lastMatch)archiveCalendarMatch(lastMatch);
+ const li=own().league;
+ for(let i=0;i<22;i++){const games=fixtures[li]?.[i]||[],idx=games.findIndex(g=>g.includes(manager)),score=matchResults[fixtureKey(season,li,i)]?.[idx];if(idx<0||!score)continue;
+  const [home,away]=games[idx],key=calendarArchiveKey(season,manager,'league',i),old=careerArchive.matches[key];
+  if(!old||old.homeGoals==null)careerArchive.matches[key]={...old,season,club:manager,competition:'league',round:i,home,away,homeGoals:score[0],awayGoals:score[1],partial:true};
+ }
+ for(const [k,games] of Object.entries(careerArchive.leagueScores||{})){const [y,league,round]=k.split('-').map(Number);for(const g of games||[]){if(g.home!==manager&&g.away!==manager)continue;const key=calendarArchiveKey(y,manager,'league',round),old=careerArchive.matches[key];if(!old||old.homeGoals==null)careerArchive.matches[key]={...old,season:y,club:manager,competition:'league',round,home:g.home,away:g.away,homeGoals:g.score[0],awayGoals:g.score[1],partial:true}}}
+ const mergeCups=(year,cups)=>{for(const [comp,c] of Object.entries(cups||{})){if(!['leagueCup','worldCup'].includes(comp)||!c)continue;for(const stage of c.history||[])for(const g of stage.games||[]){if(g.bye||![g.home,g.away].includes(manager))continue;const key=calendarArchiveKey(year,manager,comp,stage.stage),old=careerArchive.matches[key];if(!old||old.homeGoals==null)careerArchive.matches[key]={...old,season:Number(year),club:manager,competition:comp,stage:stage.stage,round:stage.stage,home:g.home,away:g.away,homeGoals:g.hg,awayGoals:g.ag,shootout:g.shootout||null,partial:true}}if(c.completed&&c.champion!=null)careerArchive.cups[year+':'+comp]=c}};
+ mergeCups(season,cupState);for(const [y,v] of Object.entries(careerArchive.seasons||{}))mergeCups(y,v.cups);for(const [key,c] of Object.entries(careerArchive.cups||{})){const [y,comp]=key.split(':');mergeCups(y,{[comp]:c})}
+ persistCareerArchive();
+}
 function openCareerArchive(){
- const records=Object.values(careerArchive.matches).filter(m=>m.club===manager),years=[...new Set([season,...records.map(m=>m.season),...Object.keys(careerArchive.seasons).map(Number)])].sort((a,b)=>b-a);
+ migrateCareerArchive();
+ const records=Object.values(careerArchive.matches).filter(m=>Number(m.club)===Number(manager)),years=[...new Set([season,...records.map(m=>m.season),...Object.keys(careerArchive.seasons).map(Number)])].sort((a,b)=>b-a);
  document.getElementById('elevos-game-dialog')?.remove();const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
  el.innerHTML='<div class="game-dialog-content cup-tree-modal"><div class="row"><h2>구단 기록실</h2><button class="btn sub mini" onclick="dismissGameDialog()">닫기</button></div><div class="row"><select id="archive-year" onchange="renderCareerArchive()">'+years.map(y=>'<option>'+y+'</option>').join('')+'</select><select id="archive-comp" onchange="renderCareerArchive()"><option value="all">전체 대회</option><option value="league">리그</option><option value="leagueCup">리그컵</option><option value="worldCup">위너스컵</option></select></div><div id="archive-body"></div></div>';document.body.appendChild(el);renderCareerArchive();
 }
 function renderCareerArchive(){
  const year=Number(document.getElementById('archive-year').value),comp=document.getElementById('archive-comp').value,host=document.getElementById('archive-body');
- const records=Object.values(careerArchive.matches).filter(m=>m.club===manager&&m.season===year&&(comp==='all'||(m.competition||'league')===comp));
+ const records=Object.values(careerArchive.matches).filter(m=>Number(m.club)===Number(manager)&&Number(m.season)===year&&(comp==='all'||(m.competition||'league')===comp));
  const stats={};const stat=id=>stats[id]||(stats[id]={id,goals:0,assists:0,ratings:0,count:0});
  for(const m of records){for(const e of m.events||[]){if(e.type==='goal'&&e.playerId!=null&&e.team===manager){stat(e.playerId).goals++;if(e.assistId!=null)stat(e.assistId).assists++}}for(const p of m.lineup||[]){stat(p.id).ratings+=p.rating;stat(p.id).count++}}
  const name=id=>txt(players.find(p=>p.id===id)?.name||'선수');
  const ranking=Object.values(stats).sort((a,b)=>b.goals-a.goals||b.assists-a.assists);
  const history=seasonAwards.map(a=>'<div class="result-rating-row"><span>'+a.season+' 시즌 · '+txt(LEAGUES[a.league][1])+'</span><b>'+a.rank+'위</b></div>').join('');
  const cups=Object.entries(careerArchive.cups).filter(([k,c])=>c.completed&&c.champion!=null).map(([k,c])=>'<div class="result-rating-row"><span>'+txt(k.split(':')[0])+' · '+(k.endsWith('leagueCup')?'리그컵':'위너스컵')+'</span><b>'+txt(clubs[c.champion].name)+'</b></div>').join('');
- host.innerHTML='<h3>경기 기록 · '+records.length+'경기</h3><div class="archive-list">'+records.map(m=>'<div class="result-rating-row"><span>'+txt(m.competition&&m.competition!=='league'?(m.competition==='leagueCup'?'리그컵':'위너스컵'):'리그 '+(m.round+1)+'R')+' · '+txt(clubs[m.home].name)+' vs '+txt(clubs[m.away].name)+'</span><b>'+m.homeGoals+' : '+m.awayGoals+'</b></div>').join('')+'</div><h3>선수 기록 · 저장된 경기 기준</h3><div class="tablewrap"><table><thead><tr><th>선수</th><th>득점</th><th>도움</th><th>평균 평점</th></tr></thead><tbody>'+ranking.map(p=>'<tr><td>'+name(p.id)+'</td><td>'+p.goals+'</td><td>'+p.assists+'</td><td>'+(p.count?(p.ratings/p.count).toFixed(2):'–')+'</td></tr>').join('')+'</tbody></table></div><p class="muted small">도움은 실제 이벤트에 기록된 경우만 집계됩니다. 이전 미저장 기록은 제외됩니다.</p><h3>역대 시즌 성적</h3>'+(history||'<p>기록 없음</p>')+'<h3>역대 컵 우승</h3>'+(cups||'<p>기록 없음</p>');
+ host.innerHTML='<h3>경기 기록 · '+records.length+'경기</h3><div class="archive-list">'+records.map(m=>'<div class="result-rating-row"><span>'+txt(m.competition&&m.competition!=='league'?(m.competition==='leagueCup'?'리그컵':'위너스컵'):'리그 '+(m.round+1)+'R')+' · '+txt(clubs[m.home].name)+' vs '+txt(clubs[m.away].name)+'</span><b>'+(m.homeGoals==null?'–':m.homeGoals+' : '+m.awayGoals)+(m.partial?' · 요약':'')+'</b></div>').join('')+'</div><h3>선수 기록 · 저장된 경기 기준</h3><div class="tablewrap"><table><thead><tr><th>선수</th><th>득점</th><th>도움</th><th>평균 평점</th></tr></thead><tbody>'+ranking.map(p=>'<tr><td>'+name(p.id)+'</td><td>'+p.goals+'</td><td>'+p.assists+'</td><td>'+(p.count?(p.ratings/p.count).toFixed(2):'–')+'</td></tr>').join('')+'</tbody></table></div><p class="muted small">도움은 실제 이벤트에 기록된 경우만 집계됩니다. 이전 미저장 기록은 제외됩니다.</p><h3>역대 시즌 성적</h3>'+(history||'<p>기록 없음</p>')+'<h3>역대 컵 우승</h3>'+(cups||'<p>기록 없음</p>');
 }
 window.openCareerArchive=openCareerArchive;window.renderCareerArchive=renderCareerArchive;
 function statTier(n){return n>=110?'stat-110':n>=100?'stat-100':n>=90?'stat-90':n>=80?'stat-80':''}
