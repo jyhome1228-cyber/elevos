@@ -930,6 +930,22 @@ header .elevos-home-logo:hover{opacity:.8}header .elevos-home-logo:focus-visible
 .season-tile:disabled small{color:#b4becb!important}
 .season-tile:disabled .crest{opacity:1!important;filter:none!important}
 .season-calendar{margin-top:0}
+</style><style>
+html body .home-right .home-datum,html body .home-right .home-datum strong,html body .home-right .home-news,html body .home-right .home-news strong{background:transparent!important}
+html body .home-right .home-datum,html body .home-right .home-news{border-bottom:1px solid #3d4653!important;padding:12px 0}
+html body .home-right .home-news:last-child{border-bottom:0!important}
+html body .home-right .home-progress-meter>span{background:#a8b5c5!important}
+.season-tile:not(:disabled):not(.next):hover{border-color:#a7b5c6;background:#303845!important}
+.calendar-result{max-width:520px;text-align:center;max-height:90vh;overflow:auto}
+.calendar-result-score{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;margin:22px 0}
+.calendar-result-score>div{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px}
+.calendar-result-score .crest{width:52px!important;height:60px!important}
+.calendar-result-score>b{font-size:32px;white-space:nowrap}
+.calendar-result h3{font-size:15px!important;text-align:left;border-top:1px solid #48515e;padding-top:14px}
+.calendar-scorers{display:grid;grid-template-columns:1fr 1fr;gap:15px;text-align:left;font-size:12px;color:#d1d9e4;margin-bottom:20px}
+.calendar-scorer{display:flex;justify-content:space-between;gap:6px;padding:7px 0;border-bottom:1px solid #3b4552}
+.calendar-no-record{color:#c2ccd8;font-size:12px;line-height:1.5;margin:14px 0}
+.calendar-result .btn{width:100%;margin-top:10px}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><small>FOOTBALL MANAGEMENT SIMULATION</small><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row" style="margin-bottom:24px;align-items:end"><div><div class="eyebrow">BUILD YOUR CLUB. CREATE YOUR LEGACY.</div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
@@ -1251,6 +1267,10 @@ function viewDashboardBase(){
 /* Matchday + results v5: all league match scores retained by season and round. */
 let matchResults=(saved&&saved.matchResults)||{};
 let lastMatch=(saved&&saved.lastMatch)||null;
+let calendarMatchArchive=saved?.calendarMatchArchive||{};
+function calendarArchiveKey(y,club,key,stage){return [y,club,key,stage].join(':')}
+function archiveCalendarMatch(m){if(!m)return;const key=m.competition||'league';calendarMatchArchive[calendarArchiveKey(m.season,m.club,key,key==='league'?m.round:m.stage)]={home:m.home,away:m.away,events:(m.events||[]).filter(e=>e.type==='goal').map(e=>({...e,scorer:players.find(p=>p.id===e.playerId)?.name||null}))};}
+if(lastMatch&&!calendarMatchArchive[calendarArchiveKey(lastMatch.season,lastMatch.club,lastMatch.competition||'league',lastMatch.competition&&lastMatch.competition!=='league'?lastMatch.stage:lastMatch.round)])archiveCalendarMatch(lastMatch);
 let scheduleRound=round,matchTab='preview';
 let newsRead=false;
 function save(){
@@ -1312,6 +1332,7 @@ function playRound(){
  const money=(isWin?80:isDraw?45:25),pts=isWin?3:isDraw?1:0;
  walletGBP+=money;
  lastMatch={club:manager,season:y,round:week,home:ownScore.home,away:ownScore.away,homeGoals:ownScore.homeGoals,awayGoals:ownScore.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:isWin?'승리':isDraw?'무승부':'패배',leaguePts:pts,events:simFinalOverride?.events||[],substitutions:simFinalOverride?.substitutions||[],instruction:simFinalOverride?.instruction||tactic};
+ archiveCalendarMatch(lastMatch);
  recoverFitnessAfterMatch([...starterSet]);
  advanceInjuryRecovery(round);
  fixInjuredLineup();
@@ -1637,8 +1658,8 @@ function viewDashboard(){
  const side='<aside class="home-right"><section class="card"><div class="eyebrow">MY CLUB</div><div class="home-club-identity">'+shield(club)+'<div><strong>'+txt(club.name)+'</strong><small>'+txt(LEAGUES[club.league][1])+'</small></div></div>'+
  '<div class="home-datum"><span>소속 리그</span><strong>'+txt(LEAGUES[club.league][1])+'</strong></div><div class="home-datum"><span>리그 순위</span><strong>'+rank+'위</strong></div>'+lastFiveLeagueResults()+'<div class="home-datum"><span>현재 전적</span><strong>'+stats.w+'승 '+stats.d+'무 '+stats.l+'패</strong></div><div class="home-datum"><span>보유 선수</span><strong>'+squad.length+'명</strong></div><div class="home-datum"><span>구단 예산</span><strong>'+formatGBP(walletGBP)+'</strong></div>'+
  '<div class="home-progress"><div class="row"><strong style="font-size:12px">시즌 진행</strong><span class="muted small">'+round+' / 22</span></div><div class="home-progress-meter"><span style="width:'+Math.min(100,round/22*100)+'%"></span></div></div></section>'+
- '<section class="card"><div class="home-heading"><h2>구단 소식</h2><span class="tag">NEWS</span></div><div class="home-news"><strong>다음 경기 준비</strong><p>'+(next?'전술을 확인하고 '+txt(away.id===manager?home.name:away.name)+'과(와) 경기를 진행하세요.':'다음 시즌을 준비하세요.')+'</p></div><div class="home-news"><strong>선수 육성</strong><p>경기 경험치를 모아 세부 능력치를 최대 120까지 성장시킬 수 있어요.</p></div><div class="home-news"><strong>경기 후 보상</strong><p>'+(pendingReward?.club===manager?'선택하지 않은 추가 보상이 남아 있어요.':'경기를 끝내면 3가지 추가 보상 중 하나를 고를 수 있어요.')+'</p></div></section></aside>';
- return intro+seasonAwardHTML()+'<div class="elevos-home">'+main+'<div>'+side+homeLeagueStandings()+'</div></div>'+cupStatusHTML()+cupBracketHTML();
+ homeLeagueStandings()+'<section class="card"><div class="home-heading"><h2>구단 소식</h2><span class="tag">NEWS</span></div><div class="home-news"><strong>다음 경기 준비</strong><p>'+(next?'전술을 확인하고 '+txt(away.id===manager?home.name:away.name)+'과(와) 경기를 진행하세요.':'다음 시즌을 준비하세요.')+'</p></div><div class="home-news"><strong>선수 육성</strong><p>경기 경험치를 모아 세부 능력치를 최대 120까지 성장시킬 수 있어요.</p></div><div class="home-news"><strong>경기 후 보상</strong><p>'+(pendingReward?.club===manager?'선택하지 않은 추가 보상이 남아 있어요.':'경기를 끝내면 3가지 추가 보상 중 하나를 고를 수 있어요.')+'</p></div></section></aside>';
+ return intro+seasonAwardHTML()+'<div class="elevos-home">'+main+'<div>'+side+'</div></div>'+cupStatusHTML()+cupBracketHTML();
 }
 
 
@@ -2029,7 +2050,7 @@ function viewMatchSimulationWrapper(){
  return penaltyChoiceHTML()+'<div class="sim-layout sim-layout-triple"><aside class="match-coach-col">'+simCoachingPanel()+matchSideLineup()+'</aside><section class="sim-panel"><div class="sim-head"><div><div class="eyebrow">LIVE MATCH SIMULATION</div><h2 style="margin:5px 0">'+competitionStageText(m.competition||'league')+'</h2></div><div class="sim-timer">'+simMinuteLabel(mins)+"'"+'</div></div><div class="sim-score"><div class="sim-score-side">'+shield(home)+txt(home.name)+'</div><div class="sim-numbers">'+m.homeGoals+' : '+m.awayGoals+'</div><div class="sim-score-side">'+txt(away.name)+shield(away)+'</div></div><div class="sim-progress"><span style="width:'+Math.min(100,(mins<=45?mins:mins<=45+simAddedFirst()?45:mins<=90+simAddedFirst()?mins-simAddedFirst():90)/90*100)+'%"></span></div><div class="field-home-away"><span>HOME · '+txt(home.name)+' · '+homeFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span><span>가상 날씨 '+txt(m.weather?.[0]||'맑음')+' · '+txt(m.weather?.[1]||'20°C')+'</span><span>AWAY · '+txt(away.name)+' · '+awayFormation.replace(/(\d)(?=\d)/g,'$1-')+'</span></div><div class="sim-field"><div class="sim-goal left"></div><div class="sim-goal right"></div><div class="sim-halfway"></div><div class="sim-goal-box left"></div><div class="sim-goal-box right"></div>'+ballPath+homeDots+awayDots+'<div class="sim-ball" style="left:'+m.ball.x+'%;top:'+m.ball.y+'%"><svg width="17" height="17" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" fill="#fff" stroke="#171717" stroke-width="1.5"/><path d="M12 7 7.6 10.2 9.3 15.5H14.7L16.4 10.2Z" fill="#222"/><path d="M12 7V2.2M7.6 10.2 3 8.3M9.3 15.5 6 20M14.7 15.5 18 20M16.4 10.2 21 8.3" stroke="#222" stroke-width="1.3" fill="none"/></svg></div>'+overlay+'</div><div class="sim-controls">'+button+'<button class="btn sub" onclick="pauseSimulation();go(\'tactics\')">전술 보기</button></div><p class="sim-info">경기는 자동 진행되고 전술과 교체가 가능합니다. 일시정지 후 ‘경기 재개’를 누르면 이어서 진행합니다.</p>'+liveMatchAnalysis(m,homeIds,awayIds)+'</section><aside class="sim-panel"><h2>실시간 경기 상황</h2><div class="sim-commentary">'+m.log.map(matchLogHTML).join('')+'</div>'+liveMatchTotals(m)+'</aside></div>';
 }
 function save(){
- try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,pendingReward,latestReward,walletGBP,simState,youthVault,pendingTransfers,seasonAwards,cupState,activeCompetition}))}
+ try{localStorage.setItem(saveKey,JSON.stringify({version:2,manager,round,season,formation,tactic,pressure,players,points,clubs,fixtures,lineups,coachName,createdClub,matchResults,lastMatch,calendarMatchArchive,pendingReward,latestReward,walletGBP,simState,youthVault,pendingTransfers,seasonAwards,cupState,activeCompetition}))}
  catch(e){console.warn('저장 실패',e)}
 }
 window.tacticsDragStart=tacticsDragStart;window.tacticsDragOver=tacticsDragOver;window.tacticsDrop=tacticsDrop;
@@ -2618,6 +2639,18 @@ function dashboardOpenNext(){
  chooseCompetition(dashboardNextCompetition());
 }
 window.dashboardOpenNext=dashboardOpenNext;
+let calendarPopupItems=[];
+function showCalendarResult(index){
+ const x=calendarPopupItems[index];if(!x?.score||!x.pair)return;
+ const [h,a]=x.pair,record=calendarMatchArchive[calendarArchiveKey(season,manager,x.key,x.stage)];
+ const goalsFor=id=>(record?.events||[]).filter(e=>e.team===id).map(e=>'<div class="calendar-scorer"><span>'+txt(e.scorer||players.find(p=>p.id===e.playerId)?.name||'득점자 미기록')+'</span><b>'+txt(e.minute)+'′</b></div>').join('');
+ const scorers=record?'<div class="calendar-scorers"><div>'+ (goalsFor(h)||(x.score[0]?'득점자 기록 없음':'득점 없음'))+'</div><div>'+(goalsFor(a)||(x.score[1]?'득점자 기록 없음':'득점 없음'))+'</div></div>':'<p class="calendar-no-record">이전 경기의 득점자 기록은 저장되어 있지 않습니다.</p>';
+ document.getElementById('elevos-game-dialog')?.remove();
+ const el=document.createElement('div');el.id='elevos-game-dialog';el.className='game-dialog';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','경기 결과');
+ el.innerHTML='<div class="game-dialog-content calendar-result"><div class="eyebrow">'+txt(x.label)+' · FULL TIME</div><div class="calendar-result-score"><div>'+shield(clubs[h])+'<strong>'+txt(clubs[h].name)+'</strong></div><b>'+x.score[0]+' : '+x.score[1]+'</b><div>'+shield(clubs[a])+'<strong>'+txt(clubs[a].name)+'</strong></div></div><h3>득점자</h3>'+scorers+(x.winner!==undefined&&x.score[0]===x.score[1]?'<p class="calendar-no-record">승부차기 승자 · '+txt(clubs[x.winner].name)+'</p>':'')+'<button class="btn" onclick="dismissGameDialog()">확인</button></div>';
+ el.addEventListener('click',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);el.querySelector('button')?.focus();
+}
+window.showCalendarResult=showCalendarResult;
 function dashboardCalendar(){
  initializeCups();
  const li=own().league,items=[],nextKey=dashboardNextCompetition();
@@ -2637,12 +2670,13 @@ function dashboardCalendar(){
   }
  }
  items.sort((a,b)=>a.order-b.order);
- const tiles=items.map(x=>{
+ calendarPopupItems=items;
+ const tiles=items.map((x,index)=>{
   const opponent=x.pair?clubs[x.pair.find(id=>id!==manager)]:null,home=x.pair?.[0]===manager;
   const live=simState?.club===manager&&simState.competition===x.key&&(x.key==='league'?simState.round===x.stage:cupState[x.key].stage===x.stage);
   const result=x.score?(x.winner!==undefined?(x.winner===manager?'win':'loss'):x.score[0]===x.score[1]?'draw':(home?x.score[0]>x.score[1]:x.score[1]>x.score[0])?'win':'loss'):'';
   const score=x.score?(home?x.score[0]+' : '+x.score[1]:x.score[1]+' : '+x.score[0]):live?'경기 진행 중':x.next?'NEXT MATCH':'예정';
-  return '<button type="button" class="season-tile '+x.key+' '+result+(x.next?' next':'')+'" '+(x.next||live?'onclick="dashboardOpenNext()"':'disabled')+'><small>'+txt(x.label)+'</small><div class="season-tile-crest">'+(opponent?shield(opponent):'<span>?</span>')+'</div><strong>'+txt(opponent?.name||'상대 미정')+'</strong><span>'+score+'</span></button>';
+  return '<button type="button" class="season-tile '+x.key+' '+result+(x.next?' next':'')+'" '+(x.score?'onclick="showCalendarResult('+index+')"':x.next||live?'onclick="dashboardOpenNext()"':'disabled')+'><small>'+txt(x.label)+'</small><div class="season-tile-crest">'+(opponent?shield(opponent):'<span>?</span>')+'</div><strong>'+txt(opponent?.name||'상대 미정')+'</strong><span>'+score+'</span></button>';
  }).join('');
  return '<section class="card season-calendar"><div class="home-heading"><h2>시즌 경기 일정</h2><button class="btn sub mini" onclick="go(\'league\')">전체 일정</button></div><div class="season-calendar-legend"><span>리그</span><span>리그컵 · 국내</span><span>위너스 · 국제</span></div><div class="season-calendar-grid">'+tiles+'</div><p class="muted small">컵대회 상대는 대진 결과에 따라 확정됩니다. 경기 결과는 우리 팀 기준입니다.</p></section>';
 }
@@ -2692,6 +2726,7 @@ function playCupMatch(){
  for(const p of myPlayers()){const used=ids.has(p.id),xp=used?rand(18,34):rand(8,14);p.xp+=xp;if(used){totalXP+=xp;lineupOut.push({id:p.id,rating:matchRating(p,rand(-6,8)/10),xp})}while(p.xp>=100){p.xp-=100;if(p.level<50){p.level++;p.pts+=3}}}
  const money=(won?75:30)+(c.champion===manager?CUP_RULES[key].prize:0);walletGBP+=money;
  lastMatch={club:manager,season,round,competition:key,stage:playedStage,penaltyShootout:shootout,home:r.pair[0],away:r.pair[1],homeGoals:r.homeGoals,awayGoals:r.awayGoals,formation,lineup:lineupOut,money,totalXP,outcome:won?'승리':'패배',leaguePts:0,events:r.events||[],substitutions:r.substitutions||[],instruction:r.instruction||tactic};
+ archiveCalendarMatch(lastMatch);
  recoverFitnessAfterMatch([...ids]);advanceInjuryRecovery(round);fixInjuredLineup();
  pendingReward={club:manager,competition:key,season,round};matchTab='result';simState=null;simFinalOverride=null;activeCompetition='league';save();render();
 }
