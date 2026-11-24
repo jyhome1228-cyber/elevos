@@ -1097,6 +1097,13 @@ html body .calendar-v2 .season-tile.next,html body .calendar-v2 .season-tile.nex
 html body .calendar-v2 .season-tile:not(:disabled):hover{border-color:#a6b9d0!important;filter:brightness(1.12)}
 .calendar-foot{font-size:11px;color:#b3bfce;margin-top:12px}
 @media(max-width:650px){.calendar-season-summary{flex-wrap:wrap;gap:8px}.calendar-season-meter{min-width:80px}.calendar-record{width:100%}.calendar-v2 .season-tile{min-height:116px!important}.calendar-tile-top small{font-size:9px!important}}
+</style><style id="elevos-primary-cta">
+html body #main .home-match-actions{gap:10px;margin-top:4px;align-items:stretch}
+html body #main .home-match-actions .btn{min-height:48px;padding:12px 24px!important;font-size:14px;font-weight:750;border-radius:4px!important;line-height:1.4}
+html body #main .home-match-actions .btn:first-child{background:linear-gradient(180deg,#f1f4f7,#d4dce6)!important;color:#141a22!important;border-color:#f1f4f7!important;box-shadow:inset 0 -2px 0 #aab6c4}
+html body #main .home-match-actions .btn:first-child:hover{background:#fff!important}
+html body #main .home-match-actions .btn.sub{min-width:148px;background:#2c3542!important;color:#eef2f7!important;border-color:#536172!important}
+@media(max-width:640px){html body #main .home-match-actions .btn{min-height:46px;width:100%;font-size:13px}}
 </style></head><body><header><button type="button" class="logo elevos-home-logo" onclick="elevosGoHome()" aria-label="메인 대시보드로 돌아가기" title="메인 대시보드로 돌아가기">ELEVOS.</button><div class="header-right"><button id="cloud-account" class="name-lang-button" onclick="window.ElevosCloud?.open()">계정</button><div id="client-coach" class="client-coach"></div><button id="client-gifts" class="client-gifts" onclick="openCoachGifts()" hidden>선물함 <b id="client-gift-count">0</b></button><div class="wallet-header" aria-label="보유 게임머니"><span class="wallet-caption">보유 금액</span><strong id="wallet-value">£1,000</strong></div><button class="name-lang-button" id="language-switch" onclick="toggleDisplayLanguage()">한국어 · EN</button></div></header><div class="wrapper"><div class="row client-page-heading"><div><h1 id="heading">감독 커리어 시작</h1><div class="muted small" id="subtitle">독립적인 가상 축구 세계에서 나만의 구단을 운영하세요.</div></div><div class="tag" id="season">시즌 2026–27</div></div><div class="layout"><aside class="sidebar" id="nav"></aside><main id="main"></main></div><footer class="bottom">ELEVOS · 독자적인 가상 구단과 선수로 구성한 프로토타입 · 게임 상태는 현재 브라우저에 저장됩니다.</footer></div>
 <script>
 'use strict';
