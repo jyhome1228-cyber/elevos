@@ -98,11 +98,7 @@ service cloud.firestore {
     match /publicPosts/{postId} {
       allow get, list: if admin() || resource.data.published == true;
       allow create: if validPost() && request.resource.data.createdAt == request.time
-        && ((admin() && request.resource.data.author == 'ELEVOS 운영팀')
-          || (request.auth != null
-            && request.resource.data.category == 'community'
-            && request.resource.data.published == false
-            && request.resource.data.author == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username));
+        && admin() && request.resource.data.author == 'ELEVOS 운영팀';
       allow update: if admin() && validPost()
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.author == resource.data.author
