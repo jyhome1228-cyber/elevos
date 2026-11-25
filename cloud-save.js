@@ -213,6 +213,20 @@ async function boot(){
   A.onAuthStateChanged(auth,u=>{ready=true;if(registering)return;activateAccount(u).catch(authLoadFailure)});
  }catch(e){authLoadFailure(e)}
 }
+function chooseCareerRecord165(pendingLocal){
+ return new Promise(resolve=>{
+  clearAuthProgress();
+  const el=document.createElement('div');el.id='auth-processing-screen';el.className='auth-processing-screen career-choice165';
+  el.innerHTML='<style>.career-choice165 .career-choice-panel165{width:min(480px,92vw);max-height:90vh;overflow:auto;box-sizing:border-box;padding:26px;background:#1b2532;border:1px solid #53657b;border-radius:10px;text-align:left;box-shadow:0 24px 80px #0008;color:#edf3fc}.career-choice165 h2{font-size:21px;margin:12px 0}.career-choice165 p{font-size:14px;line-height:1.65;color:#c4d0df;margin:8px 0 16px}.career-choice165 .career-option165{display:grid;gap:6px;margin:10px 0;padding:14px;border:1px solid #47566a;border-radius:6px;background:#222e3d}.career-choice165 .career-option165 strong{font-size:15px}.career-choice165 .career-option165 small{color:#c5d1df;line-height:1.55;font-size:12px}.career-choice165 .btn{width:100%;min-height:44px;margin-top:6px}.career-choice165 .career-kicker165{font-size:11px;color:#b4c7df;letter-spacing:.12em}</style><section class="career-choice-panel165" role="dialog" aria-modal="true" aria-labelledby="career-choice-title165"><small class="career-kicker165">ELEVOS · CLOUD SAVE</small><h2 id="career-choice-title165">어떤 기록으로 계속할까요?</h2><p data-desc></p><div class="career-option165"><strong>현재 기기의 기록</strong><small>지금 이 기기에 저장된 선수단과 경기 기록을 유지합니다.</small><button type="button" class="btn sub" data-local>현재 기기 기록 유지</button></div><div class="career-option165"><strong>클라우드 저장 기록</strong><small>서버에 저장된 기록을 불러옵니다. 이 기기의 미동기화 진행 내용은 사라질 수 있습니다.</small><button type="button" class="btn" data-cloud>클라우드 기록 불러오기</button></div><p>두 기록은 자동으로 합쳐지지 않습니다. 최근에 플레이한 기기의 기록을 선택해 주세요.</p></section>';
+  el.querySelector('[data-desc]').textContent=pendingLocal?'이 기기에서 진행한 게임 기록 중 아직 서버에 저장되지 않은 내용이 있습니다. 계속할 기록을 선택해 주세요.':'현재 기기의 기록과 서버의 저장 기록이 서로 다릅니다. 계속할 기록을 선택해 주세요.';
+  document.body.appendChild(el);
+  const localButton=el.querySelector('[data-local]'),cloudButton=el.querySelector('[data-cloud]');
+  let settled=false;const finish=value=>{if(settled)return;settled=true;el.remove();resolve(value)};
+  localButton.onclick=()=>finish(false);cloudButton.onclick=()=>finish(true);
+  el.addEventListener('keydown',e=>{if(e.key==='Tab'){if(e.shiftKey&&document.activeElement===localButton){e.preventDefault();cloudButton.focus()}else if(!e.shiftKey&&document.activeElement===cloudButton){e.preventDefault();localButton.focus()}}});
+  localButton.focus();
+ });
+}
 async function activateAccount(u){
  const run=++activationRun;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;
  if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
@@ -229,7 +243,9 @@ async function activateAccount(u){
   let marker=null;try{marker=localStorage.getItem(localKey+':cloud-revision')}catch(e){}
   const restored=sessionStorage.getItem('elevos-restored-revision:'+uid);
   const pendingLocal=dirtyToken(uid);const valid=career&&career.manager!=null&&Array.isArray(career.players)&&Array.isArray(career.clubs)&&career.clubs.some(c=>c.id===career.manager);
-  const sameBase=marker===remoteRevision||restored===remoteRevision;const needsRestore=!valid||(!sameBase&&confirm(pendingLocal?'이 기기에 아직 동기화되지 않은 기록이 있습니다. 서버 기록을 불러오면 기기 기록을 교체합니다. 취소하면 기기 기록을 유지합니다.':'서버에 저장된 게임 기록을 불러올까요? 취소하면 현재 기기 기록을 유지합니다.'));
+  const sameBase=marker===remoteRevision||restored===remoteRevision;const needsRestore=!valid||(!sameBase&&await chooseCareerRecord165(!!pendingLocal));
+  if(run!==activationRun||auth.currentUser?.uid!==uid)return;
+  if(needsRestore)authProgress('클라우드 게임 기록을 불러오고 있습니다.');
   if(needsRestore){if(restored===remoteRevision&&!valid)throw Error('이 기기에 저장 기록을 복원하지 못했습니다. 기록은 서버에 보존되어 있습니다.');const data=await readCloudCareer(uid,snap);if(run!==activationRun||auth.currentUser?.uid!==uid)return;local.cacheSnapshot(uid,data);restoreMarker(uid,remoteRevision);clearDirty(uid,pendingLocal);local.switchAccount(uid);return}
   if(marker!==remoteRevision&&restored!==remoteRevision)remoteRevision=null;
  }
