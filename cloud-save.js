@@ -220,3 +220,18 @@ async function activateAccount(u){
 
 if(sessionStorage.getItem('elevos-auth-progress')==='1'&&window.ElevosEntry?.isOpen())authProgress('게임 기록을 불러오고 있습니다.');
 boot();
+
+// Entry-only public homepage CTA; independent of authentication and save state.
+function enhanceEntryHomepageLink(){
+ const link=document.querySelector('#elevos-entry-login .entry-home-return');
+ if(!link)return;
+ link.href='/home';
+ link.textContent='공식 홈페이지 바로가기';
+ if(!document.getElementById('entry-home-cta-v2')){
+  const style=document.createElement('style');
+  style.id='entry-home-cta-v2';
+  style.textContent='#elevos-entry-login .entry-home-return{display:flex!important;align-items:center;justify-content:center;gap:9px;width:100%!important;min-height:50px;box-sizing:border-box;margin:20px auto 0!important;padding:13px 16px!important;border:1px solid #cbb47f!important;border-radius:6px;background:#d4bc86!important;color:#171b20!important;font-size:15px!important;font-weight:750!important;text-align:center;text-decoration:none!important;transition:background .18s,border-color .18s}#elevos-entry-login .entry-home-return:hover{background:#e7d3a5!important;border-color:#e7d3a5!important;color:#171b20!important}#elevos-entry-login .entry-home-return:focus-visible{outline:2px solid #fff;outline-offset:4px}';
+  document.head.append(style);
+ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enhanceEntryHomepageLink,{once:true});else enhanceEntryHomepageLink();
