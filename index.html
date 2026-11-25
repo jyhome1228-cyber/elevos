@@ -3118,7 +3118,7 @@ const LN_ROSTER173=[{"id":0,"name":"에리히 바우어","en":"Erich Bauer","nat
 function lnEmblem173(){return '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3 59 13 57 45 32 61 7 45 5 13Z" fill="#142236" stroke="#C3A574" stroke-width="2"/><circle cx="32" cy="30" r="18" fill="none" stroke="#C3A574" opacity=".5"/><ellipse cx="32" cy="30" rx="8" ry="18" fill="none" stroke="#C3A574" opacity=".5"/><path d="M14 30H50" stroke="#C3A574" opacity=".5"/><text x="32" y="38" font-family="Georgia,serif" font-size="22" text-anchor="middle" fill="#F3EBDC">LN</text></svg>'}
 function lnPortrait173(i){const r=LN_ROSTER173[i];return r?'<span class="ln-face173" role="img" aria-label="'+txt(r.name)+'" style="background-image:url('+LN_SHEETS173[r.sheet]+');background-position:'+(r.tile%2*100)+'% '+(Math.floor(r.tile/2)*100)+'%"></span>':''}
 function lnArchiveArt174(){return '<svg class="ln-archive-art174" viewBox="0 0 300 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width=".8"><circle cx="150" cy="150" r="126"/><circle cx="150" cy="150" r="118"/><ellipse cx="150" cy="150" rx="72" ry="118"/><ellipse cx="150" cy="150" rx="35" ry="118"/><ellipse cx="150" cy="150" rx="118" ry="42"/><ellipse cx="150" cy="150" rx="118" ry="82"/><path d="M24 150H276M150 24V276M61 61L239 239M61 239L239 61"/></g></svg>'}
-function lnCard173(r){return '<div class="ln-card173">'+lnArchiveArt174()+'<div class="ln-top173"><b>'+r.ovr+'</b><strong>'+r.pos+'</strong></div><div class="ln-portrait175">'+lnPortrait173(r.id)+lnEmblem173()+'</div><strong class="ln-name173">'+txt(r.name)+'</strong><small class="ln-meta175">'+txt(r.nation)+' · '+r.birth+'년생</small><div class="ln-era175">◆ '+txt(r.prime)+' ◆</div><div class="ln-epithet175">'+txt(r.nickname)+'</div><div class="ln-card-foot174"><span>LOST NATIONS</span><small>미보유</small></div></div>'}
+function lnCard173(r){return '<div class="ln-card173">'+lnArchiveArt174()+'<div class="ln-top173"><b>'+r.ovr+'</b><strong>'+r.pos+'</strong></div><div class="ln-portrait175">'+lnPortrait173(r.id)+lnEmblem173()+'</div><strong class="ln-name173">'+txt(r.name)+'</strong><small class="ln-meta175">'+txt(r.nation)+' · '+r.birth+'년생</small><div class="ln-era175">◆ '+txt(r.prime)+' ◆</div><div class="ln-epithet175"><strong>'+txt(r.nickname)+'</strong><p>'+txt(r.story.split(/(?<=다\.)\s+/)[0]||r.story)+'</p><span class="ln-trait177">'+txt(r.trait)+'</span></div><div class="ln-card-foot174"><span>LOST NATIONS</span><small>미보유</small></div></div>'}
 let lnNation174='ALL',lnPosition174='ALL';
 function lnFiltered174(){return LN_ROSTER173.filter(r=>(lnNation174==='ALL'||r.nation===lnNation174)&&(lnPosition174==='ALL'||(lnPosition174==='GK'?r.pos==='GK':lnPosition174==='DF'?['CB','LB','RB'].includes(r.pos):lnPosition174==='MF'?['CDM','CM','CAM','RM'].includes(r.pos):['ST','CF','LW','RW'].includes(r.pos))))}
 function lnFilter174(key,value){if(key==='nation')lnNation174=value;else lnPosition174=value;const grid=document.querySelector('.ln-grid173');if(grid)grid.innerHTML=lnGrid174()}
@@ -6543,4 +6543,29 @@ html body #elevos-game-dialog.ln-overlay174>.game-dialog-content.ln-dialog173.ln
 .ln-dossier174 .ln-story174{border-color:#b3a183!important}.ln-dossier174 .ln-story174 p{color:#e0dcd4!important}
 .ln-dossier174 .ln-body174 article>small,.ln-dossier174 .ln-story174 small,.ln-dossier174 .ln-trait174 small,.ln-dossier174 .ln-timeline174 b{color:#c6b496!important}
 .ln-dossier174 .ln-stats174 em{background:linear-gradient(90deg,#8e806a,#c8bda8)!important}.ln-dossier174 .ln-stats174 b{color:#e0d3bf!important}
+</style><style id="ln-pioneer-alignment177">
+html body .ln-hall173 .ln-grid173{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:16px!important}
+html body .ln-card173{background:repeating-linear-gradient(135deg,transparent 0 10px,#746e6215 10px 11px) padding-box,linear-gradient(150deg,#fffdf6,#eee9df 42%,#d8d1c5 76%,#c9c3b8) padding-box,linear-gradient(135deg,#555e69,#d6d3c9 22%,#89867e 42%,#f6f1e5 63%,#555e69 86%,#b6b0a2) border-box!important;background-clip:padding-box,padding-box,border-box!important;border:4px solid transparent!important;box-shadow:0 3px 12px #0005!important;aspect-ratio:3/5;isolation:isolate;padding:15px 13px 11px!important;color:#30332f!important}
+html body .ln-card173:before{inset:5px!important;border:1px solid #8e8a80!important;background:none!important;z-index:-1}
+html body .ln-card173:after{content:"";position:absolute;inset:8px;border:1px solid #fffdf4b0;pointer-events:none;z-index:-1}
+html body .ln-card173 .ln-archive-art174{opacity:.035!important}
+html body .ln-card173 .ln-top173{padding:0 2px 10px!important}
+html body .ln-card173 .ln-top173>b{color:#30312e!important;font-size:clamp(27px,2.8vw,42px)!important}
+html body .ln-card173 .ln-top173>strong{color:#263342!important;font-size:13px!important}
+html body .ln-card173 .ln-portrait175{width:68%!important;max-width:175px!important;margin:0 auto 12px!important}
+html body .ln-card173 .ln-face173{filter:saturate(.38) contrast(.91) sepia(.19)!important;border:2px solid #a9a398!important;box-shadow:0 0 0 2px #dad5ca,0 3px 7px #3b362e40!important}
+html body .ln-card173 .ln-portrait175>svg{width:34px!important;height:34px!important;bottom:-7px;right:-7px;filter:saturate(.55) drop-shadow(0 2px 2px #0005)}
+html body .ln-card173 .ln-name173{font-size:clamp(12px,1.25vw,16px)!important;color:#292c2b!important}
+html body .ln-card173 .ln-meta175{font-size:11px!important;color:#555149!important}
+html body .ln-card173 .ln-era175{background:linear-gradient(90deg,#a7a6a0,#eae7dd,#a7a6a0)!important;border-color:#8b8c85!important;color:#243344!important;font:750 12px/1.4 Pretendard,Arial,sans-serif!important;padding:5px 2px!important;letter-spacing:.02em}
+html body .ln-card173 .ln-epithet175{display:flex!important;flex-direction:column;justify-content:center;align-items:center;gap:7px;flex:1;min-height:0;padding:8px 2px!important;color:#373832!important}
+.ln-epithet175>strong{font-size:12px;font-weight:650;color:#263342}
+.ln-epithet175>p{font-size:11px!important;line-height:1.55!important;margin:0!important;color:#46433d!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ln-trait177{font-size:10px;color:#263342;background:#e4e1d7;border:1px solid #9c9e98;padding:2px 5px;border-radius:2px;line-height:1.3}
+html body .ln-card173 .ln-card-foot174{border-top:1px solid #8c8d85!important;color:#263342!important;font-weight:750!important}
+html body .ln-grid173 button:hover .ln-card173{box-shadow:0 0 15px #a8b0ba55!important}
+html body .ln-dossier174 .ln-body174 aside .ln-card173{aspect-ratio:auto!important;min-height:360px!important}
+@media(max-width:1100px){html body .ln-hall173 .ln-grid173{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:800px){html body .ln-hall173 .ln-grid173{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:560px){html body .ln-hall173 .ln-grid173{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style></body></html>
