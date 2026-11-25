@@ -1,0 +1,18 @@
+/* Shared public header — all official public routes */
+body>header.public-header.elevos-shared{position:sticky;top:0;z-index:40;display:block;height:auto;padding:0;margin:0;background:#121314;border:0;border-bottom:1px solid #ffffff12;backdrop-filter:none;color:#f0f1ee;letter-spacing:-.02em}
+.elevos-shared .public-nav{box-sizing:border-box;width:100%;max-width:1440px;margin:0 auto;padding:0 42px;height:76px;display:grid;grid-template-columns:minmax(145px,1fr) auto minmax(145px,1fr);align-items:center;gap:30px}
+.elevos-shared .public-nav>a{display:block;margin:0;padding:0;justify-self:start}.elevos-shared .public-logo{display:block;width:155px;height:auto;max-width:100%}
+.elevos-shared .public-links{display:flex;align-items:center;justify-content:center;gap:clamp(22px,2.1vw,34px);margin:0;padding:0;flex-wrap:nowrap;width:auto;order:0}
+.elevos-shared .public-links a{position:relative;display:block;white-space:nowrap;padding:27px 0;margin:0;color:#c5c8c4;font:650 14px/1.4 Pretendard,Arial,sans-serif;text-decoration:none}
+.elevos-shared .public-links a:hover,.elevos-shared .public-links a[aria-current=page]{color:#fff}
+.elevos-shared .public-links a::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#d4bc86;transform:scaleX(0);transition:transform .18s}
+.elevos-shared .public-links a:hover::after,.elevos-shared .public-links a[aria-current=page]::after{transform:scaleX(1)}
+.elevos-shared .public-account{display:flex;align-items:center;justify-content:flex-end;gap:20px;white-space:nowrap;font:650 14px/1.4 Pretendard,Arial,sans-serif}
+.elevos-shared .public-account>a{margin:0;color:#e2e4e0;text-decoration:none;font-size:14px}
+.elevos-shared .public-account .public-play{padding:11px 18px;background:#edeFEB;color:#141615;border-radius:3px;font-weight:750;display:inline-flex;align-items:center;justify-content:center}
+.elevos-shared .public-account .public-play:hover{background:#d4bc86}
+.elevos-shared .public-mobile{display:none}.elevos-shared [hidden]{display:none!important}
+.elevos-shared a:focus-visible,.elevos-shared summary:focus-visible{outline:2px solid #d4bc86;outline-offset:4px}
+@media(max-width:1250px){body>header.public-header.elevos-shared .public-nav{display:flex;justify-content:space-between;padding:0 24px;gap:16px}.elevos-shared .public-links{display:none!important}.elevos-shared .public-account{margin-left:auto}.elevos-shared .public-mobile{display:block!important;position:relative}.elevos-shared .public-mobile summary{list-style:none;cursor:pointer;padding:8px;font-size:21px}.elevos-shared .public-mobile summary::-webkit-details-marker{display:none}.elevos-shared .public-mobile>div{position:absolute;right:0;top:42px;width:210px;max-width:85vw;display:grid;gap:2px;background:#1b1e20;border:1px solid #404342;padding:10px;box-shadow:0 10px 30px #0005}.elevos-shared .public-mobile a{padding:12px;color:#e3e5e0;text-decoration:none;font-size:14px}.elevos-shared .public-mobile a[aria-current=page]{color:#d4bc86}}
+@media(min-width:1251px){body>header.public-header.elevos-shared .public-mobile{display:none!important}.elevos-shared .public-links{display:flex!important;gap:clamp(22px,2.1vw,34px)!important}}
+@media(max-width:600px){body>header.public-header.elevos-shared .public-nav{height:64px;padding:0 16px;gap:10px}.elevos-shared .public-logo{width:110px}.elevos-shared .public-account{gap:10px}.elevos-shared .public-account>a{font-size:12px}.elevos-shared .public-account .public-play{padding:9px 11px}.elevos-shared .public-mobile summary{padding:5px}}
