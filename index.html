@@ -3118,7 +3118,7 @@ const LN_ROSTER173=[{"id":0,"name":"에리히 바우어","en":"Erich Bauer","nat
 function lnEmblem173(){return '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3 59 13 57 45 32 61 7 45 5 13Z" fill="#142236" stroke="#C3A574" stroke-width="2"/><circle cx="32" cy="30" r="18" fill="none" stroke="#C3A574" opacity=".5"/><ellipse cx="32" cy="30" rx="8" ry="18" fill="none" stroke="#C3A574" opacity=".5"/><path d="M14 30H50" stroke="#C3A574" opacity=".5"/><text x="32" y="38" font-family="Georgia,serif" font-size="22" text-anchor="middle" fill="#F3EBDC">LN</text></svg>'}
 function lnPortrait173(i){const r=LN_ROSTER173[i];return r?'<span class="ln-face173" role="img" aria-label="'+txt(r.name)+'" style="background-image:url('+LN_SHEETS173[r.sheet]+');background-position:'+(r.tile%2*100)+'% '+(Math.floor(r.tile/2)*100)+'%"></span>':''}
 function lnArchiveArt174(){return '<svg class="ln-archive-art174" viewBox="0 0 300 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width=".8"><circle cx="150" cy="150" r="126"/><circle cx="150" cy="150" r="118"/><ellipse cx="150" cy="150" rx="72" ry="118"/><ellipse cx="150" cy="150" rx="35" ry="118"/><ellipse cx="150" cy="150" rx="118" ry="42"/><ellipse cx="150" cy="150" rx="118" ry="82"/><path d="M24 150H276M150 24V276M61 61L239 239M61 239L239 61"/></g></svg>'}
-function lnCard173(r){return '<div class="ln-card173">'+lnArchiveArt174()+'<div class="ln-top173"><b>'+r.ovr+'</b><strong>'+r.pos+'</strong></div><div class="ln-portrait175">'+lnPortrait173(r.id)+lnEmblem173()+'</div><strong class="ln-name173">'+txt(r.name)+'</strong><small class="ln-meta175">'+txt(r.nation)+' · '+txt(r.prime)+'</small><div class="ln-era175">◆ '+txt(r.prime)+' ◆</div><div class="ln-epithet175">'+txt(r.nickname)+'</div><div class="ln-card-foot174"><span>LOST NATIONS</span><small>미보유</small></div></div>'}
+function lnCard173(r){return '<div class="ln-card173">'+lnArchiveArt174()+'<div class="ln-top173"><b>'+r.ovr+'</b><strong>'+r.pos+'</strong></div><div class="ln-portrait175">'+lnPortrait173(r.id)+lnEmblem173()+'</div><strong class="ln-name173">'+txt(r.name)+'</strong><small class="ln-meta175">'+txt(r.nation)+' · '+r.birth+'년생</small><div class="ln-era175">◆ '+txt(r.prime)+' ◆</div><div class="ln-epithet175">'+txt(r.nickname)+'</div><div class="ln-card-foot174"><span>LOST NATIONS</span><small>미보유</small></div></div>'}
 let lnNation174='ALL',lnPosition174='ALL';
 function lnFiltered174(){return LN_ROSTER173.filter(r=>(lnNation174==='ALL'||r.nation===lnNation174)&&(lnPosition174==='ALL'||(lnPosition174==='GK'?r.pos==='GK':lnPosition174==='DF'?['CB','LB','RB'].includes(r.pos):lnPosition174==='MF'?['CDM','CM','CAM','RM'].includes(r.pos):['ST','CF','LW','RW'].includes(r.pos))))}
 function lnFilter174(key,value){if(key==='nation')lnNation174=value;else lnPosition174=value;const grid=document.querySelector('.ln-grid173');if(grid)grid.innerHTML=lnGrid174()}
@@ -6512,4 +6512,35 @@ html body #elevos-game-dialog.ln-overlay174>.game-dialog-content.ln-dialog173.ln
 .ln-dossier174 .ln-note174{flex:0 0 auto}
 @media(max-width:850px){html body #elevos-game-dialog.ln-overlay174>.game-dialog-content.ln-dialog173.ln-dossier174{padding:18px!important}.ln-dossier174 .ln-body174{grid-template-columns:minmax(0,1fr) minmax(190px,.72fr)!important;gap:20px!important}.ln-dossier174 .ln-nav174{min-width:0}.ln-dossier174 .ln-nav174 strong{display:none}.ln-dossier174 .ln-record174{grid-template-columns:1fr 1fr!important}.ln-dossier174 .ln-record174 b{font-size:17px}}
 @media(max-width:650px){html body #elevos-game-dialog.ln-overlay174>.game-dialog-content.ln-dialog173.ln-dossier174{width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px)!important;padding:14px!important}.ln-dossier174 .ln-head174{flex-wrap:wrap!important}.ln-dossier174 .ln-head174>nav{width:100%;justify-content:space-between}.ln-dossier174 .ln-body174{grid-template-columns:minmax(0,1fr)!important}.ln-dossier174 .ln-body174 h2{font-size:26px!important}.ln-dossier174 .ln-body174>aside{max-width:none!important}.ln-card173 .ln-meta175{font-size:9px!important}}
+</style><style id="ln-royal-paper176">
+/* LOST NATIONS — faded colour archive. Scoped to LN hall and dossier only. */
+html body .ln-hall173{background:#1b2028!important;border-color:#4e5053!important}
+html body .ln-hero173{background:linear-gradient(112deg,#343a42,#252d37 58%,#20262e)!important;border-color:#83765f!important;box-shadow:inset 0 0 0 4px #252c35,inset 0 0 0 5px #a38d6940!important}
+.ln-hero173 h2{color:#e7dfcf!important}.ln-hero173 small,.ln-hero173 p{color:#c4b9a7!important}.ln-hero173>.ln-archive-art174{opacity:.14!important}.ln-hero-count174 b{color:#cdbb9b!important}
+html body .ln-hall173 .ln-summary173{border-color:#9e89613b!important}.ln-toolbar174>div{color:#d5c6ad!important}
+html body .ln-card173{color:#292c31!important;border:2px solid #a29175!important;border-radius:5px!important;background:repeating-linear-gradient(135deg,transparent 0 13px,#82715908 13px 14px),linear-gradient(155deg,#f3eee2 0%,#e8dfce 53%,#d9d0be 100%)!important;box-shadow:inset 0 0 0 2px #4b5058,inset 0 0 0 4px #b3a183,0 3px 10px #0005!important;padding:13px 12px 10px!important}
+html body .ln-card173:before{inset:6px;border:1px solid #92826966!important;background:none!important}
+html body .ln-card173 .ln-archive-art174{color:#75684f!important;opacity:.10!important;top:10%!important}
+html body .ln-card173 .ln-top173>b{color:#29313b!important;font-weight:800!important}
+html body .ln-card173 .ln-top173>strong{color:#39414a!important}
+.ln-portrait175{width:74%;margin:1px auto 13px!important}
+html body .ln-card173 .ln-face173{filter:saturate(.77) contrast(.95) sepia(.09);border-color:#a28e6c!important;box-shadow:0 0 0 2px #a5978055,0 3px 9px #342a232b!important}
+html body .ln-portrait175>svg{width:26px;height:26px;right:-6px;bottom:-4px;filter:saturate(.68) drop-shadow(0 2px 2px #0004)}
+html body .ln-card173 .ln-name173{color:#25282c!important;font-weight:750!important}
+html body .ln-card173 .ln-meta175{color:#625b50!important;margin:5px 0 10px!important}
+html body .ln-card173 .ln-era175{padding:5px 2px!important;border-block:1px solid #a28c6866!important;background:linear-gradient(90deg,#b2a48c44,#b2a48c88,#b2a48c44)!important;color:#403a31!important;font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;letter-spacing:.04em}
+html body .ln-card173 .ln-epithet175{color:#423e37!important;min-height:46px}
+html body .ln-card173 .ln-card-foot174{border-top:1px solid #99866a77!important;color:#313943!important;font-size:10px!important}
+html body .ln-card173 .ln-card-foot174>small{color:#665e50!important;font-family:inherit!important}
+html body .ln-grid173 button:hover .ln-card173{box-shadow:inset 0 0 0 2px #4b5058,inset 0 0 0 4px #b3a183,0 0 16px #c3a57445!important}
+html body #elevos-game-dialog.ln-overlay174>.game-dialog-content.ln-dialog173.ln-dossier174{background:repeating-linear-gradient(135deg,transparent 0 34px,#b3a18308 34px 35px),linear-gradient(125deg,#343940,#242a32 45%,#1c2128)!important;border-color:#a29175!important;box-shadow:0 24px 80px #0008,inset 0 0 0 4px #242a32,inset 0 0 0 5px #a2917566!important}
+.ln-dossier174>.ln-archive-art174{color:#b3a183!important;opacity:.08!important}
+.ln-dossier174 .ln-head174,.ln-dossier174 .ln-record174,.ln-dossier174 .ln-note174{border-color:#a2917544!important}
+.ln-dossier174 .ln-head174 strong,.ln-dossier174 .ln-head174 nav>b,.ln-dossier174 .ln-record174 b,.ln-dossier174 .ln-body174 h3{color:#e3d8c5!important}
+.ln-dossier174 .ln-head174 small,.ln-dossier174 .ln-en174,.ln-dossier174 .ln-identity174{color:#c6c6c1!important}
+.ln-dossier174 .ln-body174 h2{color:#f1ece1!important}
+.ln-dossier174 .ln-nav174,.ln-dossier174 .ln-close174,.ln-dossier174 .ln-trait174{background:#373a3e!important;border-color:#a2917566!important;color:#e2d7c5!important}
+.ln-dossier174 .ln-story174{border-color:#b3a183!important}.ln-dossier174 .ln-story174 p{color:#e0dcd4!important}
+.ln-dossier174 .ln-body174 article>small,.ln-dossier174 .ln-story174 small,.ln-dossier174 .ln-trait174 small,.ln-dossier174 .ln-timeline174 b{color:#c6b496!important}
+.ln-dossier174 .ln-stats174 em{background:linear-gradient(90deg,#8e806a,#c8bda8)!important}.ln-dossier174 .ln-stats174 b{color:#e0d3bf!important}
 </style></body></html>
