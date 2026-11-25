@@ -78,4 +78,4 @@ function switchAdminView(view,category){
 document.querySelectorAll('#admin-nav button').forEach(b=>b.onclick=()=>switchAdminView(b.dataset.view,b.dataset.category));
 $('workspace-refresh').onclick=()=>adminView==='content'?loadContent():load(true);
 
-onAuthStateChanged(auth,u=>{epoch++;clear();if(!u)switchAdminView('overview');$('login').hidden=!!u;$('logout').hidden=!u;if(u)load(true);else msg('관리자 계정으로 로그인하세요.')});</script></body></html>
+onAuthStateChanged(auth,u=>{epoch++;clear();if(!u)switchAdminView('overview');$('login').hidden=!!u;$('logout').hidden=!u;if(u)load(true);else msg('관리자 계정으로 로그인하세요.')});</script><script src="../password-visibility.js?v=1"></script></body></html>
