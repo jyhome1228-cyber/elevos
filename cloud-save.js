@@ -21,6 +21,7 @@ async function checkCoachName(value,claim=false){
 // ELEVOS private cloud-save beta. No credentials beyond public Firebase Web config.
 const cfg=window.ELEVOS_FIREBASE_CONFIG||{};
 const local=window.ElevosLocal;
+let verifiedPackQaUid187=null;
 let auth,db,A,F,user=null,ready=false,busy=false,notice='',remoteRevision=null,registering=false,activationRun=0;
 const configured=!!(cfg.apiKey&&cfg.authDomain&&cfg.projectId&&cfg.appId);
 const parts=['core','players','matches','seasons','cups','scores','calendar','cards','economy'];
@@ -119,7 +120,7 @@ async function flushCareerSaveV10(){if(autoClosing||!autoPending||autoBlocked||!
 window.addEventListener('online',()=>{if(autoPending&&!autoBlocked)queueCareerSaveV10()});
 async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');const uid=user.uid;clearTimeout(autoTimer);autoTimer=null;autoPending=false;busy=true;try{await upload({automatic:true});if(local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');autoBlocked=false;if(autoPending||dirtyToken(uid))throw Error('저장 중 변경된 기록이 있습니다. 다시 저장해 주세요.');autoStatusV10('saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');throw e}finally{busy=false;clearTimeout(autoTimer);autoTimer=null;if(autoPending&&!autoBlocked&&!autoClosing)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
 async function redeemCouponV1(code){if(!auth?.currentUser||!ready)throw Error('로그인 후 이용해 주세요.');const {getFunctions,httpsCallable}=await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js');try{const result=await httpsCallable(getFunctions(auth.app,'asia-northeast3'),'redeemCoupon',{timeout:20000})({code});return result.data.receipt}catch(err){const key=String(err?.code||'').replace(/^functions\//,'');const messages={'unauthenticated':'로그인 세션이 만료되었습니다. 다시 로그인해 주세요.','invalid-argument':'쿠폰 코드 형식을 확인해 주세요.','failed-precondition':'사용할 수 없거나 만료된 쿠폰입니다.','resource-exhausted':'요청이 많습니다. 잠시 후 다시 시도해 주세요.','permission-denied':'쿠폰 등록 권한을 확인해 주세요.','deadline-exceeded':'서버 응답이 지연되고 있습니다. 같은 쿠폰으로 다시 시도해 주세요.','not-found':'쿠폰 서비스가 준비되지 않았습니다. 운영팀에 문의해 주세요.'};console.warn('Coupon service error:',key||'unknown');throw Error(messages[key]||'쿠폰 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요. (재시도 시 중복 지급되지 않습니다.)')}} 
-window.ElevosCloud={betaSupplyCohort150(uid){if(!uid||!user||user.uid!==uid||auth?.currentUser?.uid!==uid||!ready)return null;const t=Date.parse(user.metadata?.creationTime||'');return Number.isFinite(t)?(t>=Date.parse('2026-11-25T14:40:00+09:00')?'new':'legacy'):null},redeemCouponV1,checkCoachName,open,entryLogin,entryReset,logoutSavedGame,manualSave136,queueCareerSaveV10,isAuthenticatedCareer(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid)},isTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&['info@9works.kr','hhs0579@naver.com','kimdanbi1226@naver.com'].includes(String(u.email||'').trim().toLowerCase()))},isOriginalTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&String(u.email||'').trim().toLowerCase()==='info@9works.kr')}};
+window.ElevosCloud={betaSupplyCohort150(uid){if(!uid||!user||user.uid!==uid||auth?.currentUser?.uid!==uid||!ready)return null;const t=Date.parse(user.metadata?.creationTime||'');return Number.isFinite(t)?(t>=Date.parse('2026-11-25T14:40:00+09:00')?'new':'legacy'):null},redeemCouponV1,checkCoachName,open,entryLogin,entryReset,logoutSavedGame,manualSave136,queueCareerSaveV10,isAuthenticatedCareer(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid)},isTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&['info@9works.kr','hhs0579@naver.com','kimdanbi1226@naver.com'].includes(String(u.email||'').trim().toLowerCase()))},isPackQaAccount187(uid){return !!(uid&&verifiedPackQaUid187===uid&&ready&&auth?.currentUser?.uid===uid&&user?.uid===uid&&local.uid===uid)},isOriginalTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&String(u.email||'').trim().toLowerCase()==='info@9works.kr')}};
 async function act(fn){
  if(busy)return;busy=true;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=true);
  try{await fn()}catch(e){clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');message(({'auth/invalid-credential':'이메일 또는 비밀번호를 확인해 주세요.','auth/email-already-in-use':'이미 가입된 이메일입니다. 로그인해 주세요.','auth/weak-password':'비밀번호는 6자 이상이어야 합니다.','auth/invalid-email':'이메일 형식을 확인해 주세요.','auth/popup-closed-by-user':'로그인 창이 닫혔습니다. 다시 시도해 주세요.','auth/network-request-failed':'네트워크 연결을 확인해 주세요.','auth/too-many-requests':'요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'})[e.code]||('처리 실패: '+(e.message||'다시 시도하세요.')))}finally{busy=false;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=false)}
@@ -228,7 +229,7 @@ function chooseCareerRecord165(pendingLocal){
  });
 }
 async function activateAccount(u){
- const run=++activationRun;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;
+ const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;
  if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
  if(!window.ElevosEntry?.isOpen())return;
  authProgress('회원 정보 확인 중');
@@ -237,6 +238,7 @@ async function activateAccount(u){
  const [profile,snap]=await bounded(Promise.all([F.getDocFromServer(F.doc(db,'users',uid)),F.getDocFromServer(ptr(uid))]),'회원 및 저장 기록 확인');
  if(run!==activationRun||auth.currentUser?.uid!==uid)return;
  if(!profile.exists())throw Error('회원 정보 등록이 완료되지 않았습니다. 관리자에게 문의해 주세요.');
+ verifiedPackQaUid187=String(profile.data().username||'').trim().toLowerCase()==='test'?uid:null;
  let career=null;try{career=local.readCareerCache(uid)}catch(e){}
  if(snap.exists()){
   remoteRevision=snap.data().revision;
