@@ -21,3 +21,38 @@ body>header.public-header.elevos-shared{position:sticky;top:0;z-index:40;display
 @media(max-width:1250px){.elevos-shared .public-mobile>div{max-height:calc(100dvh - 92px);overflow-y:auto;overscroll-behavior:contain}.elevos-shared .public-mobile a{min-height:44px;display:flex;align-items:center}.elevos-shared .public-mobile summary{min-width:44px;min-height:44px;display:grid;place-items:center}}
 @media(max-width:600px){body>header.public-header.elevos-shared .public-nav{height:64px;padding-inline:14px;gap:7px}.elevos-shared .public-nav>a{min-width:0;flex:0 1 110px}.elevos-shared .public-logo{width:110px}.elevos-shared .public-account{gap:8px;min-width:0}.elevos-shared .public-account>a{min-height:36px;display:inline-flex;align-items:center}.elevos-shared .public-account .public-play{font-size:11px;padding:8px}.elevos-shared .public-mobile summary{padding:4px;min-width:40px}.elevos-shared .public-mobile>div{position:fixed;inset:64px 0 auto;width:100%;max-width:none;border-inline:0;padding:8px 16px 16px}.elevos-shared .public-mobile a{border-bottom:1px solid #ffffff12}.elevos-shared .public-mobile a:last-child{border:0}}
 @media(max-width:360px){.elevos-shared .public-logo{width:86px}.elevos-shared .public-nav>a{flex-basis:86px}.elevos-shared .public-account{gap:6px}.elevos-shared .public-account .public-play{padding:7px 6px}}
+
+/* Beta feedback shared navigation and accessible modal */
+.elevos-shared .public-links .public-feedback-trigger{appearance:none;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;color:#d4bc86;font:650 13px/1.4 Pretendard,Arial,sans-serif;white-space:nowrap;padding:26px 0;cursor:pointer;box-shadow:none}
+.elevos-shared .public-links .public-feedback-trigger:hover{color:#f0dcb0;border-bottom-color:#d4bc86}
+.elevos-shared .public-mobile .public-feedback-trigger{width:100%;background:none;border:0;border-radius:0;text-align:left;padding:12px;min-height:44px;font:650 14px/1.4 Pretendard,Arial,sans-serif;color:#d4bc86;cursor:pointer}
+.elevos-shared .public-feedback-trigger:focus-visible{outline:2px solid #d4bc86;outline-offset:3px}
+@media(min-width:1251px){body>header.public-header.elevos-shared .public-nav{grid-template-columns:minmax(125px,1fr) auto minmax(145px,1fr);gap:20px}.elevos-shared .public-links{gap:clamp(13px,1.5vw,24px)!important}}
+@media(min-width:1251px) and (max-width:1390px){body>header.public-header.elevos-shared .public-nav{padding-inline:24px;gap:16px}.elevos-shared .public-logo{width:135px}.elevos-shared .public-account{gap:12px}}
+#elevos-beta-feedback.elevos-feedback-dialog{box-sizing:border-box;width:min(600px,calc(100vw - 32px));max-width:600px;max-height:calc(100dvh - 32px);padding:0;margin:auto;background:#181c20;color:#f1f1ed;border:1px solid #9d885b;border-radius:4px;overflow:auto;overscroll-behavior:contain;box-shadow:0 30px 100px #0009;position:fixed;font-family:Pretendard,-apple-system,BlinkMacSystemFont,Arial,sans-serif}
+#elevos-beta-feedback:not([open]){display:none!important}
+#elevos-beta-feedback::backdrop{background:#07090bd9;backdrop-filter:blur(4px)}
+#elevos-beta-feedback *{box-sizing:border-box}
+#elevos-beta-feedback .feedback-inner{position:relative;padding:34px;background:radial-gradient(ellipse at 90% 0%,#8c744626,transparent 45%)}
+#elevos-beta-feedback .feedback-close{position:absolute;right:16px;top:16px;width:36px;height:36px;display:grid;place-items:center;background:#ffffff06;border:1px solid #ffffff25;border-radius:3px;color:#e8e9e5;font:400 24px/1 Arial;cursor:pointer;padding:0}
+#elevos-beta-feedback .feedback-kicker{font-size:11px;letter-spacing:.16em;font-weight:700;color:#d4bc86;margin:0 38px 15px 0}
+#elevos-beta-feedback h2{font:500 clamp(30px,6vw,47px)/1.04 "Playfair Display",Georgia,serif;letter-spacing:-.04em;color:#efe6d4;margin:0 0 19px}
+#elevos-beta-feedback h3{font-size:20px;color:#f1f1ed;margin:0 0 10px}
+#elevos-beta-feedback p{font-size:14px;color:#c7ccc7;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere;margin:0}
+#elevos-beta-feedback .feedback-topics{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 23px}
+#elevos-beta-feedback .feedback-topics span{font-size:12px;color:#d4c8ab;border:1px solid #796a4c;padding:6px 9px}
+#elevos-beta-feedback .feedback-reward{padding:19px 0;border-block:1px solid #a18b5960}
+#elevos-beta-feedback .feedback-reward small{display:block;color:#d4bc86;font-size:10px;font-weight:700;letter-spacing:.13em;margin-bottom:7px}
+#elevos-beta-feedback .feedback-reward strong{display:block;color:#ead3a0;font-size:24px;letter-spacing:-.045em;margin-bottom:8px}
+#elevos-beta-feedback .feedback-send{padding-top:22px}
+#elevos-beta-feedback h4{font-size:16px;margin:0 0 8px;color:#eee}
+#elevos-beta-feedback .feedback-email{display:inline-block;color:#ead3a0;font-size:20px;font-weight:700;margin:14px 0;text-decoration:underline;text-underline-offset:4px}
+#elevos-beta-feedback .feedback-actions{display:flex;gap:8px;flex-wrap:wrap}
+#elevos-beta-feedback .feedback-actions>a,#elevos-beta-feedback .feedback-actions>button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 14px;font:650 13px/1.4 Pretendard,Arial,sans-serif;border-radius:3px;cursor:pointer;text-decoration:none}
+#elevos-beta-feedback .feedback-mail{background:#d4bc86;border:1px solid #d4bc86;color:#15181a}
+#elevos-beta-feedback .feedback-copy{background:transparent;border:1px solid #807451;color:#e1d2b0}
+#elevos-beta-feedback .feedback-status:not(:empty){margin-top:10px;font-size:12px;color:#b9d2bb}
+#elevos-beta-feedback .feedback-privacy{margin-top:12px;font-size:11px;color:#aab4ba}
+#elevos-beta-feedback a:focus-visible,#elevos-beta-feedback button:focus-visible{outline:2px solid #d4bc86;outline-offset:3px}
+@media(max-width:600px){#elevos-beta-feedback .feedback-inner{padding:23px 20px}#elevos-beta-feedback h2{font-size:34px}#elevos-beta-feedback h3{font-size:18px}#elevos-beta-feedback .feedback-reward strong{font-size:22px}#elevos-beta-feedback .feedback-actions>*{flex:1 1 140px}#elevos-beta-feedback .feedback-topics{gap:5px}#elevos-beta-feedback p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){#elevos-beta-feedback *{animation:none!important;transition:none!important}}
