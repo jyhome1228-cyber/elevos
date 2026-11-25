@@ -113,6 +113,16 @@ service cloud.firestore {
       allow get, list: if admin();
       allow update, delete: if false;
     }
+    // Permanent manager-name reservations; no public listing or reassignment.
+    match /coachNames/{name} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null
+        && name.matches('^[a-z0-9가-힣]{2,12}$')
+        && !name.matches('.*(시발|씨발|씨팔|병신|좆|개새끼|미친놈|미친년|지랄|fuck|shit|bitch|admin|운영자|관리자|운영팀).*')
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid;
+      allow list, update, delete: if false;
+    }
     match /{document=**} { allow read, write: if false; }
   }
 }
