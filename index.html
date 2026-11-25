@@ -2519,9 +2519,12 @@ function basePositionFit179(p,role){
  if(from===to)return 1;
  if(from==='GK'||to==='GK')return .40;
  if(positionMastery169(p).includes(to))return 1;
- if(p.trainedPositions?.some(x=>normalize(x)===to))return .98;
  const pair=(x,y)=>from===x&&to===y||from===y&&to===x;
- const near=[['LW','LM'],['RW','RM'],['CDM','CB'],['CM','CDM'],['CM','CAM'],['ST','CF'],['LB','LWB'],['RB','RWB'],['LM','LWB'],['RM','RWB']];
+ // Direct overlapping role groups; never infer transitive compatibility.
+ const groups=[['ST','CF'],['CF','LW','RW','LF','RF'],['CAM','CF'],['LM','RM','LW','RW'],['CM','CDM','CAM'],['CB','CDM'],['LB','RB','LWB','RWB']];
+ if(groups.some(g=>g.includes(from)&&g.includes(to)))return 1;
+ if(p.trainedPositions?.some(x=>normalize(x)===to))return .98;
+ const near=[['LM','LWB'],['RM','RWB']];
  if(near.some(([x,y])=>pair(x,y)))return .98;
  const close=[['LW','RW'],['LM','RM'],['LB','RB'],['LB','CB'],['RB','CB'],['LB','LM'],['RB','RM'],['CAM','CF'],['CAM','ST'],['LW','CF'],['RW','CF'],['ST','LW'],['ST','RW'],['CDM','LB'],['CDM','RB'],['CDM','CAM'],['CM','LM'],['CM','RM']];
  if(close.some(([x,y])=>pair(x,y)))return .95;
@@ -3788,7 +3791,7 @@ function tradePageChange(n){tradePage=Math.max(0,n);render()}
 function ballonOrnament134(){return "<svg class=\"ballon-ornament134\" viewBox=\"0 0 300 465\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"#b18a43\"><rect x=\"8\" y=\"8\" width=\"284\" height=\"449\" rx=\"3\" stroke-width=\"1.6\"/><rect x=\"13\" y=\"13\" width=\"274\" height=\"439\" rx=\"2\" stroke-width=\".7\"/><path d=\"M13 65V13H65M235 13H287V65M13 400V452H65M235 452H287V400\" stroke-width=\"3\"/><path d=\"M18 50Q48 48 50 18M250 18Q252 48 282 50M18 415Q48 417 50 447M250 447Q252 417 282 415\" stroke-width=\"1.5\"/><path d=\"M21 33L33 21L45 33L33 45ZM255 33L267 21L279 33L267 45ZM21 432L33 420L45 432L33 444ZM255 432L267 420L279 432L267 444Z\"/><path d=\"M150 17L156 23L150 29L144 23ZM150 436L156 442L150 448L144 442Z\" fill=\"#c9a45b\"/><path d=\"M21 112V353M279 112V353\" stroke-dasharray=\"2 5\" opacity=\".65\"/></g></svg>"}
 
 function positionMastery169(p){return Array.isArray(p?.positionMastery169)?p.positionMastery169.filter(x=>['ST','CF','LW','RW','LM','RM','CAM','CM','CDM','CB','LB','RB','LWB','RWB'].includes(x)):[]}
-function positionPool169(p){if(!p||p.pos==='GK'||p.locked)return [];return ['ST','CF','LW','RW','LM','RM','CAM','CM','CDM','CB','LB','RB','LWB','RWB'].filter(x=>x!==p.pos&&!positionMastery169(p).includes(x))}
+function positionPool169(p){if(!p||p.pos==='GK'||p.locked)return [];return ['ST','CF','LW','RW','LM','RM','CAM','CM','CDM','CB','LB','RB','LWB','RWB'].filter(x=>x!==p.pos&&!positionMastery169(p).includes(x)&&positionFit(p,x)<1)}
 function positionInfo171(p){const roles=positionMastery169(p);return '<div class="position-info171"><div><span>주포지션</span><b>'+txt(p.pos)+'</b></div><div><span>추가 획득 포지션</span><section>'+(roles.length?roles.map(r=>'<b class="acquired">'+txt(r)+'</b>').join(''):'<small>미획득</small>')+'</section></div>'+(roles.length?'<small>획득 포지션 적합도 100%</small>':'')+'</div>'}
 function positionBadge169(p){const roles=positionMastery169(p);return roles.length?'<span class="position-badge169" title="포지션 강화 · '+roles.join(', ')+' · 적합도 100%" aria-label="강화 포지션 '+roles.join(', ')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="4"/></svg><span>'+roles.join(' · ')+'</span></span>':''}
 var positionTarget169=null,positionMaterials169=[];
