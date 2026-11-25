@@ -9,7 +9,7 @@ window.ELEVOS_FIREBASE_CONFIG = {
 };
 
 // Public-site daily unique browser count. Never affects game or authentication.
-if (/^\/(?:home|about|guide|events|hall|notice|community|studio|login|register)\.html$/.test(location.pathname) || location.pathname === '/') {
+if (/^\/(?:home|about|guide|events|hall|notice|community|studio|login|register)(?:\.html)?\/?$/.test(location.pathname)) {
   (async () => {
     try {
       const date = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
