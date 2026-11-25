@@ -141,11 +141,21 @@ function split(data){
 }
 function join(groups){return {save:{...groups.core,players:groups.players,calendarMatchArchive:groups.calendar,...groups.cards,economyLog:groups.economy},archive:{matches:groups.matches,seasons:groups.seasons,cups:groups.cups,leagueScores:groups.scores}}}
 function chunks(value){const str=JSON.stringify(value??null),out=[];for(let i=0;i<str.length;i+=100000)out.push(str.slice(i,i+100000));return out}
+// Generate a revision ID even when randomUUID is unavailable (e.g. HTTP).
+function createSaveRevisionId(){
+ const c=globalThis.crypto;
+ if(typeof c?.randomUUID==='function')return c.randomUUID();
+ if(typeof c?.getRandomValues!=='function')throw Error('안전한 저장 ID를 생성할 수 없습니다. HTTPS 연결을 확인해 주세요.');
+ const bytes=c.getRandomValues(new Uint8Array(16));
+ bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+ const h=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+ return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
 async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
  const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await bounded(F.getDocFromServer(ptr(uid)),'저장 기록 확인'),base=before.exists()?before.data().revision:null;
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
- const rev=crypto.randomUUID(),counts={},jobs=[];
+ const rev=createSaveRevisionId(),counts={},jobs=[];
  for(const key of parts){const list=chunks(groups[key]);counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++)jobs.push([key,i,list[i]])}
  // Each batch writes only a new revision. An interrupted batch never replaces the current pointer.
  for(let j=0;j<jobs.length;j+=12){if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+12))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
