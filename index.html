@@ -4601,11 +4601,11 @@ function displaySimEventOnce(event){
  const cinematicAssetsM2={"goal":"20261126-065535-0989f0eb-1638-458c-9099-eb42385ab5a8-f8455799.webp","save":"20261126-065534-49eb42c1-b469-45e4-ac92-84335e2c2095-12e93987.webp","yellow":"20261126-065536-2443808d-537f-4aef-9b5f-9947ae6689d2-ad9803f3.webp","red":"20261126-065533-7e76e241-0872-475c-9ea8-43bf190571cf-3e659355.webp","foul":"20261126-065535-291cf36c-634d-416d-ba57-1a4d34950b28-617ce867.webp","penalty":"20261126-065533-7af87282-024d-4fa3-b8b4-2422795d4e52-9941a828.webp","var":"20261126-065534-9b46d5dd-8846-4b13-8ad5-33da79dbed8c-4e2f324b.webp"};const cinematicFileM2=event.type==='cancel'?cinematicAssetsM2.foul:cinematicAssetsM2[event.type];
  if(cinematicFileM2){
   const hero=['goal','var','cancel','penalty','red'].includes(event.type);
-  el.className='match-broadcast-m8 '+(hero?'broadcast-hero-m8':'broadcast-standard-m8')+' broadcast-'+event.type+'-m8';
+  el.className='match-broadcast-m8 '+(hero?'broadcast-hero-m8':'broadcast-standard-m8')+' broadcast-'+event.type+'-m8';if(team){const brand=clubBrand(team);el.classList.add('broadcast-team-m16');el.style.setProperty('--team-primary-m16',brand.primary);el.style.setProperty('--team-secondary-m16',brand.secondary);}
   el.replaceChildren();
   const copy=document.createElement('div');copy.className='broadcast-copy-m8';
   const put=(tag,cls,value)=>{const n=document.createElement(tag);n.className=cls;n.textContent=value;copy.appendChild(n);return n};
-  const meta=document.createElement('div');meta.className='broadcast-meta-m8';if(team){const crest=document.createElement('span');crest.className='broadcast-crest-m8';crest.innerHTML=shield(team);meta.appendChild(crest)}const marker=document.createElement('span');marker.textContent='MATCH HIGHLIGHT';meta.appendChild(marker);const time=document.createElement('b');time.textContent=(event.minute??'')+'′';meta.appendChild(time);copy.appendChild(meta);
+  const meta=document.createElement('div');meta.className='broadcast-meta-m8';if(team){const crest=document.createElement('span');crest.className='broadcast-crest-m8';crest.innerHTML=shield(team);meta.appendChild(crest)}const marker=document.createElement('span');marker.textContent=team?.name||'MATCH HIGHLIGHT';marker.className='broadcast-teamname-m16';meta.appendChild(marker);const time=document.createElement('b');time.textContent=(event.minute??'')+'′';meta.appendChild(time);copy.appendChild(meta);
   const english=({goal:'GOAL!',foul:'FOUL',save:'SAVE',yellow:'YELLOW CARD',red:'RED CARD',var:'VAR CHECK',penalty:'PENALTY KICK',cancel:event.title||'DECISION OVERTURNED'}[event.type]||event.title||label);
   const headline=put('strong','broadcast-title-m8',event.type==='goal'&&event.varConfirmedM3?'GOAL CONFIRMED':english);if(event.type==='goal'&&event.varConfirmedM3)headline.classList.add('confirmed-title-m15');
   if(event.type==='goal'&&Array.isArray(event.score)){const score=document.createElement('div');score.className='broadcast-score-m8';for(const [i,tid] of [m.home,m.away].entries()){const n=document.createElement('span');n.textContent=clubs[tid]?.name||'';if(i===0)score.appendChild(n);else score.appendChild(n);if(i===0){const b=document.createElement('b');b.textContent=event.score.join(' : ');score.appendChild(b)}}copy.appendChild(score)}
@@ -5070,7 +5070,7 @@ function mountPitchVisualM9(){
   if(W&&H){
    const targets=v.targets||(v.targets=new Map());targets.clear();for(const side of ['home','away'])for(const p of m.positions?.[side]||[])if(p.id!=null)targets.set(String(p.id),p);
    const alpha=1-Math.exp(-dt/(m.phase==='kickoff'?115:m.restartPrep127?65:Math.max(48,Math.min(120,actionInterval118(matchPace118())*.25))));
-   for(const el of v.nodes){const id=el.dataset.pitchId,q=targets.get(id),t=q?{x:pitchXV26(m,q.x),y:q.y}:{x:parseFloat(el.style.left)||50,y:parseFloat(el.style.top)||50};let p=v.points.get(id);if(!p||reset){p={x:t.x,y:t.y,dx:0,dy:0};v.points.set(id,p)}const x=p.x,y=p.y;p.x+=(t.x-p.x)*alpha;p.y+=(t.y-p.y)*alpha;p.dx=p.dx*.7+(p.x-x)*.3;p.dy=p.dy*.7+(p.y-y)*.3;const px=Math.round(p.x*W)/100,py=Math.round(p.y*H)/100;if(el._m13x!==px){el._m13x=px;el.style.setProperty('--m9-x',px+'px')}if(el._m13y!==py){el._m13y=py;el.style.setProperty('--m9-y',py+'px')}}
+   for(const el of v.nodes){const id=el.dataset.pitchId,q=targets.get(id),t=q?{x:pitchXV26(m,q.x),y:q.y}:{x:parseFloat(el.style.left)||50,y:parseFloat(el.style.top)||50};let p=v.points.get(id);if(!p||reset){p={x:t.x,y:t.y,dx:0,dy:0};v.points.set(id,p)}const x=p.x,y=p.y;const smoothStep=(pos,target,vel)=>{const delta=target-pos;if(Math.abs(delta)<.015)return [target,0];const wanted=delta*alpha;let step=(vel||0)*Math.pow(.55,dt/16.67)+wanted*(1-Math.pow(.55,dt/16.67));if(step*delta<0)step=wanted*.45;step=Math.sign(delta)*Math.min(Math.abs(delta),Math.abs(step));return [pos+step,step]};[p.x,p.sxM16]=smoothStep(p.x,t.x,p.sxM16);[p.y,p.syM16]=smoothStep(p.y,t.y,p.syM16);p.dx=p.dx*.7+(p.x-x)*.3;p.dy=p.dy*.7+(p.y-y)*.3;const px=Math.round(p.x*W)/100,py=Math.round(p.y*H)/100;if(el._m13x!==px){el._m13x=px;el.style.setProperty('--m9-x',px+'px')}if(el._m13y!==py){el._m13y=py;el.style.setProperty('--m9-y',py+'px')}}
    const b=v.ballEl;if(b&&m.ball){
     let x=pitchXV26(m,m.ball.x),y=m.ball.y;
     const flight=m.flight120,ownerId=!flight&&!m.looseBall107&&m.ballCarrier80!=null?String(m.ballCarrier80):null,owner=ownerId!=null?v.points.get(ownerId):null;
@@ -5085,7 +5085,7 @@ function mountPitchVisualM9(){
     }
     x=Math.max(0,Math.min(100,x));y=Math.max(0,Math.min(100,y));
     if(!v.ball||reset)v.ball={x,y};
-    const a=1-Math.exp(-dt/(owner?(now-v.ownerChangedAt<120?32:12):flight?20:45));v.ball.x+=(x-v.ball.x)*a;v.ball.y+=(y-v.ball.y)*a;
+    const a=1-Math.exp(-dt/(owner?(now-v.ownerChangedAt<120?28:10):flight?16:45));v.ball.x+=(x-v.ball.x)*a;v.ball.y+=(y-v.ball.y)*a;
     const state=flight?flight.kind:owner?'carried':m.looseBall107?'loose':'rest';
     if(b.dataset.visualM10!==state)b.dataset.visualM10=state;
     const px=Math.round(v.ball.x*W)/100,py=Math.round(v.ball.y*H)/100;if(b._m13x!==px){b._m13x=px;b.style.setProperty('--m9-x',px+'px')}if(b._m13y!==py){b._m13y=py;b.style.setProperty('--m9-y',py+'px')}
@@ -8525,4 +8525,16 @@ html body .match-broadcast-m8 .broadcast-score-m8 b{font-size:clamp(22px,3vw,32p
 html body .match-broadcast-m8 .broadcast-visual-m8 img{animation:artRevealM11 .38s ease-out both}
 html body .match-broadcast-m8.broadcast-no-art-m8{grid-template-columns:1fr}
 @media(prefers-reduced-motion:reduce){html body .match-broadcast-m8 .broadcast-visual-m8 img{animation:none!important}}
+</style><style id="match-team-m16">
+html body .match-broadcast-m8.broadcast-team-m16{border-color:var(--team-primary-m16)!important;border-left:5px solid var(--team-primary-m16)!important;background:linear-gradient(110deg,#111923 8%,#1c2935 55%,color-mix(in srgb,var(--team-primary-m16) 36%,#263441) 100%)!important}
+html body .match-broadcast-m8.broadcast-team-m16 .broadcast-timebar-m8{background:var(--team-primary-m16)!important;height:3px}
+html body .match-broadcast-m8.broadcast-team-m16 .broadcast-title-m8{color:#f2f5f8!important}
+html body .match-broadcast-m8.broadcast-team-m16.broadcast-yellow-m8 .broadcast-title-m8{color:#f0ce53!important}
+html body .match-broadcast-m8.broadcast-team-m16:is(.broadcast-red-m8,.broadcast-cancel-m8) .broadcast-title-m8{color:#ff9295!important}
+html body .match-broadcast-m8 .broadcast-meta-m8{gap:9px;letter-spacing:0}
+html body .match-broadcast-m8 .broadcast-crest-m8{width:42px;height:44px;flex:0 0 42px}
+html body .match-broadcast-m8 .broadcast-crest-m8 :is(img,svg,.crest){width:42px!important;height:44px!important;max-width:none!important;max-height:none!important}
+html body .match-broadcast-m8 .broadcast-teamname-m16{font-size:12px;font-weight:750;line-height:1.2;color:#f2f5f8!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body .match-broadcast-m8 .broadcast-meta-m8 b{flex:none}
+@media(max-width:680px){html body .match-broadcast-m8 .broadcast-crest-m8{width:32px;height:34px;flex-basis:32px}html body .match-broadcast-m8 .broadcast-crest-m8 :is(img,svg,.crest){width:32px!important;height:34px!important}}
 </style></body></html>
