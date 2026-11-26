@@ -6889,6 +6889,7 @@ function finishPenaltyKick(p,chosen){
 }
 function choosePenaltyDirection(direction){
  const p=simState?.pendingPenalty;if(!p||p.auto85||p.kickM4||simState.paused||simState.restartPrep127||page!=='match'||document.hidden||Date.now()<(p.inputAtM4||0)||Date.now()>=p.expiresAt||!['left','center','right'].includes(direction))return;
+ const focused=document.activeElement;if(focused?.matches('.pk-match-m4 .pk-round264'))focused.blur();
  startPenaltyMotionM4(p,direction);
 }
 window.toggleAutoSubstitution=toggleAutoSubstitution;window.changePenaltyMode=changePenaltyMode;window.choosePenaltyDirection=choosePenaltyDirection;
@@ -9034,4 +9035,17 @@ html body .pk-match-m4 .pk-side268 .pk-control264{gap:16px; margin:8px 0 0!impor
 html body .pk-match-m4 .pk-buttons264{column-gap:12px;}
 html body .pk-match-m4 .pk-side268 .pk-help264{display:block;min-height:2.9em;padding:2px 8px 0;line-height:1.6;text-align:center;box-sizing:border-box;}
 @media(max-width:900px){html body .pk-match-m4 .penalty-choice-panel.pk-manual264{height:calc(100dvh - 32px);padding-bottom:28px!important;}html body .pk-match-m4 .pk-side268 .pk-control264{grid-template-columns:minmax(0,1fr);gap:14px;}}
+</style><style id="match-pk-neutral-m61">
+/* All three directions remain visually neutral, even under a stationary pointer. */
+html body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264,
+html body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:is(:hover,:active,:focus){
+ background:radial-gradient(circle at 45% 25%,#485b69,#263440 75%)!important;color:#fff!important;border:1px solid #aab9c8!important;box-shadow:0 4px 0 #10161d,0 8px 18px #0005!important;transform:none!important;transition:none!important;
+}
+html body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:disabled{opacity:1!important;box-shadow:none!important;background:#263440!important;color:#aab9c8!important;border-color:#566674!important;}
+html body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:focus:not(:focus-visible){outline:none!important;}
+html body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:focus-visible{outline:2px solid #e2c88d!important;outline-offset:3px;}
+html[data-elevos-theme="light"] body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264,
+html[data-elevos-theme="light"] body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:is(:hover,:active,:focus){background:#e3ebf3!important;color:#244765!important;border:1px solid #849db6!important;box-shadow:0 3px 0 #b8c7d6,0 6px 12px #20344815!important;transform:none!important;}
+html[data-elevos-theme="light"] body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:disabled{background:#e1e6ec!important;color:#4c6074!important;border-color:#bcc8d4!important;box-shadow:none!important;}
+html[data-elevos-theme="light"] body .pk-match-m4 .pk-side268 .pk-buttons264 .pk-round264:focus-visible{outline-color:#416c96!important;}
 </style></body></html>
