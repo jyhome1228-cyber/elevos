@@ -123,6 +123,25 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid;
       allow list, update, delete: if false;
     }
+    match /betaFeedback/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['uid','username','realName','phone','category','body','level','consent','createdAt','status'])
+        && request.resource.data.keys().hasAll(['uid','username','realName','phone','category','body','level','consent','createdAt','status'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.username == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+        && request.resource.data.level == get(/databases/$(database)/documents/users/$(request.auth.uid)/summary/current).data.level
+        && request.resource.data.level >= 3
+        && request.resource.data.realName is string && request.resource.data.realName.size() >= 1 && request.resource.data.realName.size() <= 50
+        && request.resource.data.phone is string && request.resource.data.phone.matches('^01[016789][0-9]{7,8} { allow read, write: if false; }
+  }
+})
+        && request.resource.data.category in ['오류','디자인','밸런스','콘텐츠','기타']
+        && request.resource.data.body is string && request.resource.data.body.size() >= 10 && request.resource.data.body.size() <= 5000
+        && request.resource.data.consent == true && request.resource.data.createdAt == request.time && request.resource.data.status == 'pending';
+      allow get, list: if admin();
+      allow update: if admin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['pending','reviewed','sent','extra','rejected'];
+      allow delete: if admin();
+    }
     match /{document=**} { allow read, write: if false; }
   }
 }
