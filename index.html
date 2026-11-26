@@ -3269,7 +3269,14 @@ function showTheListEffect202(p,success,chance){
 }
 
 function growthStatus210(p,apps){if(p.growthSpecial)return '그로스 전환 완료';if(!growthEligibleBase(p))return '특별 시즌 또는 기존 전환 제한 대상';if(!myPlayers().includes(p))return '선수단 등록 후 출전 필요';if(apps<30)return '출전 '+(30-apps)+'경기 더 필요';if(p.locked)return '선수 잠금 해제 필요';if(simState)return '경기 종료 후 가능';if(walletGBP<10000)return '게임머니 부족';return '강화 가능'}
-function viewGrowthUpgrade(){const list=[...new Map([...myPlayers(),...coachCards].filter(p=>enhancementLevel(p)===10||p.growthSpecial).map(p=>[p.id,p])).values()].sort((a,b)=>Number(growthReady(b))-Number(growthReady(a))||Number(a.growthSpecial)-Number(b.growthSpecial)||overall(b)-overall(a));return '<section class="card growth-page210"><div class="sr-hero-v29"><div><small>GROWTH UPGRADE</small><h2>그로스 강화</h2><p>+10 선수는 모두 표시됩니다. 대상 선수는 실제 경기 30회 출전 후 강화할 수 있습니다.</p></div><div class="sr-hero-rules-v29"><span><small>출전 조건</small><b>30경기</b></span><span><small>비용</small><b>£10,000</b></span><span><small>성공률</small><b>100%</b></span></div></div><div class="growth-head210"><h3>보유 +10 선수 및 그로스 선수 · '+list.length+'명</h3><button class="btn sub" onclick="openGrowthGuide()">이용 안내</button></div><div class="growth-list-new">'+(list.map(p=>{const c=growthCareer(p),ready=growthReady(p),status=growthStatus210(p,c.apps);return '<article class="'+(ready?'growth-ready210':'')+'"><span class="growth-thumb210">'+avatar(p,52)+'</span><div class="growth-player210"><strong>'+txt(p.name)+'</strong><small>'+txt(specialLabel(p))+' · '+p.pos+' · OVR '+overall(p)+' · +'+enhancementLevel(p)+' · '+(myPlayers().includes(p)?'선수단':'보관함')+'</small></div><div class="growth-progress210"><div><span>누적 출전</span><b>'+c.apps+' / 30경기</b></div><div class="mission-track"><i style="width:'+Math.min(100,c.apps/30*100)+'%"></i></div><small>'+txt(status)+'</small></div>'+(p.growthSpecial?'<button class="btn sub" onclick="openGrowthStory('+p.id+')">스토리 보기</button>':'<button class="btn upgrade-action210" '+(ready?'':'disabled')+' onclick="growthConvert('+p.id+')">그로스 강화</button>')+'</article>'}).join('')||'<div class="growth-empty210">보유한 +10 선수가 없습니다. 선수를 +10까지 강화하면 이곳에 표시됩니다.</div>')+'</div></section>'}
+let growthSelectionM25=null;function selectGrowthM25(id){growthSelectionM25=id;render()}function filterGrowthM25(input){const q=input.value.trim().toLowerCase();document.querySelectorAll('.growth-row-m25').forEach(el=>el.hidden=!el.textContent.toLowerCase().includes(q))}
+function viewGrowthUpgrade(){const list=[...new Map([...myPlayers(),...coachCards].filter(p=>enhancementLevel(p)===10||p.growthSpecial).map(p=>[p.id,p])).values()].sort((a,b)=>Number(growthReady(b))-Number(growthReady(a))||Number(a.growthSpecial)-Number(b.growthSpecial)||overall(b)-overall(a));const p=list.find(q=>q.id===growthSelectionM25)||list[0];if(p)growthSelectionM25=p.id;
+ const c=p?growthCareer(p):null,ready=p&&growthReady(p),eligible=p&&growthEligibleBase(p),registered=p&&myPlayers().includes(p),preview=p&&eligible?JSON.parse(JSON.stringify(p)):null;
+ if(preview){const d={...detailed(preview)};for(const k of Object.keys(d))d[k]=Math.min(149,d[k]+23.5);preview.growthSpecial=true;preview.growthTraits=growthTraitIds(p);preview.skills=[...new Set([...(preview.skills||[]),...preview.growthTraits])];preview.detail=d;preview.growthBase={...d};preview.enhancementLevel=1}
+ const check=(name,ok,value)=>'<div class="growth-check-m25"><span>'+txt(name)+'</span><b class="'+(ok?'passed':'waiting')+'">'+txt(value)+'</b></div>';
+ const stage=p?'<section class="growth-forge-m25"><header><small>GROWTH SEASON · PLAYER EVOLUTION</small><h3>그로스 강화</h3><p>선수의 경기 기록을 새로운 시즌으로 계승합니다.</p></header><div class="growth-stage-m25"><div class="growth-card-m25"><small>현재 선수</small>'+officialPlayerCard(p)+'</div><div class="growth-core-m25"><b>G</b><span>→</span><small>시즌 진화</small></div><div class="growth-card-m25 growth-preview-m25"><small>'+(p.growthSpecial?'전환 완료':'전환 후 미리보기')+'</small>'+(preview?officialPlayerCard(preview):p.growthSpecial?officialPlayerCard(p):'<div class="growth-placeholder-m25">전환 대상 아님</div>')+'</div><div class="growth-info-m25"><small>강화 성공률</small><strong>'+(eligible?'100%':'—')+'</strong><div class="growth-meter-m25"><i style="width:'+(eligible?100:0)+'%"></i></div>'+check('전환 비용',walletGBP>=10000,'£10,000')+check('보유 파운드',walletGBP>=10000,formatGBP(walletGBP))+'</div></div><div class="growth-conditions-m25"><h3>전환 조건</h3>'+check('일반 선수 +10강',eligible&&enhancementLevel(p)===10,eligible&&enhancementLevel(p)===10?'충족':'미충족')+check('선수단 등록',registered,registered?'등록 완료':'등록 필요')+check('누적 출전',c.apps>=30,c.apps+' / 30경기')+'<div class="growth-meter-m25"><i style="width:'+Math.min(100,c.apps/30*100)+'%"></i></div>'+check('선수 잠금',!p.locked,p.locked?'해제 필요':'해제 상태')+'</div><div class="growth-benefit-m25"><strong>전환 효과</strong><span>기존 경기 기록·별 등급 계승 · 고유 특성 3개 · 새 시즌 +1강부터 성장</span><small>미리보기는 현재 선수 기준이며 실제 능력치는 전환 결과에서 확인할 수 있습니다.</small></div><footer><small>'+txt(growthStatus210(p,c.apps))+'</small>'+(p.growthSpecial?'<button class="btn sub" onclick="openGrowthStory('+p.id+')">스토리 보기</button>':'<button class="btn upgrade-action210" '+(ready?'':'disabled')+' onclick="growthConvert('+p.id+')">그로스 강화</button>')+'</footer></section>':'<div class="growth-empty210">보유한 +10 선수가 없습니다.</div>';
+ return '<section class="card growth-page210 growth-page-m25"><div class="sr-hero-v29"><div><small>GROWTH UPGRADE</small><h2>그로스 강화</h2><p>+10 선수는 모두 표시됩니다. 대상 선수는 실제 경기 30회 출전 후 강화할 수 있습니다.</p></div><div class="sr-hero-rules-v29"><span><small>출전 조건</small><b>30경기</b></span><span><small>비용</small><b>£10,000</b></span><span><small>성공률</small><b>100%</b></span></div></div><div class="growth-workspace-m25"><section class="growth-roster-m25"><div class="growth-head210"><h3>보유 선수 · '+list.length+'명</h3><button class="btn sub mini" onclick="openGrowthGuide()">이용 안내</button></div><input class="growth-search-m25" placeholder="선수명 또는 시즌 검색" aria-label="선수 검색" oninput="filterGrowthM25(this)"><div class="growth-list-new">'+list.map(q=>{const apps=growthCareer(q).apps;return '<button type="button" class="growth-row-m25 '+(q.id===p?.id?'selected':'')+'" aria-pressed="'+(q.id===p?.id)+'" onclick="selectGrowthM25('+q.id+')">'+tacticsSeasonPortrait(q,44)+'<div><strong>'+txt(q.name)+'</strong><small>'+txt(specialLabel(q))+' · '+q.pos+' · +'+enhancementLevel(q)+'</small><small>'+txt(growthStatus210(q,apps))+'</small></div><b>'+overall(q)+'</b></button>'}).join('')+'</div></section>'+stage+'</div></section>'}
+
 function pitchSeason(p){if(!p)return '';if(enhancementLevel(p)===11)return 'XI';if(p.lnSpecial)return 'LN';return p.growthSpecial?'GRW':p.pioneersSpecial?'PNR':p.ballonSpecial?'BD':p.momentSpecial?'OM':p.legendSpecial?'LEG':p.redSpecial?'RED':Number(p.packTier)>=100?'ELITE':''}
 function premiumTacticsPalette(p){const t=pitchSeason(p);return ({XI:['#d6c6ad','#fffaf0','#79634e'],LN:['#c3a574','#eee5d3','#26384e'],BD:['#e9c77d','#fff5d1','#89612f'],OM:['#9bdcc5','#effff8','#386e61'],PNR:['#d8d1c4','#fffdf6','#77736d'],LEG:['#c7a5ee','#f3e4ff','#644a8e'],RED:['#ed8393','#ffe3e6','#8f3449'],GRW:['#82b4ef','#dcecff','#304c84'],ELITE:['#c0a4dd','#eee3ff','#6d537e']})[t]||null}
 function premiumTacticsVars(p){const c=premiumTacticsPalette(p);return c?'--season-edge:'+c[0]+';--season-hi:'+c[1]+';--season-lo:'+c[2]+';--rare147:'+c[0]+';':''}
@@ -8719,4 +8726,58 @@ html body #main .star-forge-m24 .sr-action-v29:disabled{opacity:.45}
 @media(max-width:1250px){html body #main .sr-page-v29 .sr-grid-v29{grid-template-columns:minmax(180px,.85fr) minmax(320px,1.5fr) minmax(210px,1fr)}}
 @media(max-width:980px){html body #main .sr-page-v29 .sr-grid-v29{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}html body #main .sr-page-v29 .sr-grid-v29>section:last-child{grid-column:1/-1}}
 @media(max-width:650px){html body #main .sr-page-v29 .sr-grid-v29{grid-template-columns:minmax(0,1fr)}html body #main .sr-page-v29 .star-forge-m24{padding:14px!important}}
+</style><style id="growth-forge-m25">
+html body #main .growth-workspace-m25{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,2fr);gap:14px;align-items:start;margin-top:16px}
+html body #main .growth-roster-m25{min-width:0;border:1px solid #455a70;border-radius:5px;padding:12px}
+html body #main .growth-roster-m25 .growth-head210{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+html body #main .growth-roster-m25 .growth-head210 h3{font-size:14px!important;margin:0}
+html body #main .growth-search-m25{width:100%;height:36px;box-sizing:border-box;border:1px solid #50647a;border-radius:4px;padding:8px 10px;background:#202a37;color:#edf4fd;margin-bottom:10px}
+html body #main .growth-roster-m25 .growth-list-new{display:grid!important;grid-template-columns:1fr!important;gap:6px;max-height:640px;overflow:auto}
+html body #main .growth-row-m25{display:flex;align-items:center;gap:9px;min-width:0;text-align:left;padding:9px;border:1px solid #425367;border-radius:4px;background:#202a37;color:#e8f2ff;cursor:pointer}
+html body #main .growth-row-m25[hidden]{display:none!important}
+html body #main .growth-row-m25.selected{border-color:#88b6f3;background:#30465f}
+html body #main .growth-row-m25>div{flex:1;min-width:0;display:grid;gap:4px}
+html body #main .growth-row-m25 strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit!important}
+html body #main .growth-row-m25 small{font-size:10px;color:#b8c9dd!important}
+html body #main .growth-row-m25>b{font-size:17px;color:#b9d7ff!important}
+html body #main .growth-forge-m25{background:radial-gradient(ellipse at 76% 8%,#304b70,#202b3c 48%,#161c25 92%)!important;color:#e9f2ff!important;border:1px solid #708fb7;border-radius:5px;padding:22px;min-width:0;box-sizing:border-box}
+html body #main .growth-forge-m25 header{padding-bottom:12px;border-bottom:1px solid #8aa7ca55}
+html body #main .growth-forge-m25 header small{font-size:10px;letter-spacing:.13em;color:#a6c4ef!important}
+html body #main .growth-forge-m25 h3{color:#edf5ff!important;font-size:17px!important;margin:6px 0}
+html body #main .growth-forge-m25 header p{font-size:12px;color:#b9cce4!important;margin:0}
+html body #main .growth-stage-m25{display:grid;grid-template-columns:minmax(0,160px) 70px minmax(0,160px) minmax(140px,1fr);gap:14px;align-items:center;padding:18px 0}
+html body #main .growth-card-m25{display:grid;gap:8px;justify-items:center;min-width:0}
+html body #main .growth-card-m25>small{font-size:11px;color:#b9cce4!important}
+html body #main .growth-card-m25 .official-player-card{width:100%!important;min-width:0!important;max-width:160px!important;height:auto!important;aspect-ratio:3/5!important;margin:0!important;gap:2px!important;padding:6% 6% 7%!important;box-sizing:border-box}
+html body #main .growth-card-m25 .official-player-card .opc-face{width:62%!important;flex:none!important}
+html body #main .growth-card-m25 .official-player-card .opc-bottom{min-height:24px!important;padding:3px 0 0!important;gap:4px!important}
+html body #main .growth-card-m25 .official-player-card .opc-bottom>span{font-size:clamp(6px,5.4cqw,9px)!important;line-height:1.15!important;overflow-wrap:anywhere!important}
+html body #main .growth-card-m25 .official-player-card .opc-bottom>.pack-level73{font-size:clamp(10px,10cqw,17px)!important;min-width:0!important;padding:2px 5px!important}
+html body #main .growth-preview-m25 .official-player-card{filter:drop-shadow(0 0 9px #7cadf266)}
+html body #main .growth-core-m25{display:grid;justify-items:center;gap:5px;color:#a8ccff;text-align:center}
+html body #main .growth-core-m25>b{font:700 42px Georgia,serif;color:#c5ddff!important}
+html body #main .growth-core-m25>small{font-size:10px;color:#a8ccff!important}
+html body #main .growth-placeholder-m25{width:100%;max-width:160px;aspect-ratio:3/5;display:grid;place-items:center;border:1px dashed #718ba8;border-radius:5px;color:#b9cce4;font-size:11px}
+html body #main .growth-info-m25{display:grid;gap:8px;min-width:0;padding-left:13px;border-left:1px solid #8aa7ca55}
+html body #main .growth-info-m25>small{font-size:11px;color:#b9cce4!important}
+html body #main .growth-info-m25>strong{font-size:36px;line-height:1;color:#e3efff!important}
+html body #main .growth-meter-m25{height:6px;border-radius:4px;overflow:hidden;background:#111a27}
+html body #main .growth-meter-m25>i{display:block;height:100%;background:linear-gradient(90deg,#537daf,#a1c8ff)}
+html body #main .growth-check-m25{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#b9cce4!important}
+html body #main .growth-check-m25>b{color:#dceaff!important}
+html body #main .growth-check-m25>b.waiting{color:#f1c79b!important}
+html body #main .growth-conditions-m25{display:grid;gap:10px;border-top:1px solid #8aa7ca55;padding:12px 0}
+html body #main .growth-benefit-m25{display:grid;gap:6px;background:#101b2b55;border:1px solid #7292ba55;border-radius:4px;padding:12px;margin:8px 0;color:#ccddf4!important;font-size:12px}
+html body #main .growth-benefit-m25 strong{color:#e5f0ff!important}
+html body #main .growth-benefit-m25 small{color:#b9cce4!important;font-size:10px}
+html body #main .growth-forge-m25 footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+html body #main .growth-forge-m25 footer small{color:#b9cce4!important}
+html body #main .growth-forge-m25 footer .btn:not(:disabled){background:#9bbff0!important;color:#132236!important;border-color:#bad6ff!important;min-height:42px}
+html[data-elevos-theme="light"] body #main .growth-row-m25{background:#f2f6fa;color:#263b53;border-color:#b8c8da}
+html[data-elevos-theme="light"] body #main .growth-row-m25.selected{background:#dce9f8;border-color:#7299c9}
+html[data-elevos-theme="light"] body #main .growth-row-m25 small{color:#52677e!important}
+html[data-elevos-theme="light"] body #main .growth-row-m25>b{color:#315c91!important}
+html[data-elevos-theme="light"] body #main .growth-search-m25{background:#f4f7fa;color:#263b53;border-color:#b8c8da}
+@media(max-width:1200px){html body #main .growth-stage-m25{grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)}html body #main .growth-info-m25{grid-column:1/-1;border-left:0;border-top:1px solid #8aa7ca55;padding:12px 0 0}}
+@media(max-width:780px){html body #main .growth-workspace-m25{grid-template-columns:1fr}html body #main .growth-roster-m25 .growth-list-new{max-height:250px}html body #main .growth-forge-m25{padding:14px}}
 </style></body></html>
