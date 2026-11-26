@@ -4448,7 +4448,7 @@ function startSimulation(batch148=false){
  const healthy=currentLineup().filter(id=>players.some(p=>p.id===id&&p.club===manager&&!playerUnavailable(p)));if(!pair||pair.some(id=>id==null||!clubs[id])){showGameDialog('경기 일정 확인',[['안내','예정된 경기 정보가 없습니다. 대시보드에서 다음 경기를 확인하세요.']]);return}if(healthy.length!==11||new Set(healthy).size!==11){save();render();showGameDialog('선발 선수 부족',[['출전 가능 선발',healthy.length+' / 11명'],['안내','전술 설정에서 선발을 배정하거나 부상·계약 상태를 확인하세요.']]);return}const matchBench=squadGroups().bench.map(p=>p.id);let challengeLineupV7=null;
  if(challengeRuleV1(activeCompetition)||activeCompetition==='derbyShield'){try{if(!challengePairValidV7(pair))throw Error('invalid cup pair');const opponent=pair.find(id=>id!==manager),roster=challengeRosterV1(activeCompetition,opponent);if(!challengeRosterValidV7(roster,activeCompetition,opponent))throw Error('invalid opponent lineup');challengeLineupV7=roster.slice(0,11).map(p=>p.id);}catch(e){console.error('컵 경기 시작 오류',e);showGameDialog('경기 준비 실패',[['안내','상대 선수단을 준비하지 못했습니다. 대회 화면에서 다시 도전해 주세요.']]);return}}
  pauseSimulation();
- simState={competition:activeCompetition,cupStageV7:activeCompetition==='league'?null:cupState[activeCompetition]?.stage,cupAttemptV12:cupState?.[activeCompetition]?.attemptV12||1,paused:false,lastTickAt:Date.now(),activeLineup:healthy.slice(),matchBench,participants:healthy.slice(),substitutions:[],aiSubstitutions:[],manualCoaching:false,autoSubstitution:true,pkMode:'auto',pendingPenalty:null,formation,slotOffsets103:JSON.parse(JSON.stringify(advancedTactics().slotOffsets103?.[manager+':'+formation]||{})),instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?healthy.slice():(challengeLineupV7||computerLineup(pair[0])),awayLineup:pair[1]===manager?healthy.slice():(challengeLineupV7||computerLineup(pair[1])),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),positions:{home:[],away:[]},possession:pair[0],phase:'kickoff',homeGoals:0,awayGoals:0,goalTail:newGoalTail(),firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,introStart:Date.now(),introStage:0,introStageAt:Date.now(),log:[],halftime:false,ball:{x:50,y:50},stamina:100};
+ simState={competition:activeCompetition,cupStageV7:activeCompetition==='league'?null:cupState[activeCompetition]?.stage,cupAttemptV12:cupState?.[activeCompetition]?.attemptV12||1,paused:false,lastTickAt:Date.now(),activeLineup:healthy.slice(),matchBench,participants:healthy.slice(),substitutions:[],aiSubstitutions:[],manualCoaching:false,autoSubstitution:true,pkMode:'manual',pendingPenalty:null,formation,slotOffsets103:JSON.parse(JSON.stringify(advancedTactics().slotOffsets103?.[manager+':'+formation]||{})),instruction:tactic,club:manager,season,round,minute:0,home:pair[0],away:pair[1],homeLineup:pair[0]===manager?healthy.slice():(challengeLineupV7||computerLineup(pair[0])),awayLineup:pair[1]===manager?healthy.slice():(challengeLineupV7||computerLineup(pair[1])),homeFormation:pair[0]===manager?formation:'433',awayFormation:pair[1]===manager?formation:'433',weather:fixtureWeather(pair[0],pair[1],round,season),positions:{home:[],away:[]},possession:pair[0],phase:'kickoff',homeGoals:0,awayGoals:0,goalTail:newGoalTail(),firstAdded:1+Math.floor(Math.random()*3),secondAdded:2+Math.floor(Math.random()*4),pendingVAR:null,events:[],dismissals:{},yellowCards:0,redCards:0,majorEvent:null,introStart:Date.now(),introStage:0,introStageAt:Date.now(),log:[],halftime:false,ball:{x:50,y:50},stamina:100};
  matchBroadcastData(simState);matchTab='live';page=batch148?'dashboard':'match';if(batch148){simState.introStart=null;simState.paused=true;simState.goalRestart89={team:simState.home};kickoffAfterGoal89(simState);simState.kickoffPending37=false}if(!save(true)){simState=null;matchTab='preview';render();showGameDialog('경기 시작 실패',[['안내','저장 공간을 확인한 뒤 다시 시도하세요.']]);return}if(challengeRuleV1(activeCompetition))cupCloudCheckpointV10();closeTabHelp36();if(!batch148){window.ElevosPackAudio?.click();runSimulation()}
 }
 
@@ -4670,8 +4670,8 @@ function resolveVAR(){
   if(p.disallowed){simState.setPiece85=null;simEvent(team.id,actor,'cancel','VAR 판정: 페널티킥 취소, 경기를 재개합니다.','NO PENALTY');varRestart113(p)}
   else{
    simEvent(team.id,actor,'penalty',team.name+' 페널티킥 판정이 유지됩니다!','PENALTY');
-   if(simState.pkMode==='manual'&&(p.teamId===manager||(p.home?simState.away:simState.home)===manager)){
-    simState.pendingPenalty={home:p.home,teamId:p.teamId,playerId:p.playerId,conversion:p.conversion,expiresAt:Date.now()+5000};
+   if(!simBatchMode&&page==='match'&&!document.hidden&&simState.pkMode!=='auto'&&(p.teamId===manager||(p.home?simState.away:simState.home)===manager)){
+    const readyAtM4=Math.max(Date.now(),simState.highlightUntil50||0);simState.pendingPenalty={home:p.home,teamId:p.teamId,playerId:p.playerId,conversion:p.conversion,readyAtM4,inputAtM4:readyAtM4+1000,expiresAt:readyAtM4+6000};
    }else{simState.pendingPenalty={home:p.home,teamId:p.teamId,playerId:p.playerId,conversion:p.conversion,expiresAt:Date.now()+500,auto85:true}}
   }
  }
@@ -4855,8 +4855,7 @@ function advanceMinute(){
  if(simState.minute>=simTotalMinutes()&&!simState.restartPrep127&&!simState.flight120&&!simState.pendingVAR&&!simState.pendingPenalty){if(!simState.finishPending){simState.finishPending=true;simState.finishAt=Date.now();save();commitSimulation(true)}return}
  if(simState.goalRestart89&&!simState.pendingVAR&&!simState.pendingPenalty&&!simState.halftimeUntil){kickoffAfterGoal89(simState);simState.lastTickAt=Date.now();save();if(!simBatchMode&&page==='match')render();return}
  if(simState.pendingPenalty){
-  if(!simBatchMode&&Date.now()<simState.pendingPenalty.expiresAt)return;
-  finishPenaltyKick(simState.pendingPenalty,null);if(!simBatchMode&&page==='match')render();return;
+  advancePenaltyM4(simState.pendingPenalty);return;
  }
  if(processPendingReview())return;
  if(simState.halftimeUntil){
@@ -6503,20 +6502,42 @@ function changePenaltyMode(value){
  if(!simState||!['auto','manual'].includes(value))return;
  simState.pkMode=value;save();render();
 }
+function penaltyActorsM4(p){const m=simState,defense=p.home?m.away:m.home;const eligible=activeMatchPlayers(p.teamId);const kicker=eligible.find(x=>x.id===p.playerId)||eligible.filter(x=>x.pos!=='GK').sort((a,b)=>matchActionStat(b,'finishing')-matchActionStat(a,'finishing'))[0]||eligible[0];return {kicker,keeper:activeMatchKeeper(defense),defense};}
 function penaltyChoiceHTML(){
- const p=simState?.pendingPenalty,m=simState;if(!p||p.auto85||m.restartPrep127)return '';
- const shooting=p.teamId===manager,defense=p.home?m.away:m.home,kicker=activeMatchPlayers(p.teamId).find(x=>x.id===p.playerId),keeper=activeMatchKeeper(defense);
- return '<div class="penalty-choice-dialog"><div class="penalty-choice-panel pk-manual264"><div class="eyebrow">PENALTY KICK · '+txt(simMinuteLabel(m.minute))+'′</div><h2>'+(shooting?'슈팅 방향 선택':'골키퍼 선방 방향 선택')+'</h2>'+'<div class="pk-wide268">'+shootoutSceneV15(null,kicker,keeper,false,p.home)+'<div class="pk-side268">'+pkTurn270(shooting)+pkPlayers264(kicker,keeper,p.teamId,defense)+pkControls264(shooting,'choosePenaltyDirection',false,p.expiresAt)+'</div></div></div></div>';
+ const p=simState?.pendingPenalty,m=simState;if(!p||p.auto85||m.restartPrep127||Date.now()<(p.readyAtM4||0))return '';
+ const shooting=p.teamId===manager,{kicker,keeper,defense}=penaltyActorsM4(p),motion=!!p.kickM4,revealed=motion&&Date.now()>=p.kickM4.revealAt,intro=!motion&&Date.now()<(p.inputAtM4||0);
+ const scene=shootoutSceneV15(motion?p.kickM4:null,kicker,keeper,motion,p.home);
+ return '<div class="penalty-choice-dialog pk-match-m4" data-phase="'+(motion?(revealed?'result':'motion'):intro?'intro':'choice')+'"><div class="penalty-choice-panel pk-manual264"><div class="eyebrow">PENALTY KICK · '+txt(simMinuteLabel(m.minute))+'′</div><h2>'+(shooting?'우리 팀 페널티킥':'상대 팀 페널티킥')+'</h2><div class="pk-match-score-m4">'+txt(clubs[m.home]?.name||'')+' <b>'+m.homeGoals+' : '+m.awayGoals+'</b> '+txt(clubs[m.away]?.name||'')+'</div><div class="pk-wide268"><div class="pk-scene-wrap271">'+scene+(intro?pkIntro271(shooting):'')+'</div><div class="pk-side268">'+pkTurn270(shooting,motion)+pkPlayers264(kicker,keeper,p.teamId,defense)+'<h3 class="pk-result-m4" aria-live="polite">'+(revealed?pkResultLabel271(p.kickM4):motion?'슈팅 진행 중':intro?'준비하세요':'방향 선택')+'</h3>'+pkControls264(shooting,'choosePenaltyDirection',motion||intro,p.expiresAt)+'</div></div></div></div>';
+}
+function planPenaltyM4(p,chosen){
+ const m=simState,{kicker,keeper}=penaltyActorsM4(p),side=p.teamId===manager,dirs=['left','center','right'],rnd=()=>dirs[Math.floor(Math.random()*3)],manual=dirs.includes(chosen);
+ const shot=side&&manual?chosen:rnd(),saveDir=!side&&manual?chosen:rnd();
+ const skillEdge=(matchActionStat(kicker,'finishing')-matchActionStat(keeper,'reflex'))*.0025,conversion=Number.isFinite(p.conversion)?p.conversion:.72;
+ const chance=Math.max(.15,Math.min(.95,(shot===saveDir?Math.max(.16,conversion*.62):Math.max(.65,conversion))+skillEdge));
+ const goal=Math.random()<chance&&goalTailAllowed(m.homeGoals,m.awayGoals,p.home,m.goalTail||(m.goalTail=newGoalTail()));
+ const now=Date.now();return {shot,saveDir,goal,outcomeV15:goal?'goal':keeper&&shot===saveDir?'saved':'wide',playerId:kicker?.id??null,keeperId:keeper?.id??null,revealAt:now+1500,finishAt:now+2400};
+}
+function startPenaltyMotionM4(p,direction){
+ if(!p||p.kickM4)return;
+ p.kickM4=planPenaltyM4(p,direction);p.playerId=p.kickM4.playerId;save();if(page==='match'&&!document.hidden)render();
+}
+function advancePenaltyM4(p){
+ const now=Date.now(),visible=!simBatchMode&&page==='match'&&!document.hidden&&!p.auto85;
+ if(p.kickM4){
+  if(visible&&now<p.kickM4.finishAt){const dialog=document.querySelector('.pk-match-m4');if(!dialog){render();return}if(now>=p.kickM4.revealAt&&dialog.dataset.phase!=='result'){dialog.dataset.phase='result';const label=dialog.querySelector('.pk-result-m4');if(label)label.textContent=pkResultLabel271(p.kickM4)}return}
+  finishPenaltyKick(p,null);if(!simBatchMode&&page==='match')render();return;
+ }
+ if(!visible){finishPenaltyKick(p,null);if(!simBatchMode&&page==='match')render();return}
+ if(now<(p.readyAtM4||0))return;
+ const dialog=document.querySelector('.pk-match-m4');
+ if(now>=p.expiresAt){startPenaltyMotionM4(p,null);return}
+ if(!dialog||(now>=(p.inputAtM4||0)&&dialog.dataset.phase==='intro'))render();
 }
 function finishPenaltyKick(p,chosen){
- const kicker=activeMatchPlayers(p.teamId).find(x=>x.id===p.playerId)||randomMatchActor(p.home),side=p.teamId===manager;
- const defendingTeam=p.home?simState.away:simState.home,keeperPlayer=activeMatchKeeper(defendingTeam);
- const directions=['left','center','right'];
- const target=side?(chosen||directions[Math.floor(Math.random()*3)]):directions[Math.floor(Math.random()*3)];
- const keeper=side?directions[Math.floor(Math.random()*3)]:(chosen||directions[Math.floor(Math.random()*3)]);
- const skillEdge=(matchActionStat(kicker,'finishing')-matchActionStat(keeperPlayer,'reflex'))*.0025;const chance=Math.max(.15,Math.min(.95,(target===keeper?Math.max(.16,p.conversion*.62):Math.max(.65,p.conversion))+skillEdge)),kickStart89={...(simState.ball||{x:p.home?89:11,y:50})};
- if(Math.random()<chance&&scoreConfirmedGoal(p.home,kicker,(kicker?.name||clubs[p.teamId].name)+' 페널티킥 성공!','PENALTY GOAL',null,null,{pkTargetY269:50+(target==='left'?-1:target==='right'?1:0)*(p.home?1:-1)*4})){simState.pendingPenalty=null;save();return}
- else if(keeperPlayer&&target===keeper&&Math.random()<.82){simEvent(p.teamId,kicker,'shot',(kicker?.name||clubs[p.teamId].name)+' 페널티킥 유효 슈팅',null,{onTarget:true,xg:.76});simEvent(defendingTeam,keeperPlayer,'save',keeperPlayer.name+' 선방! '+(kicker?.name||clubs[p.teamId].name)+'의 페널티킥을 막았습니다.','PENALTY SAVED')}
+ const {kicker,keeper:keeperPlayer,defense:defendingTeam}=penaltyActorsM4(p),planned=p.kickM4||planPenaltyM4(p,chosen),target=planned.shot,keeper=planned.saveDir;
+ const kickStart89={...(simState.ball||{x:p.home?89:11,y:50})};
+ if(planned.goal&&scoreConfirmedGoal(p.home,kicker,(kicker?.name||clubs[p.teamId].name)+' 페널티킥 성공!','PENALTY GOAL',null,null,{pkTargetY269:50+(target==='left'?-1:target==='right'?1:0)*(p.home?1:-1)*4})){simState.pendingPenalty=null;save();return}
+ else if(keeperPlayer&&planned.outcomeV15==='saved'){simEvent(p.teamId,kicker,'shot',(kicker?.name||clubs[p.teamId].name)+' 페널티킥 유효 슈팅',null,{onTarget:true,xg:.76});simEvent(defendingTeam,keeperPlayer,'save',keeperPlayer.name+' 선방! '+(kicker?.name||clubs[p.teamId].name)+'의 페널티킥을 막았습니다.','PENALTY SAVED')}
  else simEvent(p.teamId,kicker,'shot',(kicker?.name||clubs[p.teamId].name)+' 페널티킥 실축!','PENALTY MISSED',{onTarget:false,xg:.76});
  const resultType=simState.log[0]?.type||'shot',m=simState,oldBall=kickStart89,oldPositions={home:(m.positions?.home||[]).map(q=>({...q})),away:(m.positions?.away||[]).map(q=>({...q}))};
  moveMatchObjects(p.home,resultType);
@@ -6524,8 +6545,8 @@ function finishPenaltyKick(p,chosen){
  if(resultType==='shot'){m.looseBall107={kind:'goalkick',team:defendingTeam};m.ballCarrier80=null;m.possession=defendingTeam}if(resultType==='save'){m.possession=defendingTeam;m.ballCarrier80=keeperPlayer?.id??null}simState.pendingPenalty=null;save();
 }
 function choosePenaltyDirection(direction){
- const p=simState?.pendingPenalty;if(!p||simState.restartPrep127||!['left','center','right'].includes(direction))return;
- finishPenaltyKick(p,direction);if(page==='match')render();
+ const p=simState?.pendingPenalty;if(!p||p.auto85||p.kickM4||simState.restartPrep127||page!=='match'||document.hidden||Date.now()<(p.inputAtM4||0)||Date.now()>=p.expiresAt||!['left','center','right'].includes(direction))return;
+ startPenaltyMotionM4(p,direction);
 }
 window.toggleAutoSubstitution=toggleAutoSubstitution;window.changePenaltyMode=changePenaltyMode;window.choosePenaltyDirection=choosePenaltyDirection;
 
@@ -7983,4 +8004,4 @@ html[data-elevos-theme="light"] body #main#main :is(.pack-tier-slot,.guaranteed-
 html[data-elevos-theme="light"] body #main#main :is(.pack-tier-slot,.guaranteed-pack-slot-v4)>small{color:#526379!important}
 html[data-elevos-theme="light"] body #main#main :is(.pack-tier-slot,.guaranteed-pack-slot-v4) .btn:not(:disabled){background:#354f6b!important;color:#fff!important;border-color:#354f6b!important}
 html[data-elevos-theme="light"] body #main#main :is(.pack-tier-slot,.guaranteed-pack-slot-v4) .btn:disabled{background:#e2e7ed!important;color:#586575!important;border-color:#c4ced9!important;opacity:1!important}
-</style><style id="var-cinematic-m3">.var-pitch225.var-stage-m3{top:8px!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(92%,280px);padding:8px 12px!important;background:#111a26ef!important;color:#fff!important;border:1px solid #8d82c7!important;pointer-events:none;z-index:8!important}.var-stage-m3 :is(small,strong,span){color:#fff!important}.var-stage-m3 strong{font-size:14px!important;letter-spacing:.06em}.var-stage-m3 i{display:block;height:2px;background:#b3a6ff;transform-origin:left;animation:var-progress-m3 3s linear both}.var-stage-m3[data-stage=waiting] i{animation-duration:1.4s}@keyframes var-progress-m3{from{transform:scaleX(0)}to{transform:scaleX(1)}}.pitch-notice116.notice-cancel.cinematic-m2{border-color:#ec7880!important}.pitch-notice116.notice-var.cinematic-m2{border-color:#a99ae7!important}@media(prefers-reduced-motion:reduce){.var-stage-m3 i{animation:none}}</style></body></html>
+</style><style id="var-cinematic-m3">.var-pitch225.var-stage-m3{top:8px!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(92%,280px);padding:8px 12px!important;background:#111a26ef!important;color:#fff!important;border:1px solid #8d82c7!important;pointer-events:none;z-index:8!important}.var-stage-m3 :is(small,strong,span){color:#fff!important}.var-stage-m3 strong{font-size:14px!important;letter-spacing:.06em}.var-stage-m3 i{display:block;height:2px;background:#b3a6ff;transform-origin:left;animation:var-progress-m3 3s linear both}.var-stage-m3[data-stage=waiting] i{animation-duration:1.4s}@keyframes var-progress-m3{from{transform:scaleX(0)}to{transform:scaleX(1)}}.pitch-notice116.notice-cancel.cinematic-m2{border-color:#ec7880!important}.pitch-notice116.notice-var.cinematic-m2{border-color:#a99ae7!important}@media(prefers-reduced-motion:reduce){.var-stage-m3 i{animation:none}}</style><style id="pk-match-m4-style">html body .pk-match-m4 .pk-match-score-m4{display:flex;align-items:center;justify-content:center;gap:14px;padding:10px;color:inherit;font-size:12px}html body .pk-match-m4 .pk-match-score-m4 b{font-size:20px;font-variant-numeric:tabular-nums}html body .pk-match-m4 .pk-scene-wrap271{position:relative;min-width:0}html body .pk-match-m4[data-phase="motion"] .pk-outcome-v15{visibility:hidden!important}html body .pk-match-m4[data-phase="result"] .pk-outcome-v15{visibility:visible!important;opacity:1!important}html body .pk-match-m4[data-phase="intro"] .pk-buttons264,html body .pk-match-m4[data-phase="motion"] .pk-buttons264,html body .pk-match-m4[data-phase="result"] .pk-buttons264{pointer-events:none;opacity:.45}html body .pk-match-m4 .pk-result-m4{margin:8px 0;font-size:15px}html body .pk-match-m4 .penalty-choice-panel{max-height:calc(100dvh - 36px);overflow-y:auto} @media(prefers-reduced-motion:reduce){html body .pk-match-m4 .pk-intro271{animation:pkIntro271 1s both}}</style></body></html>
