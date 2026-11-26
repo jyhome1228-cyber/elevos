@@ -125,7 +125,7 @@ service cloud.firestore {
     }
     match /betaFeedback/{id} {
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['uid','username','realName','phone','category','title','body','level','consent','createdAt','status'])
+        && request.resource.data.keys().hasOnly(['uid','username','realName','phone','category','categories','title','body','level','consent','createdAt','status'])
         && request.resource.data.keys().hasAll(['uid','username','realName','phone','category','body','level','consent','createdAt','status'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.username == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
@@ -134,6 +134,7 @@ service cloud.firestore {
         && request.resource.data.realName is string && request.resource.data.realName.size() >= 1 && request.resource.data.realName.size() <= 50
         && request.resource.data.phone is string && request.resource.data.phone.matches('^01[016789][0-9]{7,8}$')
         && request.resource.data.category in ['오류','디자인','밸런스','콘텐츠','기타']
+        && (!('categories' in request.resource.data) || (request.resource.data.categories is list && request.resource.data.categories.size() >= 1 && request.resource.data.categories.size() <= 5 && request.resource.data.categories.hasOnly(['오류','디자인','밸런스','콘텐츠','기타']) && request.resource.data.categories.hasAny([request.resource.data.category])))
         && (!('title' in request.resource.data) || (request.resource.data.title is string && request.resource.data.title.size() >= 1 && request.resource.data.title.size() <= 120))
         && request.resource.data.body is string && request.resource.data.body.size() >= 10 && request.resource.data.body.size() <= 5000
         && request.resource.data.consent == true && request.resource.data.createdAt == request.time && request.resource.data.status == 'pending';
