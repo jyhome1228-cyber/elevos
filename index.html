@@ -5073,14 +5073,14 @@ function mountPitchVisualM9(){
   if(v.sizeAt==null||now-v.sizeAt>=200){v.W=field.clientWidth;v.H=field.clientHeight;v.sizeAt=now}const W=v.W,H=v.H;
   if(W&&H){
    const targets=v.targets||(v.targets=new Map());targets.clear();for(const side of ['home','away'])for(const p of m.positions?.[side]||[])if(p.id!=null)targets.set(String(p.id),p);
-   const alpha=1-Math.exp(-dt/(m.phase==='kickoff'?115:m.restartPrep127?65:Math.max(48,Math.min(120,actionInterval118(matchPace118())*.25))));
+   const alpha=1-Math.exp(-dt/(m.phase==='kickoff'?115:m.restartPrep127?65:m.flight120?52:Math.max(80,Math.min(230,actionInterval118(matchPace118())*.48))));
    for(const el of v.nodes){const id=el.dataset.pitchId,q=targets.get(id),t=q?{x:pitchXV26(m,q.x),y:q.y}:{x:parseFloat(el.style.left)||50,y:parseFloat(el.style.top)||50};let p=v.points.get(id);if(!p||reset){p={x:t.x,y:t.y,dx:0,dy:0};v.points.set(id,p)}const x=p.x,y=p.y;const smoothStep=(pos,target,vel)=>{const delta=target-pos;if(Math.abs(delta)<.015)return [target,0];const wanted=delta*alpha;let step=(vel||0)*Math.pow(.55,dt/16.67)+wanted*(1-Math.pow(.55,dt/16.67));if(step*delta<0)step=wanted*.45;step=Math.sign(delta)*Math.min(Math.abs(delta),Math.abs(step));return [pos+step,step]};[p.x,p.sxM16]=smoothStep(p.x,t.x,p.sxM16);[p.y,p.syM16]=smoothStep(p.y,t.y,p.syM16);p.dx=p.dx*.7+(p.x-x)*.3;p.dy=p.dy*.7+(p.y-y)*.3;const px=Math.round(p.x*W)/100,py=Math.round(p.y*H)/100;if(el._m13x!==px){el._m13x=px;el.style.setProperty('--m9-x',px+'px')}if(el._m13y!==py){el._m13y=py;el.style.setProperty('--m9-y',py+'px')}}
    const b=v.ballEl;if(b&&m.ball){
     let x=pitchXV26(m,m.ball.x),y=m.ball.y;
     const flight=m.flight120,ownerId=!flight&&!m.looseBall107&&m.ballCarrier80!=null?String(m.ballCarrier80):null,owner=ownerId!=null?v.points.get(ownerId):null;
     if(v.ownerId!==ownerId){v.ownerId=ownerId;v.ownerChangedAt=now}
     if(v.flightRef!==flight){v.flightRef=flight;v.flightStart=flight&&v.ball&&!reset?{...v.ball}:null}
-    if(flight){const elapsed=Number(flight.elapsed)||0;if(v.sampleFlightM15!==flight||v.sampleElapsedM15!==elapsed){v.sampleFlightM15=flight;v.sampleElapsedM15=elapsed;v.sampleAtM15=now}const visualElapsed=Math.min(flight.duration,elapsed+(m.paused?0:Math.min(50,Math.max(0,now-v.sampleAtM15))));const q=ballFlightPoint120(flight,visualElapsed);x=pitchXV26(m,q.x);y=q.y;if(v.flightStart){const t=Math.max(0,Math.min(1,visualElapsed/Math.max(1,flight.duration))),blend=Math.min(1,t*3);x+=(v.flightStart.x-pitchXV26(m,flight.from.x))*(1-blend);y+=(v.flightStart.y-flight.from.y)*(1-blend)}}
+    if(flight){const elapsed=Number(flight.elapsed)||0;if(v.sampleFlightM15!==flight||v.sampleElapsedM15!==elapsed){v.sampleFlightM15=flight;v.sampleElapsedM15=elapsed;v.sampleAtM15=now}const predicted=Math.min(flight.duration,elapsed+(m.paused?0:Math.min(50,Math.max(0,now-v.sampleAtM15))));if(v.visualFlightM19!==flight){v.visualFlightM19=flight;v.visualElapsedM19=elapsed}v.visualElapsedM19=Math.max(v.visualElapsedM19||0,predicted);const visualElapsed=v.visualElapsedM19;const q=ballFlightPoint120(flight,visualElapsed);x=pitchXV26(m,q.x);y=q.y;if(v.flightStart){const t=Math.max(0,Math.min(1,visualElapsed/Math.max(1,flight.duration))),blend=Math.min(1,t*3);x+=(v.flightStart.x-pitchXV26(m,flight.from.x))*(1-blend);y+=(v.flightStart.y-flight.from.y)*(1-blend)}}
     if(owner&&m.phase!=='goal'){
      const dir=Math.hypot(owner.dx*W/100,owner.dy*H/100),sign=(m.possession===m.home?1:-1)*(half?-1:1);
      const ux=dir>.08?owner.dx*W/100/dir:sign,uy=dir>.08?owner.dy*H/100/dir:0;
@@ -5784,7 +5784,7 @@ function playerMovementLimit119(role,carrying,pressing,speed){return (role==='GK
 function ballFlightPoint120(f,elapsed){const t=Math.max(0,Math.min(1,elapsed/f.duration));return {x:f.from.x+(f.to.x-f.from.x)*t,y:f.from.y+(f.to.y-f.from.y)*t,done:t>=1}}
 function queueBallFlight120(m,from,to,kind,team,receiver,loose){
  const distance=Math.hypot(to.x-from.x,(to.y-from.y)*.65),speed=kind==='shot'?42:kind==='cross'?24:kind==='pass'?30:18;
- const duration=Math.round(Math.max(100,Math.min(600,distance/speed*253.333)));
+ const pace=Math.max(.75,Math.min(1.45,Math.sqrt(matchPace118()/180)));const duration=Math.round(Math.max(kind==='pass'?170:100,Math.min(kind==='shot'?650:1050,distance/speed*253.333*pace)));
  m.flight120={from:{...from},to:{...to},kind,team,receiver:receiver??null,loose:loose||null,duration,elapsed:0};m.ball={...from};m.previousBall={...from};m.ballCarrier80=null;m.looseBall107=null;
 }
 let ballPulseAt120=0,ballCheckpoint120=0;
@@ -5815,15 +5815,32 @@ function liveKeeper126(m,f,old,q,dt,field){
  return {p,team,point:hit,outcome:keeperOutcome126(matchActionStat(p,'handling'),k.power,k.handlingRoll,Math.abs(hit.y-50)>3&&k.cornerRoll<.42)};
 }
 function attachKeeper126(m,attackingTeam,power){if(!m.flight120)return;const team=attackingTeam===m.home?m.away:m.home;m.flight120.keeper126={team,power:Number(power)||70,roll:Math.random(),handlingRoll:Math.random(),cornerRoll:Math.random(),checked:false}}
+// M19: keep team shape moving during ball travel, excluding players directly contesting the flight.
+function flowSupportM19(m,f,dt,excluded){
+ if(!['pass','cross'].includes(f.kind)||!m.positions)return;
+ const sign=f.team===m.home?1:-1,dx=f.to.x-f.from.x,dy=f.to.y-f.from.y;
+ const pace=Math.min(1,dt/50),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ for(const side of ['home','away']){
+  const own=(side==='home'?m.home:m.away)===f.team;
+  const team=side==='home'?m.home:m.away,keeper=activeMatchKeeper(team)?.id;
+  for(const q of m.positions[side]||[]){
+   if(q.id==null||q.id===keeper||excluded.has(q.id))continue;
+   const near=Math.hypot(q.x-m.ball.x,(q.y-m.ball.y)*.65),weight=clamp(1-near/65,.15,.8);
+   const sx=clamp(dx*.012+(own?sign*.12:-sign*.06),-.42,.42)*weight*pace;
+   const sy=clamp(dy*.012,-.38,.38)*weight*pace;
+   q.x=clamp(q.x+sx,4,96);q.y=clamp(q.y+sy,5,95);
+  }
+ }
+}
 function advanceBallFlight120(m,delta){
  const f=m.flight120;if(!f)return false;const dt=Math.max(0,Math.min(100,delta)),old={...m.ball};
  f.elapsed=Math.min(f.duration,(Number(f.elapsed)||0)+dt);
  let q=ballFlightPoint120(f,f.elapsed),intercept=null;const passing=['pass','cross'].includes(f.kind),field=page==='match'?document.querySelector('#main .sim-field'):null,ball=field?.querySelector('.sim-ball');
  const receiver=f.receiver!=null&&activeMatchPlayers(f.team).find(p=>p.id===f.receiver);
- if(passing){if(receiver)approachFlight121(m,receiver,f.team,f.to,dt,field);const enemy=f.team===m.home?m.away:m.home,progress=f.elapsed/f.duration;
+ if(passing){const excluded=new Set([f.receiver,f.passer]);if(receiver)approachFlight121(m,receiver,f.team,f.to,dt,field);const enemy=f.team===m.home?m.away:m.home,progress=f.elapsed/f.duration;
  const defenders=activeMatchPlayers(enemy).filter(p=>p.pos!=='GK').map(p=>({p,q:pitchPoint80(m,p.id,enemy)})).filter(v=>v.q).map(v=>({...v,d:segmentContact121(old,q,v.q).d})).sort((a,b)=>a.d-b.d).slice(0,2);
- for(const v of defenders){if(v.d<7){const ahead=ballFlightPoint120(f,Math.min(f.duration,f.elapsed+200));v.q=approachFlight121(m,v.p,enemy,ahead,dt,field)||v.q}const hit=segmentContact121(old,q,v.q),radius=Math.max(.65,Math.min(1.6,matchActionStat(v.p,'interception')/75));if(progress>.08&&(f.kind!=='cross'||progress>.72)&&hit.d<=radius){intercept={p:v.p,team:enemy,point:hit};break}}
- if(intercept)q={x:intercept.point.x,y:intercept.point.y,done:true};
+ for(const v of defenders){if(v.d<7){excluded.add(v.p.id);const ahead=ballFlightPoint120(f,Math.min(f.duration,f.elapsed+200));v.q=approachFlight121(m,v.p,enemy,ahead,dt,field)||v.q}const hit=segmentContact121(old,q,v.q),radius=Math.max(.65,Math.min(1.6,matchActionStat(v.p,'interception')/75));if(progress>.08&&(f.kind!=='cross'||progress>.72)&&hit.d<=radius){intercept={p:v.p,team:enemy,point:hit};break}}
+ if(intercept)q={x:intercept.point.x,y:intercept.point.y,done:true};flowSupportM19(m,f,dt,excluded);
  }
  const keeperHit=liveKeeper126(m,f,old,q,dt,field);if(keeperHit)q={x:keeperHit.point.x,y:keeperHit.point.y,done:true};
  m.ball={x:q.x,y:q.y};m.ballCarrier80=null;
