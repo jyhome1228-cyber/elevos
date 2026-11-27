@@ -12,7 +12,7 @@ async function checkCoachName(value,claim=false){
  const request=async()=>{
   if(auth.currentUser?.uid!==uid)throw Error('로그인 계정이 변경되었습니다. 다시 시도해 주세요.');
   if(claim){await F.runTransaction(db,async tx=>{const d=await tx.get(ref);if(d.exists()){if(d.data().uid!==uid)throw Error('이미 사용 중인 감독명입니다.');return}tx.set(ref,{uid})})}
-  else{const d=await F.getDocFromServer(ref);if(d.exists()&&d.data().uid!==uid)throw Error('이미 사용 중인 감독명입니다.')}
+  else{const d=await readServerQ01(ref,'감독명 확인',uid);if(d.exists()&&d.data().uid!==uid)throw Error('이미 사용 중인 감독명입니다.')}
  };
  try{try{await request()}catch(e){if(!['permission-denied','unauthenticated','unavailable','deadline-exceeded'].includes(e.code))throw e;await account.getIdToken(true);await request()}}
  catch(e){if(!e.code)throw e;console.warn('Coach name verification failed:',e.code);if(e.code==='permission-denied')throw Error('감독명 등록 서버의 권한 설정에 문제가 있습니다. 운영팀에 문의해 주세요.');if(e.code==='unauthenticated'||String(e.code).startsWith('auth/'))throw Error('로그인 세션을 확인할 수 없습니다. 다시 로그인해 주세요.');throw Error('감독명 서버에 연결하지 못했습니다. 잠시 후 다시 확인해 주세요.')}
@@ -84,6 +84,25 @@ function open(mode='login'){accountMode=mode==='register'?'register':'login';if(
 function authProgress(label){let el=$('auth-processing-screen');if(!el){el=document.createElement('div');el.id='auth-processing-screen';el.className='auth-processing-screen';el.setAttribute('role','status');el.setAttribute('aria-live','polite');el.innerHTML='<div class="auth-processing-inner"><img src="./elevos-intro.svg" alt="ELEVOS"><div class="auth-spinner" aria-hidden="true"></div><p></p></div>';document.body.appendChild(el)}const p=el.querySelector('p');if(p)p.textContent=label}
 function clearAuthProgress(){$('auth-processing-screen')?.remove()}
 function bounded(p,label,ms=18000){let timer;return Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' 시간 초과. 네트워크를 확인하고 다시 시도해 주세요.')),ms)})]).finally(()=>clearTimeout(timer))}
+// Q01: Retry server reads only; never retry a write whose outcome is unknown.
+function isTransientSaveRead(e){return ['unavailable','deadline-exceeded','aborted','resource-exhausted','firestore/unavailable','firestore/deadline-exceeded'].includes(e?.code)||e?.code==='elevos/read-timeout'}
+async function readServerQ01(ref,label,uid,ms=12000){
+ for(let attempt=0;attempt<2;attempt++){
+  if(auth?.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');
+  let timer;
+  try{
+   const result=await Promise.race([F.getDocFromServer(ref),new Promise((_,reject)=>{timer=setTimeout(()=>{const e=Error(label+' 시간 초과');e.code='elevos/read-timeout';reject(e)},ms)})]);
+   if(auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');
+   return result;
+  }catch(e){
+   if(attempt||!isTransientSaveRead(e)){
+    if(isTransientSaveRead(e))throw Error(label+'에 연결하지 못했습니다. 현재 기록을 유지한 상태에서 다시 시도해 주세요.');
+    throw e;
+   }
+   await new Promise(resolve=>setTimeout(resolve,500));
+  }finally{clearTimeout(timer)}
+ }
+}
 function restoreMarker(uid,rev){try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){}sessionStorage.setItem('elevos-restored-revision:'+uid,rev)}
 function authLoadFailure(error){clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');const el=document.createElement('div');el.id='auth-processing-screen';el.className='auth-processing-screen';el.innerHTML='<section class="auth-processing-inner" role="dialog" aria-modal="true"><h2>게임 기록을 불러오지 못했습니다.</h2><p></p><button class="btn" data-retry>다시 시도</button><button class="btn sub" data-back>로그인 화면으로</button></section>';el.querySelector('p').textContent=error?.message||'연결 상태를 확인해 주세요.';document.body.appendChild(el);el.querySelector('[data-retry]').onclick=()=>{clearAuthProgress();if(auth?.currentUser)activateAccount(auth.currentUser).catch(authLoadFailure);else location.reload()};el.querySelector('[data-back]').onclick=async()=>{try{if(auth)await A.signOut(auth)}catch(e){el.querySelector('p').textContent='로그아웃하지 못했습니다. 다시 시도해 주세요.';return}sessionStorage.removeItem('elevos-active-uid');sessionStorage.removeItem('elevos-auth-progress');location.replace(location.pathname)};el.querySelector('[data-retry]').focus()}
 
@@ -176,7 +195,7 @@ function createSaveRevisionId(){
 }
 async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
- const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await bounded(F.getDocFromServer(ptr(uid)),'저장 기록 확인'),base=before.exists()?before.data().revision:null;
+ const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
  const rev=createSaveRevisionId(),counts={},jobs=[];
  for(const key of parts){const list=chunks(groups[key]);counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++)jobs.push([key,i,list[i]])}
@@ -184,9 +203,35 @@ async function upload(options={}){
  for(let j=0;j<jobs.length;j+=12){if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+12))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
  await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema:1,updatedAt:F.serverTimestamp()})});
- remoteRevision=rev;await Promise.all([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);try{if(!options.background)localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev);else localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}clearDirty(uid,token);message('클라우드 저장 완료');
+ if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
+  remoteRevision=rev;
+  try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}
+  clearDirty(uid,token);message('클라우드 저장 완료');
+  // The career pointer is committed before optional dashboard summaries.
+  await Promise.allSettled([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);
 }
-async function logoutSavedGame(){if(autoClosing)throw Error('로그아웃이 진행 중입니다.');autoClosing=true;clearTimeout(autoTimer);let ownsBusy=false;try{if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');busy=true;ownsBusy=true;await upload({automatic:true});sessionStorage.setItem('elevos-signed-out','1');sessionStorage.removeItem('elevos-beta-session');await A.signOut(auth);autoPending=false}catch(e){if(autoPending&&!autoBlocked)autoTimer=setTimeout(flushCareerSaveV10,15000);throw e}finally{if(ownsBusy)busy=false;autoClosing=false}}
+async function logoutSavedGame(){
+ if(autoClosing)throw Error('로그아웃이 진행 중입니다.');
+ autoClosing=true;clearTimeout(autoTimer);let ownsBusy=false,signedOut=false,uid=null;
+ try{
+  if(autoFlight)await autoFlight.catch(()=>{});
+  if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');
+  if(!configured||!ready||!user||local.uid!==user.uid||auth.currentUser?.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');
+  uid=user.uid;busy=true;ownsBusy=true;autoPending=false;
+  await upload({automatic:true});
+  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
+  if(autoPending||dirtyToken(uid))throw Error('저장 중 새로 변경된 기록이 있습니다. 다시 로그아웃해 주세요.');
+  await A.signOut(auth);signedOut=true;sessionStorage.setItem('elevos-signed-out','1');sessionStorage.removeItem('elevos-beta-session');autoPending=false;
+ }catch(e){
+  if(uid&&auth.currentUser?.uid===uid&&local.uid===uid&&dirtyToken(uid)){
+   autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');
+  }
+  throw e;
+ }finally{
+  if(ownsBusy)busy=false;autoClosing=false;clearTimeout(autoTimer);
+  if(!signedOut&&autoPending&&!autoBlocked)autoTimer=setTimeout(flushCareerSaveV10,15000);
+ }
+}
 async function download(){
  const uid=requireAccount();if(!confirm('현재 계정의 로컬 기록을 클라우드 기록으로 교체할까요?'))return;
  const snap=await F.getDocFromServer(ptr(uid));if(!snap.exists()){message('클라우드 저장 기록이 없습니다.');return}
@@ -235,7 +280,7 @@ async function activateAccount(u){
  authProgress('회원 정보 확인 중');
  sessionStorage.removeItem('elevos-beta-session');sessionStorage.removeItem('elevos-signed-out');
  const uid=u.uid,localKey=local.guestKey+':uid:'+uid;
- const [profile,snap]=await bounded(Promise.all([F.getDocFromServer(F.doc(db,'users',uid)),F.getDocFromServer(ptr(uid))]),'회원 및 저장 기록 확인');
+ const [profile,snap]=await Promise.all([readServerQ01(F.doc(db,'users',uid),'회원 정보 확인',uid),readServerQ01(ptr(uid),'저장 기록 확인',uid)]);
  if(run!==activationRun||auth.currentUser?.uid!==uid)return;
  if(!profile.exists())throw Error('회원 정보 등록이 완료되지 않았습니다. 관리자에게 문의해 주세요.');
  verifiedPackQaUid187=String(profile.data().username||'').trim().toLowerCase()==='test'?uid:null;
