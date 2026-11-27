@@ -193,6 +193,29 @@ function preparePayloadQ02(groups){
 function samePayloadQ02(a,b){
  return !!a&&!!b&&parts.every(key=>Array.isArray(a[key])&&Array.isArray(b[key])&&a[key].length===b[key].length&&a[key].every((value,i)=>value===b[key][i]));
 }
+// Q03: schema 2 points directly to complete immutable-by-convention group revisions.
+function validRevisionQ03(value){return typeof value==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(value)}
+function manifestQ03(data){
+ const {revision,counts,schema,partRevisions}=data||{};
+ if(![1,2].includes(schema)||!validRevisionQ03(revision))throw Error('지원하지 않는 저장 형식');
+ const refs={};
+ for(const key of parts){
+  const n=counts?.[key],ref=schema===1?revision:partRevisions?.[key];
+  if(!Number.isInteger(n)||n<1||n>200||!validRevisionQ03(ref))throw Error('저장 데이터 오류: '+key);
+  refs[key]=ref;
+ }
+ return {revision,counts,refs};
+}
+function sameGroupQ03(a,b){return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,i)=>value===b[i])}
+function planDeltaQ03(prepared,manifest,confirmed,uid,base,rev){
+ const trusted=!!(base&&manifest&&confirmed?.uid===uid&&confirmed.rev===base&&parts.every(k=>confirmed.refs?.[k]===manifest.refs[k]&&confirmed.payload?.[k]?.length===manifest.counts[k]));
+ const refs={},changed=new Set();
+ for(const key of parts){
+  if(trusted&&sameGroupQ03(confirmed.payload[key],prepared.payload[key]))refs[key]=manifest.refs[key];
+  else{refs[key]=rev;changed.add(key)}
+ }
+ return {refs,jobs:prepared.jobs.filter(([key])=>changed.has(key)),schema:changed.size===parts.length?1:2};
+}
 // Generate a revision ID even when randomUUID is unavailable (e.g. HTTP).
 function createSaveRevisionId(){
  const c=globalThis.crypto;
@@ -207,19 +230,22 @@ async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
  const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
- const {payload,counts,jobs}=preparePayloadQ02(groups);
- if(base&&remoteRevision===base&&confirmedPayloadQ02?.uid===uid&&confirmedPayloadQ02.rev===base&&samePayloadQ02(confirmedPayloadQ02.payload,payload)){
+ const prepared=preparePayloadQ02(groups),{payload,counts}=prepared;
+ const manifest=before.exists()?manifestQ03(before.data()):null,rev=createSaveRevisionId();
+ const delta=planDeltaQ03(prepared,manifest,remoteRevision===base?confirmedPayloadQ02:null,uid,base,rev);
+ if(delta.jobs.length===0){
   if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
   clearDirty(uid,token);message('최신 게임 기록이 이미 저장되어 있습니다.');return;
  }
- const rev=createSaveRevisionId();
+ const {jobs,refs,schema}=delta;
+ // Only changed groups get new documents; older group references are direct, not chains.
  // Each batch writes only a new revision. An interrupted batch never replaces the current pointer.
  // Keep batches comfortably under the Firestore 10 MiB request limit.
  for(let j=0;j<jobs.length;j+=20){if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+20))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
- await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema:1,updatedAt:F.serverTimestamp()})});
+ await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema,...(schema===2?{partRevisions:refs}:{}),updatedAt:F.serverTimestamp()})});
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
-  remoteRevision=rev;confirmedPayloadQ02={uid,rev,payload};
+  remoteRevision=rev;confirmedPayloadQ02={uid,rev,payload,refs};
   try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}
   clearDirty(uid,token);message('클라우드 저장 완료');
   // The career pointer is committed before optional dashboard summaries.
@@ -253,9 +279,9 @@ async function download(){
  const data=await readCloudCareer(uid,snap);if(auth.currentUser?.uid!==uid||local.busy)throw Error('계정 또는 경기 상태가 변경되었습니다.');restoreMarker(uid,snap.data().revision);local.switchAccount(uid,data);
 }
 async function readCloudCareer(uid,snap){
- const {revision,counts,schema}=snap.data(),groups={};if(schema!==1||typeof revision!=='string')throw Error('지원하지 않는 저장 형식');
+ const {counts,refs}=manifestQ03(snap.data()),groups={};
  const jobs=[];for(const key of parts){const n=counts?.[key];if(!Number.isInteger(n)||n<1||n>200)throw Error('저장 데이터 오류');groups[key]=Array(n);for(let i=0;i<n;i++)jobs.push([key,i])}
- let done=0;for(let j=0;j<jobs.length;j+=12){await bounded(Promise.all(jobs.slice(j,j+12).map(async ([key,i])=>{const d=await F.getDocFromServer(partRef(uid,revision,key,i));if(!d.exists()||typeof d.data().data!=='string')throw Error('저장 데이터 일부 누락: '+key);groups[key][i]=d.data().data;done++;if(window.ElevosEntry?.isOpen())authProgress('게임 기록 불러오는 중 · '+done+' / '+jobs.length)})),'게임 기록 불러오기',20000)}
+ let done=0;for(let j=0;j<jobs.length;j+=12){await bounded(Promise.all(jobs.slice(j,j+12).map(async ([key,i])=>{const d=await F.getDocFromServer(partRef(uid,refs[key],key,i));if(!d.exists()||typeof d.data().data!=='string')throw Error('저장 데이터 일부 누락: '+key);groups[key][i]=d.data().data;done++;if(window.ElevosEntry?.isOpen())authProgress('게임 기록 불러오는 중 · '+done+' / '+jobs.length)})),'게임 기록 불러오기',20000)}
  for(const key of parts)groups[key]=JSON.parse(groups[key].join(''));
  const data=join(groups);if(!data.save||data.save.version!==2||!Array.isArray(data.save.players)||!Array.isArray(data.save.clubs)||!data.save.clubs.some(c=>c.id===data.save.manager))throw Error('저장 데이터 형식 오류');if(auth.currentUser?.uid!==uid)throw Error('계정 상태가 변경되었습니다.');return data;
 }
