@@ -101,7 +101,7 @@ function readServerQ01(ref,label,uid,ms=12000){
 }
 async function readServerFreshQ06(ref,label,uid,ms=12000){
  for(let attempt=0;attempt<2;attempt++){
-  if(auth?.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');
+  checkOnlineQ09();if(auth?.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');
   let timer;
   try{
    const result=await Promise.race([F.getDocFromServer(ref),new Promise((_,reject)=>{timer=setTimeout(()=>{const e=Error(label+' 시간 초과');e.code='elevos/read-timeout';reject(e)},ms)})]);
@@ -164,6 +164,19 @@ async function registerMember(username,email,phone,password,realName,betaContact
 function entryLogin(email,password){if(!configured){message('회원 인증 서비스 연결 준비 중입니다.');return}if(!ready){message('계정 서비스 연결 중입니다.');return}if(!email.includes('@')){message('가입한 이메일 주소를 입력해 주세요.');return}return act(async()=>{sessionStorage.setItem('elevos-auth-progress','1');authProgress('로그인하고 있습니다.');await A.signInWithEmailAndPassword(auth,email,password)})}
 function entryReset(email){if(!configured||!ready){message('계정 서비스가 연결되지 않았습니다.');return}if(!email||!email.includes('@')){message('비밀번호 재설정을 위해 가입 이메일을 입력해 주세요.');return}return act(async()=>{await A.sendPasswordResetEmail(auth,email);message('비밀번호 재설정 이메일 발송을 요청했습니다.')})}
 let autoTimer=null,autoPending=false,autoFlight=null,autoBlocked=false,autoClosing=false;
+// Q09: exponential retry, one timer, and no network attempts while offline.
+let retryCountQ09=0,retryAfterQ09=0;
+function retryDelayQ09(count){return Math.min(120000,5000*2**Math.min(5,Math.max(0,count-1)))}
+function resetRetryQ09(){retryCountQ09=0;retryAfterQ09=0}
+function noteRetryQ09(){retryCountQ09++;retryAfterQ09=Date.now()+retryDelayQ09(retryCountQ09)}
+function scheduleRetryQ09(delay=1200){
+ clearTimeout(autoTimer);autoTimer=null;
+ if(autoClosing||autoBlocked||!autoPending||navigator.onLine===false)return;
+ autoTimer=setTimeout(flushCareerSaveV10,Math.max(delay,retryAfterQ09-Date.now(),0));
+}
+function offlineErrorQ09(){const e=Error('인터넷 연결이 끊겼습니다. 기기 기록을 유지하고 연결 후 다시 저장해 주세요.');e.code='unavailable';return e}
+function checkOnlineQ09(){if(navigator.onLine===false)throw offlineErrorQ09()}
+
 function autoStatusV10(state){window.dispatchEvent(new CustomEvent('elevos-save-status',{detail:state}));}
 const dirtyKey=uid=>local.guestKey+':uid:'+uid+':pending-cloud';let dirtySeq=0;
 const dirtyFallbackQ04=new Map();
@@ -215,14 +228,28 @@ async function exportBackupQ04(){
  const blob=new Blob([JSON.stringify({format:'ELEVOS_BACKUP_V1',...record.snapshot})],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='elevos-recovery-'+new Date(record.at).toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('기기 임시 백업 파일을 내보냈습니다. 개인 기록이므로 안전하게 보관하세요.');
 }
-function queueCareerSaveV10(){const uid=local.uid;if(!uid)return;markDirty(uid);scheduleBackupQ04();if(autoClosing||!ready||!user||uid!==user.uid)return;autoPending=true;autoStatusV10(autoBlocked?'conflict':'pending');if(autoBlocked)return;clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,1200)}
+function queueCareerSaveV10(){
+ const uid=local.uid;if(!uid)return;markDirty(uid);scheduleBackupQ04();
+ if(autoClosing||!ready||!user||uid!==user.uid)return;
+ autoPending=true;autoStatusV10(autoBlocked?'conflict':'pending');scheduleRetryQ09();
+}
 window.addEventListener('beforeunload',e=>{if(local.uid&&(autoPending||autoFlight||dirtyToken(local.uid))){e.preventDefault();e.returnValue=''}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){captureBackupQ04();if(autoPending&&!autoBlocked){clearTimeout(autoTimer);flushCareerSaveV10()}}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){captureBackupQ04();if(autoPending&&!autoBlocked&&Date.now()>=retryAfterQ09){clearTimeout(autoTimer);flushCareerSaveV10()}}});
 window.addEventListener('pagehide',()=>captureBackupQ04());
-window.addEventListener('offline',()=>{captureBackupQ04();if(autoPending)autoStatusV10('pending')});
-async function flushCareerSaveV10(){if(autoClosing||!autoPending||autoBlocked||!ready||!user||local.uid!==user.uid)return;if(navigator.onLine===false){captureBackupQ04();return}if(busy||autoFlight){autoTimer=setTimeout(flushCareerSaveV10,2000);return}autoPending=false;busy=true;autoStatusV10('saving');autoFlight=upload({automatic:true,background:true});try{await autoFlight;autoStatusV10(autoPending||dirtyToken(local.uid)?'pending':'saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');window.ElevosDiagnosticsQ10?.record('cloud-save',e);console.warn('자동 저장 실패',e)}finally{autoFlight=null;busy=false;if(autoPending&&!autoBlocked&&!autoClosing&&navigator.onLine!==false)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
-window.addEventListener('online',()=>{if(local.uid&&dirtyToken(local.uid)&&!autoBlocked){autoPending=true;clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,300)}});
-async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');const uid=user.uid;clearTimeout(autoTimer);autoTimer=null;autoPending=false;busy=true;try{await upload({automatic:true});if(local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');autoBlocked=false;if(autoPending||dirtyToken(uid))throw Error('저장 중 변경된 기록이 있습니다. 다시 저장해 주세요.');autoStatusV10('saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');throw e}finally{busy=false;clearTimeout(autoTimer);autoTimer=null;if(autoPending&&!autoBlocked&&!autoClosing)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
+window.addEventListener('offline',()=>{clearTimeout(autoTimer);autoTimer=null;captureBackupQ04();if(autoPending||autoFlight)autoStatusV10('pending')});
+async function flushCareerSaveV10(){
+ if(autoClosing||!autoPending||autoBlocked||!ready||!user||local.uid!==user.uid)return;
+ if(navigator.onLine===false){captureBackupQ04();return}
+ if(Date.now()<retryAfterQ09){scheduleRetryQ09();return}
+ if(busy||autoFlight){scheduleRetryQ09(2000);return}
+ const uid=user.uid,epoch=activationRun;autoPending=false;busy=true;autoStatusV10('saving');
+ autoFlight=upload({automatic:true,background:true});
+ try{await autoFlight;if(auth.currentUser?.uid===uid&&local.uid===uid&&activationRun===epoch){resetRetryQ09();autoPending=autoPending||!!dirtyToken(uid);autoStatusV10(autoPending?'pending':'saved')}}
+ catch(e){if(auth.currentUser?.uid===uid&&local.uid===uid&&activationRun===epoch){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';if(!autoBlocked)noteRetryQ09();autoStatusV10(autoBlocked?'conflict':navigator.onLine===false?'pending':'failed');window.ElevosDiagnosticsQ10?.record('cloud-save',e);console.warn('자동 저장 실패',e)}}
+ finally{autoFlight=null;busy=false;scheduleRetryQ09()}
+}
+window.addEventListener('online',()=>{if(local.uid&&user?.uid===local.uid&&!autoBlocked&&(autoPending||dirtyToken(local.uid))){autoPending=true;resetRetryQ09();scheduleRetryQ09(300)}});
+async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');const uid=user.uid;clearTimeout(autoTimer);autoTimer=null;autoPending=false;busy=true;try{await upload({automatic:true});if(local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');autoBlocked=false;resetRetryQ09();if(autoPending||dirtyToken(uid))throw Error('저장 중 변경된 기록이 있습니다. 다시 저장해 주세요.');autoStatusV10('saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';if(!autoBlocked)noteRetryQ09();autoStatusV10(autoBlocked?'conflict':navigator.onLine===false?'pending':'failed');throw e}finally{busy=false;scheduleRetryQ09()}}
 async function redeemCouponV1(code){if(!auth?.currentUser||!ready)throw Error('로그인 후 이용해 주세요.');const {getFunctions,httpsCallable}=await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js');try{const result=await httpsCallable(getFunctions(auth.app,'asia-northeast3'),'redeemCoupon',{timeout:20000})({code});return result.data.receipt}catch(err){const key=String(err?.code||'').replace(/^functions\//,'');const messages={'unauthenticated':'로그인 세션이 만료되었습니다. 다시 로그인해 주세요.','invalid-argument':'쿠폰 코드 형식을 확인해 주세요.','failed-precondition':'사용할 수 없거나 만료된 쿠폰입니다.','resource-exhausted':'요청이 많습니다. 잠시 후 다시 시도해 주세요.','permission-denied':'쿠폰 등록 권한을 확인해 주세요.','deadline-exceeded':'서버 응답이 지연되고 있습니다. 같은 쿠폰으로 다시 시도해 주세요.','not-found':'쿠폰 서비스가 준비되지 않았습니다. 운영팀에 문의해 주세요.'};console.warn('Coupon service error:',key||'unknown');throw Error(messages[key]||'쿠폰 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요. (재시도 시 중복 지급되지 않습니다.)')}} 
 window.ElevosCloud={betaSupplyCohort150(uid){if(!uid||!user||user.uid!==uid||auth?.currentUser?.uid!==uid||!ready)return null;const t=Date.parse(user.metadata?.creationTime||'');return Number.isFinite(t)?(t>=Date.parse('2026-11-25T14:40:00+09:00')?'new':'legacy'):null},redeemCouponV1,checkCoachName,open,entryLogin,entryReset,logoutSavedGame,manualSave136,queueCareerSaveV10,isAuthenticatedCareer(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid)},isTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&['info@9works.kr','hhs0579@naver.com','kimdanbi1226@naver.com'].includes(String(u.email||'').trim().toLowerCase()))},isPackQaAccount187(uid){return !!(uid&&verifiedPackQaUid187===uid&&ready&&auth?.currentUser?.uid===uid&&user?.uid===uid&&local.uid===uid)},isOriginalTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&String(u.email||'').trim().toLowerCase()==='info@9works.kr')}};
 async function act(fn){
@@ -335,9 +362,29 @@ function createSaveRevisionId(){
  const h=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
  return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
 }
+// A timed-out pointer transaction may still settle. Reconcile before starting another revision.
+const commitFlightsQ09=new Map();
+function classifyCommitQ09(pending,serverRevision){
+ if(!pending)return 'none';
+ if(serverRevision===pending.rev)return 'confirmed';
+ return pending.state==='pending'?'wait':'settled';
+}
+function acknowledgeCommitQ09(uid,pending){
+ remoteRevision=pending.rev;confirmedPayloadQ02={uid,rev:pending.rev,payload:pending.payload,refs:pending.refs};
+ try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',pending.rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e)}
+ clearDirty(uid,pending.token);if(dirtyToken(uid))captureBackupQ04(uid);
+}
+async function reconcileCommitQ09(uid,base){
+ const pending=commitFlightsQ09.get(uid),state=classifyCommitQ09(pending,base);
+ if(state==='none')return;
+ if(state==='wait')throw Error('이전 저장의 서버 확인이 진행 중입니다. 잠시 후 다시 시도해 주세요.');
+ if(state==='confirmed')acknowledgeCommitQ09(uid,pending);
+ commitFlightsQ09.delete(uid);
+}
 async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
- const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}captureBackupQ04(uid,token,snapshot);const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
+ checkOnlineQ09();const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}captureBackupQ04(uid,token,snapshot);const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
+ await reconcileCommitQ09(uid,base);
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
  const prepared=preparePayloadQ02(groups),{payload,counts}=prepared;
  const manifest=before.exists()?manifestQ03(before.data()):null,rev=createSaveRevisionId();
@@ -350,13 +397,15 @@ async function upload(options={}){
  // Only changed groups get new documents; older group references are direct, not chains.
  // Each batch writes only a new revision. An interrupted batch never replaces the current pointer.
  // Keep batches comfortably under the Firestore 10 MiB request limit.
- for(let j=0;j<jobs.length;j+=20){if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+20))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
+ for(let j=0;j<jobs.length;j+=20){checkOnlineQ09();if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+20))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
- await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema,...(schema===2?{partRevisions:refs}:{}),updatedAt:F.serverTimestamp()})});
- if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
-  remoteRevision=rev;confirmedPayloadQ02={uid,rev,payload,refs};
-  try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}
-  clearDirty(uid,token);if(dirtyToken(uid))captureBackupQ04(uid);message('클라우드 저장 완료');
+ checkOnlineQ09();
+ const pending={rev,payload,refs,token,state:'pending'},epoch=activationRun;
+ commitFlightsQ09.set(uid,pending);
+ const commit=F.runTransaction(db,async tx=>{if(auth.currentUser?.uid!==uid||local.uid!==uid||activationRun!==epoch)throw Error('계정이 변경되었습니다.');const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');if(auth.currentUser?.uid!==uid||local.uid!==uid||activationRun!==epoch)throw Error('계정이 변경되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema,...(schema===2?{partRevisions:refs}:{}),updatedAt:F.serverTimestamp()})}).then(()=>{pending.state='committed'},e=>{pending.state='rejected';throw e});
+ await bounded(commit,'최종 저장 확인',30000);
+ if(auth.currentUser?.uid!==uid||local.uid!==uid||activationRun!==epoch)throw Error('계정이 변경되었습니다.');
+ acknowledgeCommitQ09(uid,pending);commitFlightsQ09.delete(uid);message('클라우드 저장 완료');
   // The career pointer is committed before optional dashboard summaries.
   await Promise.allSettled([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);
 }
@@ -380,18 +429,18 @@ async function logoutSavedGame(){
   throw e;
  }finally{
   if(ownsBusy)busy=false;autoClosing=false;clearTimeout(autoTimer);
-  if(!signedOut&&autoPending&&!autoBlocked)autoTimer=setTimeout(flushCareerSaveV10,15000);
+  if(!signedOut&&autoPending&&!autoBlocked){noteRetryQ09();scheduleRetryQ09()}
  }
 }
 async function download(){
  const uid=requireAccount();if(!confirm('현재 계정의 로컬 기록을 클라우드 기록으로 교체할까요?'))return;
- const snap=await F.getDocFromServer(ptr(uid));if(!snap.exists()){message('클라우드 저장 기록이 없습니다.');return}
+ const snap=await readServerQ01(ptr(uid),'저장 기록 확인',uid);if(!snap.exists()){message('클라우드 저장 기록이 없습니다.');return}
  const data=await readCloudCareer(uid,snap);if(auth.currentUser?.uid!==uid||local.busy)throw Error('계정 또는 경기 상태가 변경되었습니다.');restoreMarker(uid,snap.data().revision);local.switchAccount(uid,data);
 }
 async function readCloudCareer(uid,snap){
  const {counts,refs}=manifestQ03(snap.data()),groups={};
  const jobs=[];for(const key of parts){const n=counts?.[key];if(!Number.isInteger(n)||n<1||n>200)throw Error('저장 데이터 오류');groups[key]=Array(n);for(let i=0;i<n;i++)jobs.push([key,i])}
- let done=0;for(let j=0;j<jobs.length;j+=12){await bounded(Promise.all(jobs.slice(j,j+12).map(async ([key,i])=>{const d=await F.getDocFromServer(partRef(uid,refs[key],key,i));if(!d.exists()||typeof d.data().data!=='string')throw Error('저장 데이터 일부 누락: '+key);groups[key][i]=d.data().data;done++;if(window.ElevosEntry?.isOpen())authProgress('게임 기록 불러오는 중 · '+done+' / '+jobs.length)})),'게임 기록 불러오기',20000)}
+ let done=0;for(let j=0;j<jobs.length;j+=12){await bounded(Promise.all(jobs.slice(j,j+12).map(async ([key,i])=>{const d=await readServerQ01(partRef(uid,refs[key],key,i),'저장 데이터 복원',uid,8000);if(!d.exists()||typeof d.data().data!=='string')throw Error('저장 데이터 일부 누락: '+key);groups[key][i]=d.data().data;done++;if(window.ElevosEntry?.isOpen())authProgress('게임 기록 불러오는 중 · '+done+' / '+jobs.length)})),'게임 기록 불러오기',20000)}
  for(const key of parts)groups[key]=JSON.parse(groups[key].join(''));
  const data=join(groups);if(!data.save||data.save.version!==2||!Array.isArray(data.save.players)||!Array.isArray(data.save.clubs)||!data.save.clubs.some(c=>c.id===data.save.manager))throw Error('저장 데이터 형식 오류');if(auth.currentUser?.uid!==uid)throw Error('계정 상태가 변경되었습니다.');return data;
 }
@@ -425,7 +474,7 @@ function chooseCareerRecord165(pendingLocal){
  });
 }
 async function activateAccount(u){
- const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;confirmedPayloadQ02=null;
+ const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false;resetRetryQ09()}user=u;remoteRevision=null;confirmedPayloadQ02=null;
  if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
  if(!window.ElevosEntry?.isOpen())return;
  authProgress('회원 정보 확인 중');
