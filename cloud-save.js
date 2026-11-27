@@ -11,11 +11,12 @@ async function checkCoachName(value,claim=false){
  const ref=F.doc(db,'coachNames',key);
  const request=async()=>{
   if(auth.currentUser?.uid!==uid)throw Error('로그인 계정이 변경되었습니다. 다시 시도해 주세요.');
-  if(claim){await F.runTransaction(db,async tx=>{const d=await tx.get(ref);if(d.exists()){if(d.data().uid!==uid)throw Error('이미 사용 중인 감독명입니다.');return}tx.set(ref,{uid})})}
+  if(claim){await bounded(F.runTransaction(db,async tx=>{if(auth.currentUser?.uid!==uid)throw Error('로그인 계정이 변경되었습니다.');const d=await tx.get(ref);if(d.exists()){if(d.data().uid!==uid)throw Error('이미 사용 중인 감독명입니다.');return}tx.set(ref,{uid})}),'감독명 등록',22000)}
   else{const d=await readServerQ01(ref,'감독명 확인',uid);if(d.exists()&&d.data().uid!==uid)throw Error('이미 사용 중인 감독명입니다.')}
  };
- try{try{await request()}catch(e){if(!['permission-denied','unauthenticated','unavailable','deadline-exceeded'].includes(e.code))throw e;await account.getIdToken(true);await request()}}
+ try{try{await request()}catch(e){if(!['permission-denied','unauthenticated','unavailable','deadline-exceeded'].includes(e.code))throw e;await bounded(account.getIdToken(true),'로그인 세션 갱신',10000);await request()}}
  catch(e){if(!e.code)throw e;console.warn('Coach name verification failed:',e.code);if(e.code==='permission-denied')throw Error('감독명 등록 서버의 권한 설정에 문제가 있습니다. 운영팀에 문의해 주세요.');if(e.code==='unauthenticated'||String(e.code).startsWith('auth/'))throw Error('로그인 세션을 확인할 수 없습니다. 다시 로그인해 주세요.');throw Error('감독명 서버에 연결하지 못했습니다. 잠시 후 다시 확인해 주세요.')}
+ if(auth.currentUser?.uid!==uid)throw Error('로그인 계정이 변경되었습니다.');
  return name;
 }
 // ELEVOS private cloud-save beta. No credentials beyond public Firebase Web config.
@@ -109,19 +110,42 @@ function authLoadFailure(error){clearAuthProgress();sessionStorage.removeItem('e
 
 function confirmRegistration(){return new Promise(resolve=>{clearAuthProgress();const el=document.createElement('div');el.id='auth-processing-screen';el.className='auth-processing-screen registration-success-v2';el.innerHTML='<style>.registration-success-v2 .auth-processing-inner{display:flex!important;flex-direction:column;align-items:center;gap:18px!important;max-width:420px!important;padding:32px!important;text-align:center}.registration-success-v2 .auth-processing-inner img{width:200px!important;margin:0 0 10px!important}.registration-success-v2 .auth-success-mark{font-size:36px!important;margin:0!important}.registration-success-v2 h2{font-size:24px!important;margin:0!important}.registration-success-v2 p{font-size:15px!important;line-height:1.7;margin:0!important}.registration-success-v2 button{width:100%;min-height:48px;margin-top:8px!important}</style><section class="auth-processing-inner" role="dialog" aria-modal="true" aria-label="회원가입 완료"><img src="./elevos-intro.svg" alt="ELEVOS"><div class="auth-success-mark" aria-hidden="true">✓</div><h2>새로운 감독님, 환영합니다.</h2><p>회원가입이 완료되었습니다.<br>감독 프로필을 설정하고 첫 커리어를 시작하세요.</p><button class="btn">감독 프로필 설정</button></section>';document.body.appendChild(el);const button=el.querySelector('button');button.onclick=()=>{clearAuthProgress();resolve()};button.focus()})}
 
+async function finishProfileQ05(api,account,fields){
+ const uid=account.uid,profile=api.doc('users',uid),handle=api.doc('usernames',fields.username);
+ return api.transaction(async tx=>{
+  if(api.uid()!==uid)throw Error('로그인 계정이 변경되었습니다.');
+  const existingProfile=await tx.get(profile),existingHandle=await tx.get(handle);
+  if(existingProfile.exists()){
+   if(existingProfile.data().username===fields.username&&existingHandle.exists()&&existingHandle.data().uid===uid)return 'existing';
+   throw Error('이미 가입된 계정입니다. 로그인해 주세요.');
+  }
+  if(existingHandle.exists()&&existingHandle.data().uid!==uid)throw Error('이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.');
+  if(!existingHandle.exists())tx.set(handle,{uid});
+  tx.set(profile,{...fields,email:account.email,createdAt:api.timestamp()});
+  return 'created';
+ });
+}
+async function signupAccountQ05(api,email,password){
+ try{return (await api.create(email,password)).user}catch(e){
+  if(e.code!=='auth/email-already-in-use')throw e;
+  try{return (await api.signIn(email,password)).user}catch(err){
+   if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(err.code))throw Error('이미 가입된 이메일입니다. 기존 비밀번호로 가입을 이어가거나 로그인해 주세요.');
+   throw err;
+  }
+ }
+}
 async function registerMember(username,email,phone,password,realName,betaContactConsent){
  if(!configured||!ready){message('회원 인증 서비스 연결을 확인해 주세요.');return}
  return act(async()=>{registering=true;let account=null;authProgress('회원 정보를 등록하고 있습니다.');
  try{
-  const credential=await A.createUserWithEmailAndPassword(auth,email,password);account=credential.user;
-  const profile=F.doc(db,'users',account.uid),handle=F.doc(db,'usernames',username);
-  await F.runTransaction(db,async tx=>{
-   const existing=await tx.get(handle);if(existing.exists())throw Error('이미 사용 중인 아이디입니다.');
-   tx.set(handle,{uid:account.uid});
-   tx.set(profile,{username,email:account.email,phone,realName,betaContactConsent,createdAt:F.serverTimestamp()});
-  });
- }catch(e){if(account){const profile=await F.getDocFromServer(F.doc(db,'users',account.uid)).catch(()=>null);if(profile&&!profile.exists())await A.deleteUser(account).catch(()=>{});await A.signOut(auth).catch(()=>{})}throw e}
- finally{registering=false}
+  account=await signupAccountQ05({create:(e,p)=>A.createUserWithEmailAndPassword(auth,e,p),signIn:(e,p)=>A.signInWithEmailAndPassword(auth,e,p)},email,password);
+  const api={uid:()=>auth.currentUser?.uid,doc:(...path)=>F.doc(db,...path),transaction:fn=>F.runTransaction(db,fn),timestamp:()=>F.serverTimestamp()};
+  await bounded(finishProfileQ05(api,account,{username,phone,realName,betaContactConsent}),'회원 정보 등록',25000);
+ }catch(e){
+  // Never delete an Auth account after an ambiguous Firestore failure. A retry can finish its profile.
+  if(account&&auth.currentUser?.uid===account.uid)await A.signOut(auth).catch(()=>{});
+  throw e;
+ }finally{registering=false}
  await confirmRegistration();sessionStorage.setItem('elevos-auth-progress','1');authProgress('게임에 접속하고 있습니다.');await activateAccount(account);
  });
 }
@@ -372,7 +396,7 @@ async function activateAccount(u){
  const uid=u.uid,localKey=local.guestKey+':uid:'+uid;
  const [profile,snap]=await Promise.all([readServerQ01(F.doc(db,'users',uid),'회원 정보 확인',uid),readServerQ01(ptr(uid),'저장 기록 확인',uid)]);
  if(run!==activationRun||auth.currentUser?.uid!==uid)return;
- if(!profile.exists())throw Error('회원 정보 등록이 완료되지 않았습니다. 관리자에게 문의해 주세요.');
+ if(!profile.exists())throw Error('회원 정보 등록이 완료되지 않았습니다. 로그인 화면으로 돌아가 회원가입을 선택한 뒤 같은 이메일과 비밀번호로 등록을 이어서 진행해 주세요.');
  verifiedPackQaUid187=String(profile.data().username||'').trim().toLowerCase()==='test'?uid:null;
  let career=null;try{career=local.readCareerCache(uid)}catch(e){}
  const careerValidQ04=career&&career.manager!=null&&Array.isArray(career.players)&&Array.isArray(career.clubs)&&career.clubs.some(c=>c.id===career.manager);
