@@ -88,7 +88,17 @@ function clearAuthProgress(){$('auth-processing-screen')?.remove()}
 function bounded(p,label,ms=18000){let timer;return Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' 시간 초과. 네트워크를 확인하고 다시 시도해 주세요.')),ms)})]).finally(()=>clearTimeout(timer))}
 // Q01: Retry server reads only; never retry a write whose outcome is unknown.
 function isTransientSaveRead(e){return ['unavailable','deadline-exceeded','aborted','resource-exhausted','firestore/unavailable','firestore/deadline-exceeded'].includes(e?.code)||e?.code==='elevos/read-timeout'}
-async function readServerQ01(ref,label,uid,ms=12000){
+// Q06: share concurrent reads, never cache completed server reads.
+const readFlightsQ06=new Map();
+function readServerQ01(ref,label,uid,ms=12000){
+ if(auth?.currentUser?.uid!==uid)return Promise.reject(Error('계정이 변경되었습니다.'));
+ const key=JSON.stringify([uid,activationRun,ref.path,ms]);
+ if(typeof ref.path!=='string')return readServerFreshQ06(ref,label,uid,ms);
+ const existing=readFlightsQ06.get(key);if(existing)return existing;
+ const request=readServerFreshQ06(ref,label,uid,ms).finally(()=>{if(readFlightsQ06.get(key)===request)readFlightsQ06.delete(key)});
+ readFlightsQ06.set(key,request);return request;
+}
+async function readServerFreshQ06(ref,label,uid,ms=12000){
  for(let attempt=0;attempt<2;attempt++){
   if(auth?.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');
   let timer;
@@ -218,9 +228,33 @@ async function act(fn){
  try{await fn()}catch(e){clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');message(({'auth/invalid-credential':'이메일 또는 비밀번호를 확인해 주세요.','auth/email-already-in-use':'이미 가입된 이메일입니다. 로그인해 주세요.','auth/weak-password':'비밀번호는 6자 이상이어야 합니다.','auth/invalid-email':'이메일 형식을 확인해 주세요.','auth/popup-closed-by-user':'로그인 창이 닫혔습니다. 다시 시도해 주세요.','auth/network-request-failed':'네트워크 연결을 확인해 주세요.','auth/too-many-requests':'요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'})[e.code]||('처리 실패: '+(e.message||'다시 시도하세요.')))}finally{busy=false;document.querySelectorAll('#cloud-panel button').forEach(b=>b.disabled=false)}
 }
 function requireAccount(){if(!user||local.uid!==user.uid)throw Error('계정 연결을 완료하세요.');if(local.busy)throw Error('경기 종료 후 실행하세요.');return user.uid}
+// Q06: deduplicate confirmed summaries and serialize writes for each account/document.
+const summaryFlightsQ06=new Map();
+function queueSummaryQ06(uid,key,summary){
+ if(auth.currentUser?.uid!==uid||local.uid!==uid)return Promise.resolve(false);
+ const id=uid+':'+key,signature=JSON.stringify(summary);
+ let state=summaryFlightsQ06.get(id);
+ if(!state){state={confirmed:null,confirmedAt:0,tail:null,lastSignature:null};summaryFlightsQ06.set(id,state)}
+ if(state.tail&&state.lastSignature===signature)return state.tail;
+ if(!state.tail&&state.confirmed===signature&&Date.now()-state.confirmedAt<300000)return Promise.resolve(true);
+ const previous=state.tail,epoch=activationRun;
+ const task=Promise.resolve(previous).catch(()=>false).then(async()=>{
+  if(auth.currentUser?.uid!==uid||local.uid!==uid||activationRun!==epoch)return false;
+  if(state.confirmed===signature&&Date.now()-state.confirmedAt<300000)return true;
+  try{
+   await F.setDoc(F.doc(db,'users',uid,'summary',key),{...summary,updatedAt:F.serverTimestamp()});
+   state.confirmed=signature;state.confirmedAt=Date.now();return true;
+  }catch(e){state.confirmed=null;console.warn('관리자 요약 동기화 실패:',key,e);return false}
+ }).finally(()=>{if(state.tail===task){state.tail=null;state.lastSignature=null}});
+ state.tail=task;state.lastSignature=signature;return task;
+}
+async function waitSummaryQ06(uid,key,summary,label){
+ // Limit UI waiting, but retain the real write flight until it settles to prevent out-of-order writes.
+ try{await bounded(queueSummaryQ06(uid,key,summary),label,8000)}catch(e){console.warn('관리자 요약 응답 지연:',key,e)}
+}
 let activityRecordedDay='',activityPending=false;
 async function recordGameActivity(uid){
- if(auth.currentUser?.uid!==uid||local.uid!==uid||document.visibilityState==='hidden'||activityPending)return;
+ if(auth.currentUser?.uid!==uid||local.uid!==uid||document.visibilityState==='hidden'||navigator.onLine===false||activityPending)return;
  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const key=uid+':'+day;if(activityRecordedDay===key)return;
  activityPending=true;try{await F.setDoc(F.doc(db,'users',uid,'activity',day),{lastSeenAt:F.serverTimestamp()});activityRecordedDay=key}catch(e){console.warn('활동 기록 실패',e)}finally{activityPending=false}
@@ -235,16 +269,16 @@ async function syncPlaySummary(uid,save){
  const count=a=>Array.isArray(a)?a.length:0;
  const matches=Number.isSafeInteger(save.coachProgress?.total)&&save.coachProgress.total>=0?save.coachProgress.total:0;
  const wallet=Number.isFinite(save.walletGBP)?Math.max(0,Math.min(1000000000000000,save.walletGBP)):0;
- const summary={matches,wallet,squad:Array.isArray(save.players)?save.players.filter(p=>p.club===save.manager).length:0,cards:count(save.coachCards),packs:count(save.coachPacks),supply:state('all-member-supply-20261124-v1'),beta1:state('beta-support-v20261124'),beta2:state('beta-support-v2-20261124'),collection:state('beta-collection-2026'),updatedAt:F.serverTimestamp()};
- try{await bounded(F.setDoc(F.doc(db,'users',uid,'summary','play'),summary),'플레이 현황 동기화',8000)}catch(e){console.warn('플레이 요약 동기화 실패',e)}
+ const summary={matches,wallet,squad:Array.isArray(save.players)?save.players.filter(p=>p.club===save.manager).length:0,cards:count(save.coachCards),packs:count(save.coachPacks),supply:state('all-member-supply-20261124-v1'),beta1:state('beta-support-v20261124'),beta2:state('beta-support-v2-20261124'),collection:state('beta-collection-2026')};
+ await waitSummaryQ06(uid,'play',summary,'플레이 현황 동기화');
 }
 
 async function syncCareerSummary(uid,save){
  if(auth.currentUser?.uid!==uid||local.uid!==uid||!save||save.manager==null)return;
  const club=save.clubs?.find(c=>c.id===save.manager);if(!club)return;
  const level=save.coachProgress?.level,portrait=save.coachPortraitId52;
- const summary={coachName:String(save.coachName||'').slice(0,80),level:Number.isInteger(level)&&level>=1&&level<=100000?level:1,portraitId:Number.isInteger(portrait)&&portrait>=0&&portrait<=35?portrait:-1,clubName:String(club.nameKo||club.name||'').slice(0,100),season:String(save.season??'').slice(0,40),round:Number.isInteger(save.round)&&save.round>=0&&save.round<=100000?save.round:0,updatedAt:F.serverTimestamp()};
- try{await bounded(F.setDoc(F.doc(db,'users',uid,'summary','current'),summary),'감독 정보 동기화',8000)}catch(e){console.warn('감독 요약 동기화 실패',e)}
+ const summary={coachName:String(save.coachName||'').slice(0,80),level:Number.isInteger(level)&&level>=1&&level<=100000?level:1,portraitId:Number.isInteger(portrait)&&portrait>=0&&portrait<=35?portrait:-1,clubName:String(club.nameKo||club.name||'').slice(0,100),season:String(save.season??'').slice(0,40),round:Number.isInteger(save.round)&&save.round>=0&&save.round<=100000?save.round:0};
+ await waitSummaryQ06(uid,'current',summary,'감독 정보 동기화');
 }
 
 const ptr=uid=>F.doc(db,'users',uid,'career','main');
@@ -308,7 +342,7 @@ async function upload(options={}){
  const delta=planDeltaQ03(prepared,manifest,remoteRevision===base?confirmedPayloadQ02:null,uid,base,rev);
  if(delta.jobs.length===0){
   if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
-  clearDirty(uid,token);message('최신 게임 기록이 이미 저장되어 있습니다.');return;
+  clearDirty(uid,token);message('최신 게임 기록이 이미 저장되어 있습니다.');await Promise.allSettled([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);return;
  }
  const {jobs,refs,schema}=delta;
  // Only changed groups get new documents; older group references are direct, not chains.
@@ -370,7 +404,7 @@ async function boot(){
   const [app,authModule,firestoreModule]=await bounded(Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]),'Firebase 연결');A=authModule;F=firestoreModule;
   const instance=app.initializeApp(cfg);auth=A.getAuth(instance);db=F.getFirestore(instance);
   await bounded(A.setPersistence(auth,A.browserSessionPersistence),'인증 초기화');
-  A.onAuthStateChanged(auth,u=>{ready=true;if(registering)return;activateAccount(u).catch(authLoadFailure)});
+  A.onAuthStateChanged(auth,u=>{ready=true;if(registering)return;const expected=activationRun+1;activateAccount(u).catch(e=>{if(activationRun===expected&&(auth.currentUser?.uid||null)===(u?.uid||null))authLoadFailure(e)})});
  }catch(e){authLoadFailure(e)}
 }
 function chooseCareerRecord165(pendingLocal){
@@ -429,7 +463,7 @@ async function activateAccount(u){
  const btn=$('cloud-account');if(btn)btn.textContent='내 계정';$('cloud-modal')?.remove();clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');window.ElevosEntry?.release();
  startGameActivity(uid);
  if(career&&dirtyToken(uid))queueCareerSaveV10();
- if(career){syncCareerSummary(uid,career);syncPlaySummary(uid,career)}
+ if(careerValidQ04&&remoteRevision&&snap.exists()&&!dirtyToken(uid)){syncCareerSummary(uid,career);syncPlaySummary(uid,career)}
 }
 
 if(sessionStorage.getItem('elevos-auth-progress')==='1'&&window.ElevosEntry?.isOpen())authProgress('게임 기록을 불러오고 있습니다.');
