@@ -45,12 +45,13 @@ function draw(){
  }else{
   p.querySelector('h2').textContent='내 계정';
   let legacy=false;try{legacy=local.guestSnapshot()?.save?.manager!=null}catch(e){}
-  p.insertAdjacentHTML('beforeend','<div class="account-simple"><div class="account-email"><small>로그인 이메일</small><strong id="cloud-identity"></strong></div><div class="account-auto"><span class="account-auto-dot"></span><div><strong>자동 저장</strong><p>주요 경기 진행 시 자동 저장하며 로그아웃할 때 최종 저장합니다.</p></div></div><button class="btn sub account-signout" id="cloud-logout">게임 로그아웃</button><details class="account-recovery"><summary>저장 및 복원 관리</summary><div class="cloud-actions"><button class="btn sub" id="cloud-upload">지금 저장</button><button class="btn sub" id="cloud-download">저장 기록 불러오기</button>'+(legacy?'<button class="btn sub" id="cloud-migrate">이전 테스트 기록 가져오기</button>':'')+'</div></details></div>');
+  p.insertAdjacentHTML('beforeend','<div class="account-simple"><div class="account-email"><small>로그인 이메일</small><strong id="cloud-identity"></strong></div><div class="account-auto"><span class="account-auto-dot"></span><div><strong>자동 저장</strong><p>주요 경기 진행 시 자동 저장하며 로그아웃할 때 최종 저장합니다.</p></div></div><button class="btn sub account-signout" id="cloud-logout">게임 로그아웃</button><details class="account-recovery"><summary>저장 및 복원 관리</summary><div class="cloud-actions"><button class="btn sub" id="cloud-upload">지금 저장</button><button class="btn sub" id="cloud-download">저장 기록 불러오기</button><button class="btn sub" id="cloud-backup-q04">기기 임시 백업 내보내기</button>'+(legacy?'<button class="btn sub" id="cloud-migrate">이전 테스트 기록 가져오기</button>':'')+'</div></details></div>');
   $('cloud-identity').textContent=user.email||'회원 계정';
   mountPersonalProfile();
   const profile52=document.createElement('div');profile52.id='cloud-coach-profile52';if(typeof window.coachProfileControl52==='function')profile52.innerHTML=window.coachProfileControl52();$('cloud-identity').closest('.account-email').after(profile52);
   $('cloud-upload').onclick=()=>act(upload);
   $('cloud-download').onclick=()=>act(download);
+  $('cloud-backup-q04').onclick=()=>act(exportBackupQ04);
   if($('cloud-migrate'))$('cloud-migrate').onclick=()=>act(migrate);
   $('cloud-logout').onclick=()=>{$('cloud-modal')?.remove();if(typeof requestGameLogout==='function')requestGameLogout()};
 
@@ -129,14 +130,62 @@ function entryReset(email){if(!configured||!ready){message('계정 서비스가 
 let autoTimer=null,autoPending=false,autoFlight=null,autoBlocked=false,autoClosing=false;
 function autoStatusV10(state){window.dispatchEvent(new CustomEvent('elevos-save-status',{detail:state}));}
 const dirtyKey=uid=>local.guestKey+':uid:'+uid+':pending-cloud';let dirtySeq=0;
-function markDirty(uid){const token=Date.now()+':'+(++dirtySeq)+':'+Math.random().toString(36).slice(2);try{localStorage.setItem(dirtyKey(uid),token)}catch(e){console.warn('저장 대기 표시 실패',e)}return token}
-function dirtyToken(uid){try{return localStorage.getItem(dirtyKey(uid))}catch{return null}}
-function clearDirty(uid,token){try{if(dirtyToken(uid)===token)localStorage.removeItem(dirtyKey(uid))}catch{}}
-function queueCareerSaveV10(){const uid=local.uid;if(!uid)return;markDirty(uid);if(autoClosing||!ready||!user||uid!==user.uid)return;autoPending=true;autoStatusV10(autoBlocked?'conflict':'pending');if(autoBlocked)return;clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,1200)}
+const dirtyFallbackQ04=new Map();
+function markDirty(uid){const token=Date.now()+':'+(++dirtySeq)+':'+Math.random().toString(36).slice(2);try{localStorage.setItem(dirtyKey(uid),token);dirtyFallbackQ04.delete(uid)}catch(e){dirtyFallbackQ04.set(uid,token);console.warn('저장 대기 표시 실패',e)}return token}
+function dirtyToken(uid){if(dirtyFallbackQ04.has(uid))return dirtyFallbackQ04.get(uid);try{return localStorage.getItem(dirtyKey(uid))}catch{return null}}
+function clearDirty(uid,token){if(!token||dirtyToken(uid)!==token)return;try{localStorage.removeItem(dirtyKey(uid));dirtyFallbackQ04.delete(uid)}catch(e){if(dirtyFallbackQ04.get(uid)===token)dirtyFallbackQ04.delete(uid);console.warn('저장 대기 표시 정리 실패',e)}}
+// Q04: an independent, account-scoped recovery copy; never a source for automatic cloud overwrite.
+let backupDbQ04=null,backupTimerQ04=null;
+function openBackupQ04(){
+ if(backupDbQ04)return backupDbQ04;
+ backupDbQ04=new Promise((resolve,reject)=>{
+  if(!globalThis.indexedDB){reject(Error('기기 백업 저장소를 사용할 수 없습니다.'));return}
+  const req=indexedDB.open('elevos-career-recovery-q04',1);
+  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('pending'))req.result.createObjectStore('pending',{keyPath:'uid'})};
+  req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>{db.close();backupDbQ04=null};resolve(db)};
+  req.onerror=()=>reject(req.error||Error('기기 백업 연결 실패'));
+  req.onblocked=()=>reject(Error('기기 백업 연결이 지연되고 있습니다.'));
+ }).catch(e=>{backupDbQ04=null;throw e});
+ return backupDbQ04;
+}
+function validBackupQ04(data){const v=data?.save;return !!(v&&v.version===2&&v.manager!=null&&Array.isArray(v.players)&&Array.isArray(v.clubs)&&v.clubs.some(c=>c.id===v.manager)&&data.archive&&typeof data.archive==='object'&&!Array.isArray(data.archive))}
+function backupBaseQ04(uid){try{return localStorage.getItem(local.guestKey+':uid:'+uid+':cloud-revision')||null}catch{return remoteRevision||null}}
+async function writeBackupQ04(uid,token,snapshot){
+ if(!uid||!token||auth?.currentUser?.uid!==uid||local.uid!==uid||dirtyToken(uid)!==token||!validBackupQ04(snapshot))return false;
+ const record={uid,token,base:backupBaseQ04(uid),at:Date.now(),snapshot};
+ const idb=await openBackupQ04();
+ if(auth?.currentUser?.uid!==uid||local.uid!==uid||dirtyToken(uid)!==token)return false;
+ return new Promise((resolve,reject)=>{
+  const tx=idb.transaction('pending','readwrite'),store=tx.objectStore('pending');
+  let written=false;const req=store.get(uid);
+  req.onsuccess=()=>{if(auth?.currentUser?.uid!==uid||local.uid!==uid||dirtyToken(uid)!==token)return;if(req.result?.at>record.at)return;store.put(record);written=true};
+  tx.oncomplete=()=>resolve(written);tx.onerror=()=>reject(tx.error||Error('기기 백업 실패'));tx.onabort=()=>reject(tx.error||Error('기기 백업 중단'));
+ });
+}
+function captureBackupQ04(uid=local.uid,token=dirtyToken(uid),snapshot){
+ if(!uid||!token||auth?.currentUser?.uid!==uid||local.uid!==uid)return;
+ try{writeBackupQ04(uid,token,snapshot||local.snapshot()).catch(e=>console.warn('기기 임시 백업 실패',e))}catch(e){console.warn('기기 임시 백업 실패',e)}
+}
+function scheduleBackupQ04(){if(backupTimerQ04!==null)return;backupTimerQ04=setTimeout(()=>{backupTimerQ04=null;captureBackupQ04()},500)}
+async function readBackupQ04(uid){
+ const idb=await openBackupQ04();
+ return new Promise((resolve,reject)=>{const tx=idb.transaction('pending','readonly'),req=tx.objectStore('pending').get(uid);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error||Error('기기 백업 조회 실패'));tx.onabort=()=>reject(tx.error||Error('기기 백업 조회 중단'))});
+}
+function recoverableBackupQ04(record,uid,token,base){return !!(record&&record.uid===uid&&token&&record.token===token&&record.base===base&&validBackupQ04(record.snapshot))}
+async function exportBackupQ04(){
+ const uid=requireAccount(),record=await bounded(readBackupQ04(uid),'기기 백업 조회',3000);
+ if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
+ if(!record||record.uid!==uid||!validBackupQ04(record.snapshot))throw Error('이 기기에 임시 백업이 없습니다.');
+ const blob=new Blob([JSON.stringify({format:'ELEVOS_BACKUP_V1',...record.snapshot})],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='elevos-recovery-'+new Date(record.at).toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('기기 임시 백업 파일을 내보냈습니다. 개인 기록이므로 안전하게 보관하세요.');
+}
+function queueCareerSaveV10(){const uid=local.uid;if(!uid)return;markDirty(uid);scheduleBackupQ04();if(autoClosing||!ready||!user||uid!==user.uid)return;autoPending=true;autoStatusV10(autoBlocked?'conflict':'pending');if(autoBlocked)return;clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,1200)}
 window.addEventListener('beforeunload',e=>{if(local.uid&&(autoPending||autoFlight||dirtyToken(local.uid))){e.preventDefault();e.returnValue=''}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&autoPending&&!autoBlocked){clearTimeout(autoTimer);flushCareerSaveV10()}});
-async function flushCareerSaveV10(){if(autoClosing||!autoPending||autoBlocked||!ready||!user||local.uid!==user.uid)return;if(busy||autoFlight){autoTimer=setTimeout(flushCareerSaveV10,2000);return}autoPending=false;busy=true;autoStatusV10('saving');autoFlight=upload({automatic:true,background:true});try{await autoFlight;autoStatusV10(autoPending?'pending':'saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');console.warn('자동 저장 실패',e)}finally{autoFlight=null;busy=false;if(autoPending&&!autoBlocked&&!autoClosing)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
-window.addEventListener('online',()=>{if(autoPending&&!autoBlocked)queueCareerSaveV10()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){captureBackupQ04();if(autoPending&&!autoBlocked){clearTimeout(autoTimer);flushCareerSaveV10()}}});
+window.addEventListener('pagehide',()=>captureBackupQ04());
+window.addEventListener('offline',()=>{captureBackupQ04();if(autoPending)autoStatusV10('pending')});
+async function flushCareerSaveV10(){if(autoClosing||!autoPending||autoBlocked||!ready||!user||local.uid!==user.uid)return;if(navigator.onLine===false){captureBackupQ04();return}if(busy||autoFlight){autoTimer=setTimeout(flushCareerSaveV10,2000);return}autoPending=false;busy=true;autoStatusV10('saving');autoFlight=upload({automatic:true,background:true});try{await autoFlight;autoStatusV10(autoPending||dirtyToken(local.uid)?'pending':'saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');console.warn('자동 저장 실패',e)}finally{autoFlight=null;busy=false;if(autoPending&&!autoBlocked&&!autoClosing&&navigator.onLine!==false)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
+window.addEventListener('online',()=>{if(local.uid&&dirtyToken(local.uid)&&!autoBlocked){autoPending=true;clearTimeout(autoTimer);autoTimer=setTimeout(flushCareerSaveV10,300)}});
 async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');const uid=user.uid;clearTimeout(autoTimer);autoTimer=null;autoPending=false;busy=true;try{await upload({automatic:true});if(local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');autoBlocked=false;if(autoPending||dirtyToken(uid))throw Error('저장 중 변경된 기록이 있습니다. 다시 저장해 주세요.');autoStatusV10('saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';autoStatusV10(autoBlocked?'conflict':'failed');throw e}finally{busy=false;clearTimeout(autoTimer);autoTimer=null;if(autoPending&&!autoBlocked&&!autoClosing)autoTimer=setTimeout(flushCareerSaveV10,15000)}}
 async function redeemCouponV1(code){if(!auth?.currentUser||!ready)throw Error('로그인 후 이용해 주세요.');const {getFunctions,httpsCallable}=await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js');try{const result=await httpsCallable(getFunctions(auth.app,'asia-northeast3'),'redeemCoupon',{timeout:20000})({code});return result.data.receipt}catch(err){const key=String(err?.code||'').replace(/^functions\//,'');const messages={'unauthenticated':'로그인 세션이 만료되었습니다. 다시 로그인해 주세요.','invalid-argument':'쿠폰 코드 형식을 확인해 주세요.','failed-precondition':'사용할 수 없거나 만료된 쿠폰입니다.','resource-exhausted':'요청이 많습니다. 잠시 후 다시 시도해 주세요.','permission-denied':'쿠폰 등록 권한을 확인해 주세요.','deadline-exceeded':'서버 응답이 지연되고 있습니다. 같은 쿠폰으로 다시 시도해 주세요.','not-found':'쿠폰 서비스가 준비되지 않았습니다. 운영팀에 문의해 주세요.'};console.warn('Coupon service error:',key||'unknown');throw Error(messages[key]||'쿠폰 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요. (재시도 시 중복 지급되지 않습니다.)')}} 
 window.ElevosCloud={betaSupplyCohort150(uid){if(!uid||!user||user.uid!==uid||auth?.currentUser?.uid!==uid||!ready)return null;const t=Date.parse(user.metadata?.creationTime||'');return Number.isFinite(t)?(t>=Date.parse('2026-11-25T14:40:00+09:00')?'new':'legacy'):null},redeemCouponV1,checkCoachName,open,entryLogin,entryReset,logoutSavedGame,manualSave136,queueCareerSaveV10,isAuthenticatedCareer(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid)},isTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&['info@9works.kr','hhs0579@naver.com','kimdanbi1226@naver.com'].includes(String(u.email||'').trim().toLowerCase()))},isPackQaAccount187(uid){return !!(uid&&verifiedPackQaUid187===uid&&ready&&auth?.currentUser?.uid===uid&&user?.uid===uid&&local.uid===uid)},isOriginalTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&String(u.email||'').trim().toLowerCase()==='info@9works.kr')}};
@@ -228,7 +277,7 @@ function createSaveRevisionId(){
 }
 async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
- const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
+ const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}captureBackupQ04(uid,token,snapshot);const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
  const prepared=preparePayloadQ02(groups),{payload,counts}=prepared;
  const manifest=before.exists()?manifestQ03(before.data()):null,rev=createSaveRevisionId();
@@ -247,7 +296,7 @@ async function upload(options={}){
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
   remoteRevision=rev;confirmedPayloadQ02={uid,rev,payload,refs};
   try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}
-  clearDirty(uid,token);message('클라우드 저장 완료');
+  clearDirty(uid,token);if(dirtyToken(uid))captureBackupQ04(uid);message('클라우드 저장 완료');
   // The career pointer is committed before optional dashboard summaries.
   await Promise.allSettled([syncCareerSummary(uid,snapshot.save),syncPlaySummary(uid,snapshot.save)]);
 }
@@ -326,6 +375,21 @@ async function activateAccount(u){
  if(!profile.exists())throw Error('회원 정보 등록이 완료되지 않았습니다. 관리자에게 문의해 주세요.');
  verifiedPackQaUid187=String(profile.data().username||'').trim().toLowerCase()==='test'?uid:null;
  let career=null;try{career=local.readCareerCache(uid)}catch(e){}
+ const careerValidQ04=career&&career.manager!=null&&Array.isArray(career.players)&&Array.isArray(career.clubs)&&career.clubs.some(c=>c.id===career.manager);
+ const pendingQ04=dirtyToken(uid),serverBaseQ04=snap.exists()?snap.data().revision:null;
+ if(!careerValidQ04&&pendingQ04){
+  const backup=await bounded(readBackupQ04(uid),'기기 임시 백업 확인',2500).catch(()=>null);
+  if(run!==activationRun||auth.currentUser?.uid!==uid)return;
+  if(recoverableBackupQ04(backup,uid,pendingQ04,serverBaseQ04)&&dirtyToken(uid)===pendingQ04){
+   if(confirm('서버에 전송되지 않은 이 기기의 임시 백업을 찾았습니다. 복구하여 계속할까요?')){
+    local.cacheSnapshot(uid,backup.snapshot);
+    const restoredCareer=local.readCareerCache(uid);
+    if(!restoredCareer||restoredCareer.manager==null||!Array.isArray(restoredCareer.players)||!Array.isArray(restoredCareer.clubs)||!restoredCareer.clubs.some(c=>c.id===restoredCareer.manager))throw Error('기기 기록을 복구하지 못했습니다. 임시 백업은 유지됩니다.');
+    if(serverBaseQ04)restoreMarker(uid,serverBaseQ04);
+    local.switchAccount(uid);return;
+   }
+  }
+ }
  if(snap.exists()){
   remoteRevision=snap.data().revision;
   let marker=null;try{marker=localStorage.getItem(localKey+':cloud-revision')}catch(e){}
