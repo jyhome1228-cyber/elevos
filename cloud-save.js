@@ -183,6 +183,16 @@ function split(data){
 }
 function join(groups){return {save:{...groups.core,players:groups.players,calendarMatchArchive:groups.calendar,...groups.cards,economyLog:groups.economy},archive:{matches:groups.matches,seasons:groups.seasons,cups:groups.cups,leagueScores:groups.scores}}}
 function chunks(value){const str=JSON.stringify(value??null),out=[];for(let i=0;i<str.length;i+=100000)out.push(str.slice(i,i+100000));return out}
+// Q02: only a server-confirmed revision with exactly matching payload can skip a write.
+let confirmedPayloadQ02=null;
+function preparePayloadQ02(groups){
+ const payload={},counts={},jobs=[];
+ for(const key of parts){const list=chunks(groups[key]);payload[key]=list;counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++)jobs.push([key,i,list[i]])}
+ return {payload,counts,jobs};
+}
+function samePayloadQ02(a,b){
+ return !!a&&!!b&&parts.every(key=>Array.isArray(a[key])&&Array.isArray(b[key])&&a[key].length===b[key].length&&a[key].every((value,i)=>value===b[key][i]));
+}
 // Generate a revision ID even when randomUUID is unavailable (e.g. HTTP).
 function createSaveRevisionId(){
  const c=globalThis.crypto;
@@ -197,14 +207,19 @@ async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
  const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
- const rev=createSaveRevisionId(),counts={},jobs=[];
- for(const key of parts){const list=chunks(groups[key]);counts[key]=list.length;if(list.length>200)throw Error('저장 용량 제한을 초과했습니다.');for(let i=0;i<list.length;i++)jobs.push([key,i,list[i]])}
+ const {payload,counts,jobs}=preparePayloadQ02(groups);
+ if(base&&remoteRevision===base&&confirmedPayloadQ02?.uid===uid&&confirmedPayloadQ02.rev===base&&samePayloadQ02(confirmedPayloadQ02.payload,payload)){
+  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
+  clearDirty(uid,token);message('최신 게임 기록이 이미 저장되어 있습니다.');return;
+ }
+ const rev=createSaveRevisionId();
  // Each batch writes only a new revision. An interrupted batch never replaces the current pointer.
- for(let j=0;j<jobs.length;j+=12){if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+12))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
+ // Keep batches comfortably under the Firestore 10 MiB request limit.
+ for(let j=0;j<jobs.length;j+=20){if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');const batch=F.writeBatch(db);for(const [key,i,data] of jobs.slice(j,j+20))batch.set(partRef(uid,rev,key,i),{data});message('게임 기록을 저장하고 있습니다.');await bounded(batch.commit(),'저장 데이터 전송',30000)}
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
  await F.runTransaction(db,async tx=>{const current=await tx.get(ptr(uid));if((current.exists()?current.data().revision:null)!==base)throw Error('다른 기기의 저장이 감지되었습니다.');tx.set(ptr(uid),{revision:rev,counts,schema:1,updatedAt:F.serverTimestamp()})});
  if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
-  remoteRevision=rev;
+  remoteRevision=rev;confirmedPayloadQ02={uid,rev,payload};
   try{localStorage.setItem(local.guestKey+':uid:'+uid+':cloud-revision',rev)}catch(e){console.warn('클라우드 저장 완료, 기기 캐시 갱신 실패',e);try{localStorage.removeItem(local.guestKey+':uid:'+uid+':cloud-revision')}catch(_){}}
   clearDirty(uid,token);message('클라우드 저장 완료');
   // The career pointer is committed before optional dashboard summaries.
@@ -274,7 +289,7 @@ function chooseCareerRecord165(pendingLocal){
  });
 }
 async function activateAccount(u){
- const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;
+ const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false}user=u;remoteRevision=null;confirmedPayloadQ02=null;
  if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
  if(!window.ElevosEntry?.isOpen())return;
  authProgress('회원 정보 확인 중');
