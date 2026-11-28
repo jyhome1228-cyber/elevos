@@ -164,6 +164,9 @@ async function registerMember(username,email,phone,password,realName,betaContact
 function entryLogin(email,password){if(!configured){message('회원 인증 서비스 연결 준비 중입니다.');return}if(!ready){message('계정 서비스 연결 중입니다.');return}if(!email.includes('@')){message('가입한 이메일 주소를 입력해 주세요.');return}return act(async()=>{sessionStorage.setItem('elevos-auth-progress','1');authProgress('로그인하고 있습니다.');await A.signInWithEmailAndPassword(auth,email,password)})}
 function entryReset(email){if(!configured||!ready){message('계정 서비스가 연결되지 않았습니다.');return}if(!email||!email.includes('@')){message('비밀번호 재설정을 위해 가입 이메일을 입력해 주세요.');return}return act(async()=>{await A.sendPasswordResetEmail(auth,email);message('비밀번호 재설정 이메일 발송을 요청했습니다.')})}
 let autoTimer=null,autoPending=false,autoFlight=null,autoBlocked=false,autoClosing=false;
+// P09: bound continuous debounce without bypassing retry backoff or account guards.
+const AUTO_MAX_WAIT_P09=5000;let autoQueuedAtP09=null;
+function autoDelayP09(delay,now,queuedAt,retryAt,blockedByWork){const remaining=queuedAt===null?delay:Math.max(0,AUTO_MAX_WAIT_P09-(now-queuedAt));return Math.max(blockedByWork?delay:Math.min(delay,remaining),retryAt-now,0)}
 // Q09: exponential retry, one timer, and no network attempts while offline.
 let retryCountQ09=0,retryAfterQ09=0;
 function retryDelayQ09(count){return Math.min(120000,5000*2**Math.min(5,Math.max(0,count-1)))}
@@ -172,7 +175,7 @@ function noteRetryQ09(){retryCountQ09++;retryAfterQ09=Date.now()+retryDelayQ09(r
 function scheduleRetryQ09(delay=1200){
  clearTimeout(autoTimer);autoTimer=null;
  if(autoClosing||autoBlocked||!autoPending||navigator.onLine===false)return;
- autoTimer=setTimeout(flushCareerSaveV10,Math.max(delay,retryAfterQ09-Date.now(),0));
+ const now=Date.now();autoTimer=setTimeout(flushCareerSaveV10,autoDelayP09(delay,now,autoQueuedAtP09,retryAfterQ09,!!(busy||autoFlight)));
 }
 function offlineErrorQ09(){const e=Error('인터넷 연결이 끊겼습니다. 기기 기록을 유지하고 연결 후 다시 저장해 주세요.');e.code='unavailable';return e}
 function checkOnlineQ09(){if(navigator.onLine===false)throw offlineErrorQ09()}
@@ -231,7 +234,7 @@ async function exportBackupQ04(){
 function queueCareerSaveV10(){
  const uid=local.uid;if(!uid)return;markDirty(uid);scheduleBackupQ04();
  if(autoClosing||!ready||!user||uid!==user.uid)return;
- autoPending=true;autoStatusV10(autoBlocked?'conflict':'pending');scheduleRetryQ09();
+ autoPending=true;if(autoQueuedAtP09===null)autoQueuedAtP09=Date.now();autoStatusV10(autoBlocked?'conflict':'pending');scheduleRetryQ09();
 }
 window.addEventListener('beforeunload',e=>{if(local.uid&&(autoPending||autoFlight||dirtyToken(local.uid))){e.preventDefault();e.returnValue=''}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){captureBackupQ04();if(autoPending&&!autoBlocked&&Date.now()>=retryAfterQ09){clearTimeout(autoTimer);flushCareerSaveV10()}}});
@@ -242,14 +245,14 @@ async function flushCareerSaveV10(){
  if(navigator.onLine===false){captureBackupQ04();return}
  if(Date.now()<retryAfterQ09){scheduleRetryQ09();return}
  if(busy||autoFlight){scheduleRetryQ09(2000);return}
- const uid=user.uid,epoch=activationRun;autoPending=false;busy=true;autoStatusV10('saving');
+ const uid=user.uid,epoch=activationRun;autoQueuedAtP09=null;autoPending=false;busy=true;autoStatusV10('saving');
  autoFlight=upload({automatic:true,background:true});
- try{await autoFlight;if(auth.currentUser?.uid===uid&&local.uid===uid&&activationRun===epoch){resetRetryQ09();autoPending=autoPending||!!dirtyToken(uid);autoStatusV10(autoPending?'pending':'saved')}}
+ try{await autoFlight;if(auth.currentUser?.uid===uid&&local.uid===uid&&activationRun===epoch){resetRetryQ09();autoPending=autoPending||!!dirtyToken(uid);if(autoPending&&autoQueuedAtP09===null)autoQueuedAtP09=Date.now();autoStatusV10(autoPending?'pending':'saved')}}
  catch(e){if(auth.currentUser?.uid===uid&&local.uid===uid&&activationRun===epoch){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';if(!autoBlocked)noteRetryQ09();autoStatusV10(autoBlocked?'conflict':navigator.onLine===false?'pending':'failed');window.ElevosDiagnosticsQ10?.record('cloud-save',e);console.warn('자동 저장 실패',e)}}
  finally{autoFlight=null;busy=false;scheduleRetryQ09()}
 }
 window.addEventListener('online',()=>{if(local.uid&&user?.uid===local.uid&&!autoBlocked&&(autoPending||dirtyToken(local.uid))){autoPending=true;resetRetryQ09();scheduleRetryQ09(300)}});
-async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');const uid=user.uid;clearTimeout(autoTimer);autoTimer=null;autoPending=false;busy=true;try{await upload({automatic:true});if(local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');autoBlocked=false;resetRetryQ09();if(autoPending||dirtyToken(uid))throw Error('저장 중 변경된 기록이 있습니다. 다시 저장해 주세요.');autoStatusV10('saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';if(!autoBlocked)noteRetryQ09();autoStatusV10(autoBlocked?'conflict':navigator.onLine===false?'pending':'failed');throw e}finally{busy=false;scheduleRetryQ09()}}
+async function manualSave136(){if(autoFlight)await autoFlight.catch(()=>{});if(busy)throw Error('다른 계정 작업이 진행 중입니다.');if(!configured||!ready||!user||local.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');const uid=user.uid;clearTimeout(autoTimer);autoTimer=null;autoQueuedAtP09=null;autoPending=false;busy=true;try{await upload({automatic:true});if(local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정이 변경되었습니다.');autoBlocked=false;resetRetryQ09();if(autoPending||dirtyToken(uid))throw Error('저장 중 변경된 기록이 있습니다. 다시 저장해 주세요.');autoStatusV10('saved')}catch(e){autoPending=true;autoBlocked=e.message==='다른 기기의 저장이 감지되었습니다.';if(!autoBlocked)noteRetryQ09();autoStatusV10(autoBlocked?'conflict':navigator.onLine===false?'pending':'failed');throw e}finally{busy=false;scheduleRetryQ09()}}
 async function redeemCouponV1(code){if(!auth?.currentUser||!ready)throw Error('로그인 후 이용해 주세요.');const {getFunctions,httpsCallable}=await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js');try{const result=await httpsCallable(getFunctions(auth.app,'asia-northeast3'),'redeemCoupon',{timeout:20000})({code});return result.data.receipt}catch(err){const key=String(err?.code||'').replace(/^functions\//,'');const messages={'unauthenticated':'로그인 세션이 만료되었습니다. 다시 로그인해 주세요.','invalid-argument':'쿠폰 코드 형식을 확인해 주세요.','failed-precondition':'사용할 수 없거나 만료된 쿠폰입니다.','resource-exhausted':'요청이 많습니다. 잠시 후 다시 시도해 주세요.','permission-denied':'쿠폰 등록 권한을 확인해 주세요.','deadline-exceeded':'서버 응답이 지연되고 있습니다. 같은 쿠폰으로 다시 시도해 주세요.','not-found':'쿠폰 서비스가 준비되지 않았습니다. 운영팀에 문의해 주세요.'};console.warn('Coupon service error:',key||'unknown');throw Error(messages[key]||'쿠폰 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요. (재시도 시 중복 지급되지 않습니다.)')}} 
 window.ElevosCloud={betaSupplyCohort150(uid){if(!uid||!user||user.uid!==uid||auth?.currentUser?.uid!==uid||!ready)return null;const t=Date.parse(user.metadata?.creationTime||'');return Number.isFinite(t)?(t>=Date.parse('2026-11-25T14:40:00+09:00')?'new':'legacy'):null},redeemCouponV1,checkCoachName,open,entryLogin,entryReset,logoutSavedGame,manualSave136,queueCareerSaveV10,isAuthenticatedCareer(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid)},isTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&['info@9works.kr','hhs0579@naver.com','kimdanbi1226@naver.com'].includes(String(u.email||'').trim().toLowerCase()))},isPackQaAccount187(uid){return !!(uid&&verifiedPackQaUid187===uid&&ready&&auth?.currentUser?.uid===uid&&user?.uid===uid&&local.uid===uid)},isOriginalTestAccount(uid){const u=auth?.currentUser;return !!(ready&&u&&user?.uid===uid&&u.uid===uid&&local.uid===uid&&String(u.email||'').trim().toLowerCase()==='info@9works.kr')}};
 async function act(fn){
@@ -383,7 +386,7 @@ async function reconcileCommitQ09(uid,base){
 }
 async function upload(options={}){
  const automatic=options.automatic===true;const uid=automatic?user?.uid:requireAccount();if(!uid||local.uid!==uid||auth.currentUser?.uid!==uid)throw Error('계정 연결을 확인해 주세요.');if(!automatic&&!confirm('현재 계정의 로컬 기록을 클라우드에 저장할까요?'))return;
- checkOnlineQ09();const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic){clearDirty(uid,token);return}throw Error('저장할 커리어가 없습니다.')}captureBackupQ04(uid,token,snapshot);const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
+ checkOnlineQ09();const token=dirtyToken(uid),snapshot=local.snapshot();if(snapshot.save?.manager==null){if(automatic&&!token)return;throw Error('저장할 커리어가 없습니다. 현재 저장 대기 기록은 유지됩니다.')}captureBackupQ04(uid,token,snapshot);const groups=split(snapshot),before=await readServerQ01(ptr(uid),'저장 기록 확인',uid),base=before.exists()?before.data().revision:null;
  await reconcileCommitQ09(uid,base);
  if(base&&remoteRevision!==base){if(options.background)throw Error('다른 기기의 저장이 감지되었습니다.');message('기존 클라우드 기록이 있습니다. 저장 여부를 확인하세요.');if(!confirm('현재 기록을 클라우드에 저장할까요? 이전 리비전은 보존됩니다.')){if(automatic)throw Error('클라우드 저장이 취소되었습니다. 로그아웃하지 않았습니다.');return}}
  const prepared=preparePayloadQ02(groups),{payload,counts}=prepared;
@@ -416,7 +419,7 @@ async function logoutSavedGame(){
   if(autoFlight)await autoFlight.catch(()=>{});
   if(busy)throw Error('다른 계정 작업을 완료한 뒤 다시 시도하세요.');
   if(!configured||!ready||!user||local.uid!==user.uid||auth.currentUser?.uid!==user.uid)throw Error('로그인 상태를 확인해 주세요.');
-  uid=user.uid;busy=true;ownsBusy=true;autoPending=false;
+  uid=user.uid;busy=true;ownsBusy=true;autoQueuedAtP09=null;autoPending=false;
   await upload({automatic:true});
   if(auth.currentUser?.uid!==uid||local.uid!==uid)throw Error('계정이 변경되었습니다.');
   if(autoPending||dirtyToken(uid))throw Error('저장 중 새로 변경된 기록이 있습니다. 다시 로그아웃해 주세요.');
@@ -474,7 +477,7 @@ function chooseCareerRecord165(pendingLocal){
  });
 }
 async function activateAccount(u){
- const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoPending=false;autoBlocked=false;resetRetryQ09()}user=u;remoteRevision=null;confirmedPayloadQ02=null;
+ const run=++activationRun;verifiedPackQaUid187=null;if(user?.uid!==u?.uid){clearTimeout(autoTimer);autoTimer=null;autoQueuedAtP09=null;autoPending=false;autoBlocked=false;resetRetryQ09()}user=u;remoteRevision=null;confirmedPayloadQ02=null;
  if(!u){clearInterval(activityTimer);clearAuthProgress();sessionStorage.removeItem('elevos-auth-progress');if(local.uid){sessionStorage.removeItem('elevos-active-uid');sessionStorage.setItem('elevos-signed-out','1');location.replace(location.pathname)}return}
  if(!window.ElevosEntry?.isOpen())return;
  authProgress('회원 정보 확인 중');
