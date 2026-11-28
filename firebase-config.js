@@ -10,7 +10,7 @@ window.ELEVOS_FIREBASE_CONFIG = {
 
 // Public-site daily unique browser count. Never affects game or authentication.
 if (/^\/(?:home|about|guide|events|hall|notice|community|studio|login|register)(?:\.html)?\/?$/.test(location.pathname)) {
-  (async () => {
+  const recordVisit = async () => {
     try {
       const date = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
       const part = type => date.find(p=>p.type===type).value;
@@ -29,5 +29,23 @@ if (/^\/(?:home|about|guide|events|hall|notice|community|studio|login|register)(
       await store.setDoc(store.doc(db,'siteVisitors',day+'_'+id),{createdAt:store.serverTimestamp()});
       localStorage.setItem('elevos-visitor-day',day);
     } catch (_) { /* Analytics must not interrupt visitors. */ }
-  })();
+  };
+  // Let the first paint proceed before starting noncritical analytics imports.
+  // Schedule once, with a bounded idle wait; preserve the existing daily deduplication.
+  let visitScheduled = false;
+  const scheduleVisit = () => {
+    if (visitScheduled) return;
+    visitScheduled = true;
+    document.removeEventListener('visibilitychange', onVisibility);
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(() => { void recordVisit(); }, {timeout: 1000});
+    else setTimeout(() => { void recordVisit(); }, 100);
+  };
+  const onVisibility = () => { if (document.visibilityState === 'hidden') scheduleVisit(); };
+  document.addEventListener('visibilitychange', onVisibility);
+  if (document.visibilityState === 'hidden') scheduleVisit();
+  else if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(scheduleVisit));
+    // Hidden tabs can suspend animation frames; record on visibility change instead.
+    // The one-shot guard also prevents duplicate scheduling on fast tab switches.
+  } else scheduleVisit();
 }
