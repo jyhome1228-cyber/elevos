@@ -1,0 +1,22 @@
+# ELEVOS (일레보스) — Managing Soccer
+
+> ELEVOS is an independent Korean-language browser-based football management simulation by TRIPLE FROG GAMES. It combines fictional football club management, player card collection, enhancement, development, tactics, transfer markets and league/cup simulations. Full gameplay is designed for PC and tablet browsers; smartphones can access public informational pages.
+
+ELEVOS is not affiliated with FIFA Online, FC Online or Football Manager. Beta features and balance may change; refer to the current game interface and official announcements for exact probabilities, rewards and eligibility. Public information is accessible without login; gameplay requires an account.
+
+## Official information
+- [Official website](https://elevos.co.kr/home): Game overview and entry.
+- [Official FAQ](https://elevos.co.kr/faq.html): 34 direct answers about gameplay, supported devices, cards, tactics and club management.
+- [Game overview](https://elevos.co.kr/about.html): Features and game systems.
+- [Developer](https://elevos.co.kr/studio.html): Official development team information.
+- [Game guide](https://elevos.co.kr/guide.html): Gameplay instructions.
+- [Hall of fame](https://elevos.co.kr/hall.html): Fictional player collections and stories.
+
+## System guides
+- [Player enhancement](https://elevos.co.kr/player-enhancement.html): Card upgrades and rules.
+- [Player development](https://elevos.co.kr/player-development.html): Player growth.
+- [Football tactics](https://elevos.co.kr/football-tactics.html): Formations and tactics.
+- [Transfer market](https://elevos.co.kr/transfer-market.html): Recruitment and squad planning.
+- [Announcements](https://elevos.co.kr/notice.html): Current updates.
+- [Events](https://elevos.co.kr/events.html): Current events and rewards.
+- [Beta information](https://elevos.co.kr/beta.html): Beta participation information.
