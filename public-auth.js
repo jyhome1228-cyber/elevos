@@ -1,9 +1,9 @@
 import './diagnostics-q10.js?v=1';
-import{initializeApp}from'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+import{initializeApp,getApps,getApp}from'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
 import{getAuth,setPersistence,browserSessionPersistence,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail}from'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import{getFirestore,doc,runTransaction,getDocFromServer,serverTimestamp}from'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-const $=id=>document.getElementById(id),app=initializeApp(window.ELEVOS_FIREBASE_CONFIG),auth=getAuth(app),db=getFirestore(app),join=document.body.dataset.mode==='signup';
-let busy=false;const status=t=>$('auth-status').textContent=t;
+const $=id=>document.getElementById(id),app=(getApps().some(a=>a.name==='[DEFAULT]')?getApp():initializeApp(window.ELEVOS_FIREBASE_CONFIG)),auth=getAuth(app),db=getFirestore(app),join=document.body.dataset.mode==='signup';
+let busy=false,resetBusy=false;const status=t=>$('auth-status').textContent=t;
 const destination=()=>new URLSearchParams(location.search).get('next')==='community'?'./community.html':'./home.html';
 async function finishProfileQ05(api,account,fields){
  const uid=account.uid,profile=api.doc('users',uid),handle=api.doc('usernames',fields.username);
@@ -31,7 +31,7 @@ async function signupAccountQ05(api,email,password){
 }
 const api={uid:()=>auth.currentUser?.uid,doc:(...path)=>doc(db,...path),transaction:fn=>runTransaction(db,fn),timestamp:()=>serverTimestamp()};
 function boundedQ05(p,label,ms=25000){let timer;return Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' 응답이 지연되고 있습니다. 같은 이메일로 다시 시도해 주세요.')),ms)})]).finally(()=>clearTimeout(timer))}
-function enableQ05(){$('submit').disabled=false;if($('reset'))$('reset').disabled=false}
+function enableQ05(){$('submit').disabled=false;if($('reset'))$('reset').disabled=resetBusy}
 try{await setPersistence(auth,browserSessionPersistence);onAuthStateChanged(auth,async u=>{
  if(busy)return;
  if(!u){enableQ05();return}
@@ -69,6 +69,6 @@ $('auth-form').onsubmit=async e=>{
   status(({'auth/invalid-credential':'이메일 또는 비밀번호를 확인하세요.','auth/email-already-in-use':'이미 가입된 이메일입니다.','auth/network-request-failed':'인터넷 연결을 확인하고 다시 시도해 주세요.','auth/too-many-requests':'요청이 많습니다. 잠시 후 다시 시도해 주세요.','permission-denied':'회원 등록 권한을 확인하세요. 관리자에게 문의해 주세요.'})[e.code]||(e.code?'처리 실패. 연결 및 입력 정보를 확인하세요.':e.message||'다시 시도해 주세요.'));
  }finally{busy=false;enableQ05();$('password').value='';if($('confirm'))$('confirm').value=''}
 };
-if($('reset'))$('reset').onclick=async()=>{const email=$('email').value.trim();if(!$('email').checkValidity()){status('가입 이메일을 입력하세요.');return}try{await sendPasswordResetEmail(auth,email);status('비밀번호 재설정 이메일 발송을 요청했습니다.')}catch{status('재설정 요청을 처리하지 못했습니다. 이메일을 확인하세요.')}};
+if($('reset'))$('reset').onclick=async()=>{if(busy||resetBusy)return;const email=$('email').value.trim();if(!$('email').checkValidity()){status('가입 이메일을 입력하세요.');return}resetBusy=true;$('reset').disabled=true;try{await sendPasswordResetEmail(auth,email);status('비밀번호 재설정 이메일 발송을 요청했습니다.')}catch{status('재설정 요청을 처리하지 못했습니다. 이메일을 확인하세요.')}finally{resetBusy=false;$('reset').disabled=busy}};
 
 {const statusNode=$('auth-status'),button=document.createElement('button');button.type='button';button.textContent='오류 진단 파일 내보내기';button.style.cssText='background:transparent;border:0;padding:8px 0;color:inherit;text-decoration:underline;font-size:13px';button.onclick=()=>window.ElevosDiagnosticsQ10?.download();statusNode?.after(button)}
